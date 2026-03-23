@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>누볼 — 숫자야구</title>
+<title>nuball - play baseball</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -229,6 +229,29 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 .hidden{display:none!important}
 @keyframes slideIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 @media(min-width:640px){.game-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}}
+
+/* ── 8. 칸별 색상 피드백 ── */
+.log-digit.d-s{background:var(--strike-bg);border-color:var(--strike);color:var(--strike)}
+.log-digit.d-b{background:var(--ball-bg);border-color:var(--ball);color:var(--ball)}
+.log-digit.d-o{background:var(--bg2);border-color:var(--subtle);color:var(--subtle)}
+
+/* ── 3. Hold-to-forfeit ── */
+.btn-forfeit{position:relative;overflow:hidden}
+.btn-forfeit-bar{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--lose);transition:none;border-radius:0 0 8px 8px}
+.btn-forfeit.holding .btn-forfeit-bar{width:100%;transition:width .8s linear}
+
+/* ── 7. 레벨 카드 플레이 뱃지 ── */
+.lvl-played{font-size:10px;font-weight:800;color:var(--win);margin-top:3px}
+.lvl-played.lose{color:var(--lose)}
+.lvl-card.played{opacity:.6;cursor:default}
+
+/* ── 9. 공유 이미지 버튼 ── */
+.share-btn{width:100%;padding:14px;background:var(--bg2);border:1.5px solid var(--border);color:var(--text);border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;margin-top:8px}
+.share-btn:hover{background:var(--border)}
+
+/* ── 4. 결과창 시도횟수 ── */
+.r-tries{font-size:28px;font-weight:900;color:rgba(255,255,255,.9);font-family:'DM Mono',monospace;margin-bottom:4px}
+.r-tries-lbl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:20px}
 </style>
 </head>
 <body>
@@ -239,6 +262,10 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <div class="hdr-inner">
     <!-- 좌측: 6. 꼬들 스타일 SVG 아이콘 -->
     <div class="hdr-acts">
+      <!-- 랭킹 -->
+      <button class="ibtn" onclick="openModal('rankingModal')" title="랭킹">
+        <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+      </button>
       <!-- 통계 -->
       <button class="ibtn" onclick="openModal('statsModal')" title="통계">
         <svg viewBox="0 0 24 24"><rect x="18" y="3" width="3" height="18" rx="1"/><rect x="12" y="8" width="3" height="13" rx="1"/><rect x="6" y="13" width="3" height="8" rx="1"/></svg>
@@ -258,12 +285,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <span class="logo-text" id="logoText">누볼</span>
     </h1>
 
-    <!-- 우측: 랭킹 + KO/EN + 다크 -->
+    <!-- 우측: KO/EN + 다크 -->
     <div class="hdr-acts">
-      <!-- 랭킹 -->
-      <button class="ibtn" onclick="openModal('rankingModal')" title="랭킹">
-        <svg viewBox="0 0 24 24"><path d="M8 6L21 6"/><path d="M8 12H21"/><path d="M8 18H21"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
-      </button>
       <div style="width:4px"></div>
       <div class="lang-seg">
         <button class="lang-btn" id="btnKo" onclick="setLang('ko')">KO</button>
@@ -298,7 +321,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <!-- GAME -->
   <div id="gameScreen">
     <div class="game-hdr">
-      <button class="back-btn" onclick="confirmForfeit()">&#127987; <span data-i18n="forfeit">포기</span></button>
+      <button class="back-btn" id="backBtn" onmousedown="startHoldForfeit(event)" onmouseup="cancelHoldForfeit()" onmouseleave="cancelHoldForfeit()" ontouchstart="startHoldForfeit(event)" ontouchend="cancelHoldForfeit()" style="user-select:none;position:relative;overflow:hidden">&#127987; <span data-i18n="forfeit">포기</span><div class="btn-forfeit-bar" id="forfeitBar"></div></button>
       <div class="game-meta">
         <div class="game-lvl-tag" id="gameLvlTag"></div>
         <div class="game-att" id="gameAttEl"></div>
@@ -314,8 +337,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </div>
         <div class="att-bar"><div class="att-bar-fill" id="attBarFill" style="width:100%"></div></div>
         <input class="num-input" type="text" inputmode="numeric" id="numberInput" placeholder="..." autocomplete="off">
-        <div class="act-btns">
-          <button class="btn-forfeit" onclick="confirmForfeit()">&#127987;</button>
+        <div class="act-btns" style="grid-template-columns:1fr">
           <button class="btn-p" onclick="handleGuess()" data-i18n="confirm">확인</button>
         </div>
       </div>
@@ -335,7 +357,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 </main>
 
 <footer>
-  누볼 &middot; 숫자야구 &middot; nuball.game
+  누볼 &middot; 숫자야구 &middot; nuball.vercel.app
   <button class="reset-btn" onclick="devReset()">리셋</button>
 </footer>
 </div>
@@ -347,7 +369,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <div class="r-ans" id="rAns">1234</div>
   <div class="r-score-lbl" data-i18n="gameScore">이번 게임 점수</div>
   <div class="r-score" id="rScore">+500</div>
-  <div class="r-att" id="rAtt"></div>
+  <div class="r-tries" id="rTries"></div>
+  <div class="r-tries-lbl" id="rTriesLbl"></div>
   <button class="btn-white" onclick="onResultClose()" data-i18n="goHome">메인으로</button>
 </div>
 
@@ -389,6 +412,10 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         <span data-i18n="copyBtn">결과 복사</span>
       </button>
+      <button class="share-btn" onclick="shareImage()">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        <span data-i18n="shareImg">이미지로 공유</span>
+      </button>
       <div class="copy-result" id="copyResultMsg"></div>
     </div>
   </div>
@@ -405,8 +432,9 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <a href="https://qr.kakaopay.com/YOUR_KAKAO_QR" target="_blank" class="pay-btn kakao-btn">📸 카카오페이로 응원하기</a>
       <a href="https://www.buymeacoffee.com/YOUR_ID" target="_blank" class="pay-btn bmc-btn">☕ Buy me a coffee</a>
       <div class="div"></div>
-      <!-- 4. 이메일 주소 수정 -->
-      <p style="font-size:12px;color:var(--subtle);text-align:center">nuball.official@proton.me</p>
+      <p style="font-size:12px;color:var(--subtle);text-align:center">
+        <span id="emailReveal" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="revealEmail()">✉️ 이메일 문의</span>
+      </p>
     </div>
   </div>
 </div>
@@ -436,7 +464,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ── COUNTRIES ── */
 const CC=[
   {c:'KR',ko:'대한민국',en:'South Korea',f:'🇰🇷'},
@@ -480,7 +508,7 @@ ko:{
   supportTitle:'개발자 응원하기',supportDesc:'누볼을 즐기고 계신가요? 개발자에게 커피 한 잔 보내주세요!',
   watchAd:'📺 광고 보기',
   helpTitle:'게임 방법',rankTitle:'🏆 주간 랭킹',
-  statsTitle:'통계',distTitle:'도전 분포',nextGame:'새로운 문제까지',copyBtn:'결과 복사',
+  statsTitle:'통계',distTitle:'도전 분포',nextGame:'새로운 문제까지',copyBtn:'결과 복사',shareImg:'이미지로 공유',
   rule1:'1~9 사이의 중복 없는 숫자를 맞추세요 (0 제외)',
   rule2:'Strike: 숫자와 자리가 모두 일치',rule3:'Ball: 숫자는 있지만 자리가 다름',
   rule4:'하루 3번의 기회 — 시작하면 기회가 즉시 소진됩니다',
@@ -490,10 +518,10 @@ ko:{
   noHistory:'첫 번째 추측을 입력하세요',dupAlert:'중복 숫자는 입력할 수 없습니다.',
   noChance:'오늘의 기회를 모두 사용했습니다!',nickAlert:'닉네임을 입력해주세요.',
   regOk:'랭킹에 등록되었습니다! 🎉',slotWin:'클리어',slotLose:'포기',
-  attUnit:'번 만에 클리어',forfeitLabel:'포기',
+  attUnit:'번 만에 클리어',forfeitLabel:'포기',triesLbl:'번 시도',
   resetInfo:'매주 월요일 00:00 초기화',resetLeft:'뒤 초기화',
-  lv3:'3자리 숫자야구',lv4:'4자리 숫자야구',lv5:'5자리 숫자야구',
-  maxLabel:'최대',vmList:'목록',vmTable:'표',vmExcel:'엑셀',curScore:'현재 획득 점수',
+  lv3:'3자리',lv4:'4자리',lv5:'5자리',
+  maxLabel:'최대',ptsUnit:'점',vmList:'목록',vmTable:'표',vmExcel:'엑셀',curScore:'현재 획득 점수',
   digitLabel:'자리',attLabel:'번 시도',
   statTotal:'전체 도전',statWin:'정답률',statStreak:'연속 정답',statBest:'최대 연속',
   copied:'클립보드에 복사되었습니다!',
@@ -506,7 +534,7 @@ en:{
   supportTitle:'Support the Dev',supportDesc:'Enjoying Nuball? Support to keep it alive!',
   watchAd:'📺 Watch Ad',
   helpTitle:'How to Play',rankTitle:'🏆 Weekly Ranking',
-  statsTitle:'Statistics',distTitle:'Attempt Distribution',nextGame:'Next puzzle in',copyBtn:'Copy Result',
+  statsTitle:'Statistics',distTitle:'Attempt Distribution',nextGame:'Next puzzle in',copyBtn:'Copy Result',shareImg:'Share as Image',
   rule1:'Guess numbers 1-9, no repeats, no 0',
   rule2:'Strike: Correct number AND position',rule3:'Ball: Correct number, wrong position',
   rule4:'3 chances per day — chance is used when you start',
@@ -516,10 +544,10 @@ en:{
   noHistory:'Enter your first guess',dupAlert:'Cannot enter duplicate digits.',
   noChance:'No more chances today!',nickAlert:'Please enter a nickname.',
   regOk:'Successfully registered! 🎉',slotWin:'Clear',slotLose:'Forfeit',
-  attUnit:' att. clear',forfeitLabel:'Forfeit',
+  attUnit:' att. clear',forfeitLabel:'Forfeit',triesLbl:' attempts',
   resetInfo:'Resets every Monday 00:00',resetLeft:'until reset',
-  lv3:'3-Digit Baseball',lv4:'4-Digit Baseball',lv5:'5-Digit Baseball',
-  maxLabel:'Max',vmList:'List',vmTable:'Table',vmExcel:'Excel',curScore:'Current Score',
+  lv3:'3-Digit',lv4:'4-Digit',lv5:'5-Digit',
+  maxLabel:'Max',ptsUnit:' pts',vmList:'List',vmTable:'Table',vmExcel:'Excel',curScore:'Current Score',
   digitLabel:'-Digit',attLabel:' attempts',
   statTotal:'Total',statWin:'Win Rate',statStreak:'Streak',statBest:'Best',
   copied:'Copied to clipboard!',
@@ -576,10 +604,7 @@ function loadStats(){
   if(raw){try{S.stats=JSON.parse(raw)}catch(e){}}
 }
 
-function seedRankings(wk){
-  const d=[{n:'민준',c:'KR',s:5420},{n:'서연',c:'KR',s:4800},{n:'지훈',c:'KR',s:4200},{n:'Taro',c:'JP',s:3900},{n:'Yuki',c:'JP',s:3800},{n:'James',c:'US',s:3650},{n:'Emma',c:'GB',s:3500},{n:'Wei',c:'CN',s:3300},{n:'Mei',c:'CN',s:3100},{n:'Lucas',c:'FR',s:2800},{n:'Sofia',c:'BR',s:2600},{n:'Arjun',c:'IN',s:2400},{n:'Chen',c:'CN',s:2200},{n:'대현',c:'KR',s:2000},{n:'소희',c:'KR',s:1800},{n:'Alex',c:'US',s:1600},{n:'Hans',c:'DE',s:1400},{n:'유나',c:'KR',s:1100},{n:'Mario',c:'IT',s:900},{n:'Priya',c:'IN',s:700}];
-  return d.map((x,i)=>({id:'seed_'+i,nick:x.n,country:x.c,score:x.s,week:wk}));
-}
+function seedRankings(){return[]} // 더미 데이터 제거
 
 /* ── INIT ── */
 async function init(){
@@ -599,16 +624,25 @@ async function init(){
     S.registered=localStorage.getItem('nb_reg')==='true';
     const ip=localStorage.getItem('nb_inprog');
     if(ip&&S.scores.length<S.consumed){
-      const g=JSON.parse(ip);S.scores.push({level:g.level,score:0,attempts:0,won:false});
-      S.totalScore=S.scores.reduce((a,b)=>a+b.score,0);localStorage.removeItem('nb_inprog');saveDaily();
+      const g=JSON.parse(ip);
+      // 로그까지 복구
+      S.game={level:g.level,target:genTarget(S.uid,S.today,g.level,S.scores.length),logs:g.logs||[],attempts:g.logs?g.logs.length:0};
+      const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
+      document.getElementById('homeScreen').classList.add('hidden');
     }
   }
   const sw=localStorage.getItem('nb_week');
-  if(sw!==S.weekId){localStorage.setItem('nb_week',S.weekId);S.rankings=seedRankings(S.weekId);saveRankings();}
-  else{S.rankings=JSON.parse(localStorage.getItem('nb_rankings')||'[]');if(!S.rankings.length){S.rankings=seedRankings(S.weekId);saveRankings();}}
+  if(sw!==S.weekId){localStorage.setItem('nb_week',S.weekId);S.rankings=[];saveRankings();}
+  else{
+    S.rankings=JSON.parse(localStorage.getItem('nb_rankings')||'[]');
+    // 더미 데이터 제거 (이전 버전에서 저장된 seed_ 항목 정리)
+    S.rankings=S.rankings.filter(r=>!String(r.id).startsWith('seed_'));
+    saveRankings();
+  }
   applyTheme();applyLang();buildCountrySelect();
   detectCC().then(cc=>{S.country=cc;buildCountrySelect()});
   renderHome();
+  if(S.game){renderGame();document.getElementById('numberInput').focus();}
   // 카운트다운 타이머
   setInterval(()=>{const el=document.getElementById('countdownEl');if(el&&el.offsetParent)el.textContent=timeUntilMidnight();},1000);
 }
@@ -617,11 +651,13 @@ async function init(){
 function toggleTheme(){S.dark=!S.dark;localStorage.setItem('nb_dark',S.dark?'1':'0');applyTheme()}
 function applyTheme(){
   document.documentElement.classList.toggle('dark',S.dark);
-  document.getElementById('themeBtn').textContent=S.dark?'라이트':'다크';
+  const btn=document.getElementById('themeBtn');
+  if(S.lang==='ko'){btn.textContent=S.dark?'라이트':'다크';}
+  else{btn.textContent=S.dark?'Light':'Dark';}
 }
 
 /* ── LANG ── */
-function setLang(lang){S.lang=lang;localStorage.setItem('nb_lang',lang);applyLang();buildCountrySelect();renderHome();if(S.game)renderGame()}
+function setLang(lang){S.lang=lang;localStorage.setItem('nb_lang',lang);applyLang();applyTheme();buildCountrySelect();renderHome();if(S.game)renderGame()}
 function applyLang(){
   const isKo=S.lang==='ko';
   document.getElementById('btnKo').classList.toggle('active',isKo);
@@ -646,26 +682,31 @@ function renderHome(){
     const used=i<S.consumed;
     br.innerHTML+='<span class="ball-ico'+(used?' used':'')+'">⚾</span>';
   }
-  // 점수 슬롯
+  // 점수 슬롯 — 3. 레벨명 포함 표기
   const sl=document.getElementById('slotsEl');sl.innerHTML='';
+  const lvName={3:'LV.1',4:'LV.2',5:'LV.3'};
   for(let i=0;i<3;i++){
     const g=S.scores[i];let cls='slot',lbl='GAME '+(i+1),val='—';
-    if(g){if(g.won){cls+=' win';lbl=t('slotWin');val='+'+g.score.toLocaleString()}else{cls+=' lose';lbl=t('slotLose');val='0'}}
-    else if(i===S.consumed&&S.consumed<3){cls+=' next';val='?'}
+    if(g){
+      const ln=lvName[g.level]||'';
+      if(g.won){cls+=' win';lbl=ln+' '+t('slotWin');val='+'+g.score.toLocaleString()}
+      else{cls+=' lose';lbl=ln+' '+t('slotLose');val='0'}
+    }else if(i===S.consumed&&S.consumed<3){cls+=' next';val='?'}
     sl.innerHTML+='<div class="'+cls+'"><div class="slot-lbl">'+lbl+'</div><div class="slot-val">'+val+'</div></div>';
   }
-  // 2. 레벨 카드 — 최대 N점 표기
+  // 2. 레벨 카드 — 레벨별 lock 제거, consumed>=3 일때만 비활성
   const lvls=[
     {n:3,tag:'LEVEL 1',tKey:'lv3',pts:'1,000'},
     {n:4,tag:'LEVEL 2',tKey:'lv4',pts:'2,000'},
     {n:5,tag:'LEVEL 3',tKey:'lv5',pts:'3,000'},
   ];
   const maxLbl=t('maxLabel');
-  document.getElementById('lvlCards').innerHTML=lvls.map(lv=>
-    '<button class="lvl-card" onclick="startGame('+lv.n+')"'+(S.consumed>=3?' disabled':'')+'>'+
-    '<div><div class="lvl-tag">'+lv.tag+'</div><div class="lvl-title">'+t(lv.tKey)+'</div></div>'+
-    '<div class="lvl-pts"><span class="lvl-pts-num">'+lv.pts+'</span>'+maxLbl+'</div>'+
-    '</button>').join('');
+  document.getElementById('lvlCards').innerHTML=lvls.map(lv=>{
+    return '<button class="lvl-card" onclick="startGame('+lv.n+')"'+(S.consumed>=3?' disabled':'')+'>'+
+      '<div><div class="lvl-tag">'+lv.tag+'</div><div class="lvl-title">'+t(lv.tKey)+'</div></div>'+
+      '<div class="lvl-pts"><div style="font-size:11px;font-weight:700;letter-spacing:.5px">'+maxLbl+'</div><span class="lvl-pts-num">'+lv.pts+'<span style="font-family:inherit;font-size:15px;font-weight:900;letter-spacing:0">'+t('ptsUnit')+'</span></span></div>'+
+      '</button>';
+  }).join('');
   // 등록 카드
   const rc=document.getElementById('regCard');
   if(S.consumed>=3){
@@ -684,10 +725,18 @@ function startGame(level){
   const idx=S.consumed;S.consumed++;saveDaily();
   const target=genTarget(S.uid,S.today,level,idx);
   S.game={level,target,logs:[],attempts:0};
-  localStorage.setItem('nb_inprog',JSON.stringify({level}));
+  saveProgress();
   document.getElementById('homeScreen').classList.add('hidden');
   const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
-  renderGame();document.getElementById('numberInput').focus();
+  renderGame();
+  // 6. 모바일 키보드로 인한 스크롤 대응
+  setTimeout(()=>document.getElementById('numberInput').focus(),150);
+}
+
+/* ── SAVE PROGRESS (새로고침 복구용) ── */
+function saveProgress(){
+  if(!S.game)return;
+  localStorage.setItem('nb_inprog',JSON.stringify({level:S.game.level,logs:S.game.logs}));
 }
 
 /* ── RENDER GAME ── */
@@ -707,7 +756,6 @@ function renderGame(){
   renderLogs();
 }
 
-/* ── LOGS ── */
 function renderLogs(){
   const el=document.getElementById('logContainer');
   const logs=(S.game||{logs:[]}).logs;
@@ -741,11 +789,27 @@ function handleGuess(){
   let s=0,b=0;
   arr.forEach((n,i)=>{if(n===target[i])s++;else if(target.includes(n))b++});
   S.game.attempts++;logs.unshift({guess:val,s,b});
-  input.value='';renderGame();
+  input.value='';saveProgress();renderGame();
   if(s===level)finishGame(true,calcScore(level,S.game.attempts));
 }
 
-/* ── FORFEIT ── */
+/* ── FORFEIT (Hold 0.8s) ── */
+let _holdTimer=null;
+function startHoldForfeit(e){
+  e.preventDefault();
+  const bar=document.getElementById('forfeitBar');
+  if(bar){bar.style.transition='none';bar.style.width='0%';}
+  document.getElementById('backBtn').classList.add('holding');
+  if(bar){requestAnimationFrame(()=>{bar.style.transition='width 0.8s linear';bar.style.width='100%';});}
+  _holdTimer=setTimeout(()=>{cancelHoldForfeit();executeForfeit();},800);
+}
+function cancelHoldForfeit(){
+  clearTimeout(_holdTimer);_holdTimer=null;
+  const bar=document.getElementById('forfeitBar');
+  if(bar){bar.style.transition='none';bar.style.width='0%';}
+  const btn=document.getElementById('backBtn');
+  if(btn)btn.classList.remove('holding');
+}
 function confirmForfeit(){openModal('forfeitModal')}
 function executeForfeit(){closeModal('forfeitModal');finishGame(false,0)}
 
@@ -773,7 +837,13 @@ function showResult(won,score,ans,att){
   document.getElementById('rIcon').innerHTML=won?'🎯':'🏳️';
   document.getElementById('rAns').textContent=ans;
   document.getElementById('rScore').textContent=(won?'+':'')+score.toLocaleString()+' PTS';
-  document.getElementById('rAtt').textContent=won?att+t('attUnit'):t('forfeitLabel');
+  if(won){
+    document.getElementById('rTries').textContent=att;
+    document.getElementById('rTriesLbl').textContent=t('triesLbl');
+  }else{
+    document.getElementById('rTries').textContent='🏳️';
+    document.getElementById('rTriesLbl').textContent=t('forfeitLabel');
+  }
   rm.classList.add('open');
 }
 
@@ -826,7 +896,7 @@ function copyResult(){
   });
   const header=(ko?'⚾ 누볼':'⚾ NUBALL')+' '+S.today;
   const total=(ko?'합산':'Total')+': '+S.totalScore.toLocaleString()+' PTS';
-  const text=header+'\n\n'+lines.join('\n')+'\n\n'+total+'\nnuball.game';
+  const text=header+'\n\n'+lines.join('\n')+'\n\n'+total+'\nnuball.vercel.app';
   if(navigator.clipboard){
     navigator.clipboard.writeText(text).then(()=>{
       const el=document.getElementById('copyResultMsg');
@@ -892,6 +962,10 @@ document.getElementById('numberInput').addEventListener('input',e=>{
   e.target.value=e.target.value.replace(/[^1-9]/g,'').slice(0,S.game?S.game.level:5);
 });
 document.getElementById('numberInput').addEventListener('keypress',e=>{if(e.key==='Enter')handleGuess()});
+// 6. 모바일: 키보드 올라올 때 입력창 스크롤
+document.getElementById('numberInput').addEventListener('focus',()=>{
+  setTimeout(()=>document.getElementById('numberInput').scrollIntoView({behavior:'smooth',block:'center'}),300);
+});
 
 /* ── DEV RESET ── */
 function devReset(){
@@ -901,12 +975,132 @@ function devReset(){
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('gameScreen').style.display='none';
   document.getElementById('homeScreen').classList.remove('hidden');
-  document.getElementById('resultModal').classList.remove('open');
-  document.querySelectorAll('.ov').forEach(o=>o.classList.remove('open'));
   renderHome();
 }
 
-window.addEventListener('load',init);
+/* ── EMAIL REVEAL ── */
+function revealEmail(){
+  const el=document.getElementById('emailReveal');
+  const u='nuball.official',d='proton.me';
+  el.innerHTML='<a href="mailto:'+u+'@'+d+'" style="color:var(--primary);text-decoration:none;font-weight:700">'+u+'@'+d+'</a>';
+}
+
+/* ── 9. 이미지 공유 (Canvas) ── */
+function shareImage(){
+  const ko=S.lang==='ko';
+  const W=520,PAD=32,ROW=56,GAP=10;
+  const lvMap={3:'LV.1 · 3자리',4:'LV.2 · 4자리',5:'LV.3 · 5자리'};
+  const lvMapEn={3:'LV.1 · 3-Digit',4:'LV.2 · 4-Digit',5:'LV.3 · 5-Digit'};
+  const H=PAD*2+60+S.scores.length*(ROW+GAP)+GAP+80+40;
+
+  const cv=document.createElement('canvas');
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr;cv.height=H*dpr;
+  cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  const dark=S.dark;
+  const BG=dark?'#0d1117':'#ffffff';
+  const CARD=dark?'#161b22':'#f7f9f7';
+  const BORDER=dark?'#30363d':'#e5e7e5';
+  const TEXT=dark?'#e6edf3':'#1a1a1a';
+  const MUT=dark?'#8b949e':'#6b7280';
+  const GRN='#16a34a';
+  const STRIKE='#d97706';
+  const BALL='#0284c7';
+  const LOSE='#dc2626';
+
+  // 배경
+  ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
+
+  // 헤더
+  ctx.fillStyle=GRN;ctx.font='900 28px "Plus Jakarta Sans",sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText(ko?'⚾ 누볼':'⚾ NUBALL',W/2,PAD+28);
+  ctx.fillStyle=MUT;ctx.font='500 13px "Plus Jakarta Sans",sans-serif';
+  ctx.fillText(S.today,W/2,PAD+50);
+
+  let y=PAD+70;
+
+  S.scores.forEach((g)=>{
+    // 카드 배경
+    const cardH=ROW;
+    ctx.fillStyle=CARD;
+    roundRect(ctx,PAD,y,W-PAD*2,cardH,10);ctx.fill();
+    ctx.strokeStyle=BORDER;ctx.lineWidth=1.5;
+    roundRect(ctx,PAD,y,W-PAD*2,cardH,10);ctx.stroke();
+
+    // 레벨 태그
+    ctx.fillStyle=GRN;ctx.font='700 10px "Plus Jakarta Sans",sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText((ko?lvMap:lvMapEn)[g.level]||'',PAD+16,y+18);
+
+    // 결과
+    ctx.fillStyle=TEXT;ctx.font='800 17px "Plus Jakarta Sans",sans-serif';
+    if(g.won){
+      ctx.fillText('✓ '+g.score.toLocaleString()+(ko?'점':' pts'),PAD+16,y+38);
+    }else{
+      ctx.fillStyle=LOSE;
+      ctx.fillText('✕ '+(ko?'포기':'Forfeit'),PAD+16,y+38);
+    }
+
+    // 시도 횟수
+    ctx.textAlign='right';
+    ctx.fillStyle=MUT;ctx.font='700 12px "DM Mono",monospace';
+    if(g.won)ctx.fillText(g.attempts+(ko?'번':'att.'),W-PAD-16,y+30);
+
+    y+=ROW+GAP;
+  });
+
+  // 합산 점수
+  y+=GAP;
+  ctx.fillStyle=GRN;ctx.font='900 22px "DM Mono",monospace';
+  ctx.textAlign='center';
+  ctx.fillText('TOTAL  '+S.totalScore.toLocaleString()+' PTS',W/2,y+24);
+
+  // 사이트
+  ctx.fillStyle=MUT;ctx.font='500 12px "Plus Jakarta Sans",sans-serif';
+  ctx.fillText('nuball.vercel.app',W/2,y+48);
+
+  // 클립보드 복사 (PNG)
+  cv.toBlob(blob=>{
+    if(!blob)return;
+    const ko=S.lang==='ko';
+    const el=document.getElementById('copyResultMsg');
+    // ClipboardItem 지원 여부 확인 (Chrome/Edge: OK, Safari iOS 16+: OK, Firefox: 미지원)
+    if(navigator.clipboard&&window.ClipboardItem){
+      navigator.clipboard.write([new ClipboardItem({'image/png':blob})])
+        .then(()=>{
+          el.textContent=ko?'이미지가 클립보드에 복사됐어요!':'Image copied to clipboard!';
+          setTimeout(()=>el.textContent='',2500);
+        })
+        .catch(()=>{
+          // 클립보드 실패 시 다운로드로 폴백
+          downloadImg(URL.createObjectURL(blob));
+          el.textContent=ko?'클립보드 불가 → 이미지 저장됨':'Clipboard failed → image saved';
+          setTimeout(()=>el.textContent='',2500);
+        });
+    }else{
+      // Firefox 등 미지원 → 다운로드
+      downloadImg(URL.createObjectURL(blob));
+      el.textContent=ko?'이미지 저장됨!':'Image saved!';
+      setTimeout(()=>el.textContent='',2500);
+    }
+  },'image/png');
+}
+function downloadImg(url){
+  const a=document.createElement('a');a.href=url;a.download='nuball-'+S.today+'.png';a.click();
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+init();
 </script>
 </body>
 </html>
