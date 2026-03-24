@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>누볼(nuball)</title>
+    <link>https://nuball.vercel.app</link>
+    <description>누볼 홈페이지 최신 소식입니다.</description>
+    <language>ko</language>
+    <item>
+      <title>홈페이지 오픈</title>
+      <link>https://nuball.vercel.app</link>
+      <description>누볼 공식 홈페이지가 오픈되었습니다.</description>
+      <pubDate>Tue, 24 Mar 2026 00:00:00 +0900</pubDate>
+    </item>
+  </channel>
+</rss>
