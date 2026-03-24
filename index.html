@@ -344,7 +344,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div class="hdr-menu" id="hdrMenu">
         <button class="hdr-menu-item" onclick="closeMenu();openModal('rankingModal')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
-          <span id="menuLbl1">주간 랭킹</span>
+          <span id="menuLbl1">일간 랭킹</span>
         </button>
         <button class="hdr-menu-item" onclick="closeMenu();openModal('statsModal')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 12v8"/><path d="M12 4v16"/><path d="M20 8v12"/></svg>
@@ -513,7 +513,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <div class="total-lbl" data-i18n="totalScore">오늘의 최종 점수</div>
         <div class="total-val" id="totalValEl">0 PTS</div>
       </div>
-      <div class="sec-title" data-i18n="regTitle">주간 랭킹에 등록하기</div>
+      <div class="sec-title" data-i18n="regTitle">일간 랭킹에 등록하기</div>
       <input class="finput" type="text" id="nickInput" maxlength="12" placeholder="닉네임 / Nickname">
       <select class="finput fselect" id="countrySelect"></select>
       <button class="btn-p" id="regBtn" onclick="registerRanking()" data-i18n="submit">랭킹 등록하기</button>
@@ -624,7 +624,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <!-- RANKING -->
 <div class="ov" id="rankingModal">
   <div class="mbox">
-    <div class="mhdr"><span class="mtitle" data-i18n="rankTitle">🏆 주간 랭킹</span><button class="mclose" onclick="closeModal('rankingModal')">✕</button></div>
+    <div class="mhdr"><span class="mtitle" data-i18n="rankTitle">🏆 일간 랭킹</span><button class="mclose" onclick="closeModal('rankingModal')">✕</button></div>
     <div class="mbody"><div id="rankList"></div><div class="rank-reset" id="rankResetEl"></div></div>
   </div>
 </div>
@@ -696,7 +696,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div class="rule"><span class="rule-ico" style="color:var(--ball)">⬤</span><span data-i18n="rule3">Ball: 숫자는 있지만 자리가 다름</span></div>
       <div class="rule"><span class="rule-ico" style="color:var(--primary)">✓</span><span data-i18n="rule1">1~9 사이의 중복 없는 숫자를 맞추세요 (0 제외)</span></div>
       <div class="rule"><span class="rule-ico" style="color:var(--primary)">📅</span><span data-i18n="rule4">하루 3번의 기회 — 시작하면 즉시 소진</span></div>
-      <div class="rule"><span class="rule-ico" style="color:var(--primary)">🏆</span><span data-i18n="rule5">3게임 합산 점수로 주간 랭킹 도전!</span></div>
+      <div class="rule"><span class="rule-ico" style="color:var(--primary)">🏆</span><span data-i18n="rule5">3게임 합산 점수로 일간 랭킹 도전!</span></div>
       <div class="rule"><span class="rule-ico" style="color:var(--ball)">📹</span><span data-i18n="ruleVR">비디오판독: 3판 중 1회 사용 가능한 힌트 — 이전에 시도한 숫자를 선택하면 각 자리가 Strike/Ball/Out으로 표시됩니다</span></div>
       <div class="div"></div>
       <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px" data-i18n="scoreGuide">점수 기준</div>
@@ -751,18 +751,18 @@ const ccLabel=(code,lang)=>{const r=CC.find(x=>x.c===code)||CC[CC.length-1];retu
 /* ── i18n ── */
 const MSGS={
 ko:{
-  totalScore:'오늘의 최종 점수',regTitle:'주간 랭킹에 등록하기',submit:'랭킹 등록하기',viewRank:'랭킹 보기',
+  totalScore:'오늘의 최종 점수',regTitle:'일간 랭킹에 등록하기',submit:'랭킹 등록하기',viewRank:'랭킹 보기',
   forfeit:'포기',forfeitTitle:'정말 포기할까요?',forfeitDesc:'포기하면 이번 게임은 0점 처리되고 한 번의 기회가 소진됩니다.',
   keepPlaying:'계속하기',confirmForfeit:'포기하기',confirm:'확인',
   history:'기록',answer:'정답',gameScore:'이번 게임 점수',goHome:'메인으로',
   supportTitle:'개발자 응원하기',supportDesc:'누볼을 즐기고 계신가요? 개발자에게 커피 한 잔 보내주세요!',
   watchAd:'📺 광고 보기',adNote:'광고 시청 시 하루 1회 기회 초기화 가능',
-  helpTitle:'게임 방법',rankTitle:'🏆 주간 랭킹',
+  helpTitle:'게임 방법',rankTitle:'🏆 일간 랭킹',
   statsTitle:'통계',distTitle:'도전 분포',nextGame:'새로운 문제까지',copyBtn:'결과 복사',shareImg:'이미지 다운',
   rule1:'1~9 사이의 중복 없는 숫자를 맞추세요 (0 제외)',
   rule2:'Strike: 숫자와 자리가 모두 일치',rule3:'Ball: 숫자는 있지만 자리가 다름',
   rule4:'하루 3번의 기회 — 시작하면 즉시 소진',
-  rule5:'3게임 합산 점수로 주간 랭킹 도전!',
+  rule5:'3게임 합산 점수로 일간 랭킹 도전!',
   ruleVR:'비디오판독: 3판 중 1회 사용 가능한 힌트',
   scoreGuide:'점수 기준',level:'레벨',maxPt:'최고점',minPt:'최저점',minAt:'최저 기준',
   th1:'9회~',th2:'13회~',th3:'18회~',
@@ -771,7 +771,7 @@ ko:{
   noChance:'오늘의 기회를 모두 사용했습니다!',nickAlert:'닉네임을 입력해주세요.',
   regOk:'랭킹에 등록되었습니다! 🎉',slotWin:'클리어',slotLose:'포기',
   attUnit:'번 만에 클리어',forfeitLabel:'포기',triesLbl:'번 시도',
-  resetInfo:'매주 월요일 00:00 초기화',resetLeft:'뒤 초기화',
+  resetInfo:'매일 00:00 초기화',resetLeft:'뒤 초기화',
   lv3:'3자리',lv4:'4자리',lv5:'5자리',
   maxLabel:'최대',ptsUnit:'점',vmList:'목록',vmTable:'표',vmExcel:'엑셀',curScore:'현재 획득 점수',
   digitLabel:'자리',attLabel:'번 시도',
@@ -793,18 +793,18 @@ ko:{
   kofiBtn:'☕ Ko-fi로 응원하기',
 },
 en:{
-  totalScore:"Today's Total Score",regTitle:'Register Weekly Ranking',submit:'Submit Ranking',viewRank:'View Rankings',
+  totalScore:"Today's Total Score",regTitle:'Register Daily Ranking',submit:'Submit Ranking',viewRank:'View Rankings',
   forfeit:'Forfeit',forfeitTitle:'Give up?',forfeitDesc:'Forfeiting scores 0 for this game and uses one of your 3 daily chances.',
   keepPlaying:'Keep Playing',confirmForfeit:'Forfeit',confirm:'Submit',
   history:'History',answer:'Answer',gameScore:'Game Score',goHome:'Back to Main',
   supportTitle:'Support the Dev',supportDesc:'Enjoying Nuball? Support to keep it alive!',
   watchAd:'📺 Watch Ad',adNote:'Watching an ad resets your daily chances (1x)',
-  helpTitle:'How to Play',rankTitle:'🏆 Weekly Ranking',
+  helpTitle:'How to Play',rankTitle:'🏆 Daily Ranking',
   statsTitle:'Statistics',distTitle:'Attempt Distribution',nextGame:'Next puzzle in',copyBtn:'Copy Result',shareImg:'Download Image',
   rule1:'Guess numbers 1-9, no repeats, no 0',
   rule2:'Strike: Correct number AND position',rule3:'Ball: Correct number, wrong position',
   rule4:'3 chances per day — chance is used when you start',
-  rule5:'Total score from 3 games enters the weekly ranking!',
+  rule5:'Total score from 3 games enters the daily ranking!',
   ruleVR:'Video Review: 1 hint per 3 games',
   scoreGuide:'Score Guide',level:'Level',maxPt:'Max',minPt:'Min',minAt:'Threshold',
   th1:'9+',th2:'13+',th3:'18+',
@@ -813,7 +813,7 @@ en:{
   noChance:'No more chances today!',nickAlert:'Please enter a nickname.',
   regOk:'Successfully registered! 🎉',slotWin:'Clear',slotLose:'Forfeit',
   attUnit:' att. clear',forfeitLabel:'Forfeit',triesLbl:' attempts',
-  resetInfo:'Resets every Monday 00:00',resetLeft:'until reset',
+  resetInfo:'Resets every day at 00:00',resetLeft:'until reset',
   lv3:'3-Digit',lv4:'4-Digit',lv5:'5-Digit',
   maxLabel:'Max',ptsUnit:' pts',vmList:'List',vmTable:'Table',vmExcel:'Excel',curScore:'Current Score',
   digitLabel:'-Digit',attLabel:' attempts',
@@ -837,7 +837,7 @@ en:{
 const t=k=>MSGS[S.lang][k]||k;
 
 /* ── STATE ── */
-const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',weekId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false};
+const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',dayId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false};
 
 /* ── UTILS ── */
 function mulberry32(seed){return()=>{let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
@@ -851,17 +851,11 @@ async function mkUid(){
   localStorage.setItem(k,uid);return uid;
 }
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
-function getWeekId(){const d=new Date(),day=d.getDay(),diff=day===0?6:day-1,mon=new Date(d);mon.setDate(d.getDate()-diff);mon.setHours(0,0,0,0);return mon.getTime().toString()}
+function getDayId(){return todayStr()}
 function timeUntilMidnight(){
   const now=new Date(),nm=new Date(now);nm.setHours(24,0,0,0);
   const diff=nm-now,h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
   return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-}
-function timeUntilMonday(){
-  const now=new Date(),day=now.getDay(),dtu=day===0?1:8-day,nm=new Date(now);
-  nm.setDate(now.getDate()+dtu);nm.setHours(0,0,0,0);
-  const diff=nm-now,h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
-  return S.lang==='ko'?h+'시간 '+m+'분':h+'h '+m+'m';
 }
 function genTarget(uid,dateStr,level,idx){
   const seed=fnv1a(uid+'|'+dateStr+'|L'+level+'|G'+idx);
@@ -890,7 +884,7 @@ function seedRankings(){return[]} // 더미 데이터 제거
 
 /* ── INIT ── */
 async function init(){
-  S.uid=await mkUid();S.today=todayStr();S.weekId=getWeekId();
+  S.uid=await mkUid();S.today=todayStr();S.dayId=getDayId();
   S.lang=localStorage.getItem('nb_lang')||'ko';
   S.dark=localStorage.getItem('nb_dark')==='1';
   loadStats();
@@ -914,8 +908,8 @@ async function init(){
       document.getElementById('homeScreen').classList.add('hidden');
     }
   }
-  const sw=localStorage.getItem('nb_week');
-  if(sw!==S.weekId){localStorage.setItem('nb_week',S.weekId);S.rankings=[];saveRankings();}
+  const sw=localStorage.getItem('nb_day_rank');
+  if(sw!==S.dayId){localStorage.setItem('nb_day_rank',S.dayId);S.rankings=[];saveRankings();}
   else{
     S.rankings=JSON.parse(localStorage.getItem('nb_rankings')||'[]');
     // 더미 데이터 제거 (이전 버전에서 저장된 seed_ 항목 정리)
@@ -954,7 +948,7 @@ function applyLang(){
   // 메뉴 라벨
   const ko=S.lang==='ko';
   const e=id=>document.getElementById(id);
-  if(e('menuLbl1'))e('menuLbl1').textContent=ko?'주간 랭킹':'Weekly Ranking';
+  if(e('menuLbl1'))e('menuLbl1').textContent=ko?'일간 랭킹':'Daily Ranking';
   if(e('menuLbl2'))e('menuLbl2').textContent=ko?'공유하기':'Share';
   if(e('menuLbl3'))e('menuLbl3').textContent=ko?'문의·후원':'Contact & Support';
   if(e('menuLbl4'))e('menuLbl4').textContent=ko?'게임 방법':'How to Play';
@@ -1289,7 +1283,7 @@ async function registerRanking(){
   btn.disabled=true;
   btn.textContent=ko?'등록 중...':'Saving...';
 
-  const entry={nick,country,score:S.totalScore,week:S.weekId,uid:S.uid,ts:Date.now()};
+  const entry={nick,country,score:S.totalScore,day:S.dayId,uid:S.uid,ts:Date.now()};
 
   // 로컬 반영
   S.rankings=S.rankings.filter(r=>r.id!==S.uid);
@@ -1301,7 +1295,7 @@ async function registerRanking(){
   // Firebase 저장
   if(window._fbReady){
     try{
-      const path='rankings/'+S.weekId+'/'+S.uid;
+      const path='rankings/'+S.dayId+'/'+S.uid;
       await window._fbSet(window._fbRef(window._fbDb,path),entry);
       // Firebase 성공
       alert(t('regOk'));
@@ -1324,7 +1318,7 @@ async function registerRanking(){
       if(window._fbReady){
         clearInterval(retry);
         try{
-          const path='rankings/'+S.weekId+'/'+S.uid;
+          const path='rankings/'+S.dayId+'/'+S.uid;
           await window._fbSet(window._fbRef(window._fbDb,path),entry);
           alert(t('regOk'));
           renderHome();openModal('rankingModal');
@@ -1354,7 +1348,7 @@ async function renderRankList(){
   if(window._fbReady){
     try{
       const q=window._fbQuery(
-        window._fbRef(window._fbDb,'rankings/'+S.weekId),
+        window._fbRef(window._fbDb,'rankings/'+S.dayId),
         window._fbOrderByChild('score'),
         window._fbLimitToLast(100)
       );
@@ -1389,7 +1383,7 @@ async function renderRankList(){
         '<div class="rank-score">'+r.score.toLocaleString()+'</div></div>';
     }).join('');
   }
-  document.getElementById('rankResetEl').textContent=t('resetInfo')+' · '+timeUntilMonday()+' '+t('resetLeft');
+  document.getElementById('rankResetEl').textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
 }
 
 /* ── MODALS ── */
