@@ -1276,6 +1276,13 @@ async function registerRanking(){
   const nick=document.getElementById('nickInput').value.trim();
   if(!nick){alert(t('nickAlert'));return}
   const country=document.getElementById('countrySelect').value;
+  const ko=S.lang==='ko';
+
+  // 버튼 비활성화 (중복 클릭 방지)
+  const btn=document.getElementById('regBtn');
+  btn.disabled=true;
+  btn.textContent=ko?'등록 중...':'Saving...';
+
   const entry={nick,country,score:S.totalScore,week:S.weekId,uid:S.uid,ts:Date.now()};
 
   // 로컬 반영
@@ -1290,9 +1297,45 @@ async function registerRanking(){
     try{
       const path='rankings/'+S.weekId+'/'+S.uid;
       await window._fbSet(window._fbRef(window._fbDb,path),entry);
-    }catch(e){console.warn('Firebase write failed',e);}
+      // Firebase 성공
+      alert(t('regOk'));
+      renderHome();openModal('rankingModal');
+    }catch(e){
+      // Firebase 실패 — 로컬에는 저장됨, 사용자에게 알림
+      console.warn('Firebase write failed',e);
+      alert(ko
+        ?'랭킹에 등록됐지만 서버 동기화에 실패했어요.\n잠시 후 다시 시도해 주세요.'
+        :'Registered locally, but server sync failed.\nPlease try again later.');
+      S.registered=false;saveDaily();
+      btn.disabled=false;
+      btn.textContent=t('submit');
+    }
+  }else{
+    // Firebase 미로드 — 잠시 대기 후 재시도
+    let waited=0;
+    const retry=setInterval(async()=>{
+      waited+=500;
+      if(window._fbReady){
+        clearInterval(retry);
+        try{
+          const path='rankings/'+S.weekId+'/'+S.uid;
+          await window._fbSet(window._fbRef(window._fbDb,path),entry);
+          alert(t('regOk'));
+          renderHome();openModal('rankingModal');
+        }catch(e){
+          console.warn('Firebase write failed after retry',e);
+          alert(ko?'서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.':'Server connection failed. Please try again.');
+          S.registered=false;saveDaily();
+          btn.disabled=false;btn.textContent=t('submit');
+        }
+      }else if(waited>=5000){
+        clearInterval(retry);
+        alert(ko?'서버에 연결할 수 없어요. 인터넷 연결을 확인해 주세요.':'Cannot connect to server. Please check your internet connection.');
+        S.registered=false;saveDaily();
+        btn.disabled=false;btn.textContent=t('submit');
+      }
+    },500);
   }
-  alert(t('regOk'));renderHome();openModal('rankingModal');
 }
 
 async function renderRankList(){
