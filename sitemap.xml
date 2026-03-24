@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org">
+<urlset 
+  xmlns:xsi="http://www.w3.org"
+  xsi:schemaLocation="http://www.sitemaps.org 
+  http://www.sitemaps.org/sitemap.xsd"
+  xmlns="http://www.sitemaps.org">
   <url>
     <loc>https://nuball.vercel.app</loc>
     <lastmod>2026-03-24</lastmod>
