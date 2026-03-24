@@ -268,8 +268,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 .vr-leg-item{font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px}
 .slot-vr{font-size:9px;font-weight:800;color:var(--ball);margin-top:2px}
 /* 8. 동기화 코드 */
-.sync-code{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center;letter-spacing:.1em;cursor:pointer;color:var(--text);transition:border-color .15s}
-.sync-code:hover{border-color:var(--primary)}
 
 /* ── 3. Hold-to-forfeit ── */
 .btn-forfeit{position:relative;overflow:hidden}
@@ -360,6 +358,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <span id="menuLbl4">게임 방법</span>
         </button>
+
       </div>
     </div>
 
@@ -370,11 +369,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 
     <!-- 우측: KO/EN + 다크 -->
     <div class="hdr-side right">
-      <!-- 동기화 -->
-      <button class="ibtn" onclick="openSync()" title="기기 동기화">
-        <svg viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
-      </button>
-      <div style="width:4px"></div>
       <div class="lang-seg">
         <button class="lang-btn" id="btnKo" onclick="setLang('ko')">KO</button>
         <div class="lang-sep"></div>
@@ -589,22 +583,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   </div>
 </div>
 
-<!-- 동기화 코드 모달 -->
-<div class="ov" id="syncModal">
-  <div class="mbox">
-    <div class="mhdr"><span class="mtitle" id="syncTitle">🔗 기기 동기화</span><button class="mclose" onclick="closeModal('syncModal')">✕</button></div>
-    <div class="mbody">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7" id="syncDesc">같은 기기의 다른 브라우저에서 아래 코드를 입력하면 동일한 사용자로 인식됩니다.</p>
-      <div class="sync-code" id="syncCodeEl" onclick="copySyncCode()"></div>
-      <p style="font-size:11px;color:var(--subtle);text-align:center;margin-top:8px" id="syncCopyMsg"></p>
-      <div class="div"></div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:700" id="syncImportLbl">다른 기기에서 코드 가져오기</p>
-      <input class="finput" type="text" id="syncInput" maxlength="16" placeholder="코드 16자리 입력" style="font-family:'DM Mono',monospace;letter-spacing:.1em">
-      <button class="btn-p" onclick="applySyncCode()" id="syncApplyBtn">적용하기</button>
-      <p style="font-size:11px;color:var(--subtle);margin-top:8px;text-align:center" id="syncWarning">⚠️ 적용하면 현재 기기의 기록이 사라집니다</p>
-    </div>
-  </div>
-</div>
 
 <!-- 카카오페이 QR 모달 -->
 <div class="ov" id="kakaoQrModal">
@@ -1747,37 +1725,7 @@ function confirmVR(){
 }
 
 /* ── 8. 동기화 코드 ── */
-function openSync(){
-  const ko=S.lang==='ko';
-  document.getElementById('syncTitle').textContent=t('syncTitle');
-  document.getElementById('syncDesc').textContent=t('syncDesc');
-  document.getElementById('syncCodeEl').textContent=S.uid;
-  document.getElementById('syncImportLbl').textContent=t('syncImportLbl');
-  document.getElementById('syncApplyBtn').textContent=t('syncApplyBtn');
-  document.getElementById('syncWarning').textContent=t('syncWarning');
-  document.getElementById('syncInput').placeholder=ko?'코드 16자리 입력':'Enter 16-char code';
-  document.getElementById('syncCopyMsg').textContent='';
-  openModal('syncModal');
-}
-function copySyncCode(){
-  const code=S.uid;
-  const el=document.getElementById('syncCopyMsg');
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(code).then(()=>{el.textContent=t('syncCopied');setTimeout(()=>el.textContent='',2000);});
-  }else{
-    const ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');document.body.removeChild(ta);
-    el.textContent=t('syncCopied');setTimeout(()=>el.textContent='',2000);
-  }
-}
-function applySyncCode(){
-  const val=document.getElementById('syncInput').value.trim();
-  if(val.length!==16){alert(t('syncFail'));return}
-  if(!confirm(t('syncWarning')))return;
-  localStorage.setItem('nubol_uid',val);
-  alert(t('syncOk'));
-  location.reload();
-}
+
 
 init();
 </script>
