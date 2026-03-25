@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NUBALL ⚾ - 내 기록 깰 사람?</title>
-<meta property="og:title" content="NUBALL ⚾ - 내 기록 깰 사람?">
-<meta property="og:description" content="두뇌 풀가동 숫자야구! 3 스트라이크!">
+<title>NUBALL ⚾ - 머리 쓰는 숫자야구</title>
+<meta property="og:title" content="NUBALL ⚾ - 머리 쓰는 숫자야구">
+<meta property="og:description" content="내 기록 깰 사람?">
 <meta property="og:url" content="https://nuball.vercel.app">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="NUBALL ⚾ - 내 기록 깰 사람?">
-<meta name="twitter:description" content="두뇌 풀가동 숫자야구! 3 스트라이크!">
+<meta name="twitter:title" content="NUBALL ⚾ - 머리 쓰는 숫자야구">
+<meta name="twitter:description" content="내 기록 깰 사람?">
 <script type="module">
   import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import{getDatabase,ref,set,get,query,orderByChild,limitToLast}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
@@ -682,7 +682,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </button>
         <button class="share-btn" onclick="shareSite()" style="flex:1;margin-top:0;padding:9px 6px;font-size:12px;border-color:var(--primary);color:var(--primary)">
           <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" fill="none" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          <span id="shareSiteLabel">누볼 공유하기</span>
+          <span id="shareSiteLabel">누볼 공유</span>
         </button>
       </div>
       <div class="copy-result" id="copyResultMsg"></div>
@@ -998,7 +998,7 @@ function applyLang(){
   if(e('menuLbl4'))e('menuLbl4').textContent=ko?'게임 방법':'How to Play';
   if(e('menuLbl5'))e('menuLbl5').textContent=ko?'나의업적':'My Achievements';
   if(e('achModalTitle'))e('achModalTitle').textContent=ko?'🏅 나의업적':'🏅 My Achievements';
-  if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유하기':'Share NUBALL';
+  if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('inquiryLabel'))e('inquiryLabel').textContent=ko?'문의하기':'Inquiry';
 }
 function buildCountrySelect(){
