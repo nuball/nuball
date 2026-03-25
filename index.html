@@ -6,13 +6,11 @@
 <title>NUBALL ⚾ - 내 기록 깰 사람?</title>
 <meta property="og:title" content="NUBALL ⚾ - 내 기록 깰 사람?">
 <meta property="og:description" content="두뇌 풀가동 숫자야구! 3 스트라이크!">
-<meta property="og:image" content="https://nuball.vercel.app/og-image.PNG">
 <meta property="og:url" content="https://nuball.vercel.app">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="NUBALL ⚾ - 내 기록 깰 사람?">
 <meta name="twitter:description" content="두뇌 풀가동 숫자야구! 3 스트라이크!">
-<meta name="twitter:image" content="https://nuball.vercel.app/og-image.PNG">
 <script type="module">
   import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import{getDatabase,ref,set,get,query,orderByChild,limitToLast}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
@@ -402,8 +400,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <main>
   <!-- HOME -->
   <div id="homeScreen">
-    <!-- 스트릭 배지 -->
-    <div id="homeStreak" style="text-align:center;margin-bottom:8px"></div>
+    <div id="homeStreak" style="display:none"></div>
     <!-- 3. 야구공 기회 표시 -->
     <div class="balls-row" id="ballsRow"></div>
     <div class="slots" id="slotsEl"></div>
@@ -1019,15 +1016,6 @@ function buildCountrySelect(){
 
 /* ── HOME ── */
 function renderHome(){
-  // 홈 스트릭 표시
-  const hsr=document.getElementById('homeStreak');
-  if(hsr){
-    if(S.streak>=2){
-      const ko=S.lang==='ko';
-      hsr.innerHTML='<span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:800">🔥 '+(ko?S.streak+'일 연속':S.streak+' day streak')+'</span>';
-      hsr.style.display='block';
-    }else{hsr.style.display='none';}
-  }
   // 3. 야구공 기회 표시
   const br=document.getElementById('ballsRow');br.innerHTML='';
   for(let i=0;i<3;i++){
@@ -1366,28 +1354,32 @@ function renderStats(){
 
 /* ── ACHIEVEMENTS ── */
 const ACHIEVEMENTS=[
-  {id:'first_play',   cat:'첫 경험', icon:'⚾', ko:'첫 타석',     en:'First At Bat',    descKo:'처음으로 누볼을 플레이했어요',          descEn:'Played NUBALL for the first time',           cond:'auto'},
+  // ── 첫 경험 ──
+  {id:'first_play',   cat:'첫 경험', icon:'⚾', ko:'첫 타석',     en:'First At Bat',    descKo:'처음으로 누볼을 플레이했어요',           descEn:'Played NUBALL for the first time',           cond:'auto'},
   {id:'first_lv1',    cat:'첫 경험', icon:'🎯', ko:'LV1 클리어',  en:'LV1 Clear',       descKo:'레벨1을 처음 클리어했어요',              descEn:'Cleared Level 1 for the first time',         cond:'auto'},
   {id:'first_lv2',    cat:'첫 경험', icon:'🎯', ko:'LV2 클리어',  en:'LV2 Clear',       descKo:'레벨2를 처음 클리어했어요',              descEn:'Cleared Level 2 for the first time',         cond:'auto'},
   {id:'first_lv3',    cat:'첫 경험', icon:'🎯', ko:'LV3 클리어',  en:'LV3 Clear',       descKo:'레벨3를 처음 클리어했어요',              descEn:'Cleared Level 3 for the first time',         cond:'auto'},
   {id:'first_rank',   cat:'첫 경험', icon:'🏆', ko:'첫 랭킹 등록',en:'First Ranking',   descKo:'처음으로 일간 랭킹에 등록했어요',        descEn:'Registered on the daily ranking',            cond:'auto'},
+  // ── 실력 ──
   {id:'fast_lv1',     cat:'실력',    icon:'⚡', ko:'3번 안에 LV1',en:'Quick LV1',       descKo:'레벨1을 3번 이내에 맞혔어요',            descEn:'Cleared LV1 in 3 attempts or less',          cond:'won && level===3 && attempts<=3'},
+  {id:'fast_lv2',     cat:'실력',    icon:'🎯', ko:'5번 안에 LV2',en:'Quick LV2',       descKo:'레벨2를 5번 이내에 맞혔어요',            descEn:'Cleared LV2 in 5 attempts or less',          cond:'won && level===4 && attempts<=5'},
   {id:'fast_lv3',     cat:'실력',    icon:'🚀', ko:'10번 안에 LV3',en:'LV3 Ace',        descKo:'레벨3를 10번 이내에 맞혔어요',           descEn:'Cleared LV3 in 10 attempts or less',         cond:'won && level===5 && attempts<=10'},
+  {id:'cold_game',    cat:'실력',    icon:'🥶', ko:'콜드게임',     en:'Cold Game',       descKo:'3판 모두 7번 이하로 클리어했어요',        descEn:'Cleared all 3 games in 7 attempts or less',  cond:'auto'},
   {id:'one_shot',     cat:'실력',    icon:'💫', ko:'원샷!',        en:'One Shot!',       descKo:'단 1번 만에 정답을 맞혔어요',            descEn:'Got the answer in just 1 attempt',           cond:'won && attempts===1'},
+  // ── 꾸준함 ──
   {id:'streak3',      cat:'꾸준함',  icon:'🔥', ko:'3일 연속',     en:'3-Day Streak',    descKo:'3일 연속으로 누볼을 플레이했어요',       descEn:'Played NUBALL 3 days in a row',              cond:'streak>=3'},
   {id:'streak7',      cat:'꾸준함',  icon:'🔥', ko:'7일 연속',     en:'7-Day Streak',    descKo:'7일 연속으로 누볼을 플레이했어요',       descEn:'Played NUBALL 7 days in a row',              cond:'streak>=7'},
-  {id:'full_clear',   cat:'도전',    icon:'💪', ko:'퍼펙트 데이',  en:'Perfect Day',     descKo:'하루에 3판 모두 클리어했어요',           descEn:'Cleared all 3 games in one day',             cond:'auto'},
-  {id:'no_forfeit',   cat:'도전',    icon:'🛡', ko:'포기 없이',    en:'No Forfeit',      descKo:'포기 없이 3판을 완주했어요',             descEn:'Completed 3 games without forfeiting',       cond:'auto'},
-  {id:'lv3_oneshot',  cat:'희귀',    icon:'🌟', ko:'전설',         en:'Legend',          descKo:'레벨3를 단 1번 만에 맞혔어요 (전설급!)', descEn:'Got LV3 in 1 attempt (legendary!)',          cond:'won && level===5 && attempts===1'},
-  // ── 추가 업적 ──
   {id:'streak30',     cat:'꾸준함',  icon:'👑', ko:'꾸준왕',       en:'Dedication King', descKo:'30일 연속으로 누볼을 플레이했어요',      descEn:'Played NUBALL 30 days in a row',             cond:'streak>=30'},
-  {id:'cold_game',    cat:'실력',    icon:'🥶', ko:'콜드게임',     en:'Cold Game',       descKo:'3판 모두 7번 이하로 클리어했어요',       descEn:'Cleared all 3 games in 7 attempts or less',  cond:'auto'},
-  {id:'fast_lv2',     cat:'실력',    icon:'🎯', ko:'5번 안에 LV2', en:'Quick LV2',       descKo:'레벨2를 5번 이내에 맞혔어요',           descEn:'Cleared LV2 in 5 attempts or less',          cond:'won && level===4 && attempts<=5'},
-  {id:'fast_lv3_7',   cat:'실력',    icon:'🏹', ko:'7번 안에 LV3', en:'Sharp LV3',       descKo:'레벨3를 7번 이내에 맞혔어요',           descEn:'Cleared LV3 in 7 attempts or less',          cond:'won && level===5 && attempts<=7'},
+  // ── 점수 ──
   {id:'score2000',    cat:'점수',    icon:'💰', ko:'2000점!',      en:'2000 pts!',       descKo:'하루 합산 점수가 2000점 이상이에요',     descEn:'Total daily score reached 2000 points',      cond:'auto'},
   {id:'score2500',    cat:'점수',    icon:'💎', ko:'2500점!',      en:'2500 pts!',       descKo:'하루 합산 점수가 2500점 이상이에요',     descEn:'Total daily score reached 2500 points',      cond:'auto'},
+  // ── 도전 ──
+  {id:'full_clear',   cat:'도전',    icon:'💪', ko:'퍼펙트 데이',  en:'Perfect Day',     descKo:'하루에 3판 모두 클리어했어요',           descEn:'Cleared all 3 games in one day',             cond:'auto'},
   {id:'lv_explorer',  cat:'도전',    icon:'🧭', ko:'레벨탐험가',   en:'Level Explorer',  descKo:'LV1, LV2, LV3 모두 한 번씩 클리어했어요',descEn:'Cleared each of LV1, LV2, and LV3 once',     cond:'auto'},
+  {id:'no_forfeit',   cat:'도전',    icon:'🛡', ko:'포기 없이',    en:'No Forfeit',      descKo:'포기 없이 3판을 완주했어요',             descEn:'Completed 3 games without forfeiting',       cond:'auto'},
   {id:'no_forfeit7',  cat:'도전',    icon:'🔱', ko:'포기하지마',   en:'Never Give Up',   descKo:'포기 없이 7일 연속 플레이했어요',        descEn:'Played 7 days in a row without forfeiting',  cond:'auto'},
+  // ── 희귀 ──
+  {id:'lv3_oneshot',  cat:'희귀',    icon:'🌟', ko:'전설',         en:'Legend',          descKo:'레벨3를 단 1번 만에 맞혔어요 (전설급!)', descEn:'Got LV3 in 1 attempt (legendary!)',          cond:'won && level===5 && attempts===1'},
   {id:'ans_123',      cat:'희귀',    icon:'🍀', ko:'123',          en:'123',             descKo:'레벨1 정답이 123이었어요!',             descEn:'The LV1 answer was 123!',                    cond:'auto'},
   {id:'ans_1234',     cat:'희귀',    icon:'🍀', ko:'1234',         en:'1234',            descKo:'레벨2 정답이 1234였어요!',             descEn:'The LV2 answer was 1234!',                   cond:'auto'},
   {id:'ans_12345',    cat:'희귀',    icon:'🍀', ko:'12345',        en:'12345',           descKo:'레벨3 정답이 12345였어요!',            descEn:'The LV3 answer was 12345!',                  cond:'auto'},
@@ -1417,7 +1409,6 @@ function checkAchievements(won,level,attempts){
   // 실력: LV2 5번 이하
   if(won&&level===4&&attempts<=5)toUnlock.push('fast_lv2');
   // 실력: LV3 7번 이하
-  if(won&&level===5&&attempts<=7)toUnlock.push('fast_lv3_7');
   // 실력: 콜드게임 (3판 모두 7번 이하 클리어)
   if(S.scores.length===3&&S.scores.every(g=>g.won&&g.attempts<=7))toUnlock.push('cold_game');
   // 점수: 2000점 / 2500점
@@ -1484,18 +1475,11 @@ function renderStreak(){
   const mb=document.getElementById('menuStreakBadge');
   if(mb){
     if(S.streak>=1){
-      mb.textContent='🔥 '+(ko?S.streak+'일 연속 출석':S.streak+(S.streak===1?' day':' days')+' streak');
+      mb.textContent=(ko?S.streak+'일 연속 출석':S.streak+(S.streak===1?' day':' days')+' streak');
       mb.style.display='block';
     }else{mb.style.display='none';}
   }
-  // 홈화면 homeStreak도 동일하게 유지
-  const hsr=document.getElementById('homeStreak');
-  if(hsr){
-    if(S.streak>=2){
-      hsr.innerHTML='<span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:800">🔥 '+(ko?S.streak+'일 연속':S.streak+' day streak')+'</span>';
-      hsr.style.display='block';
-    }else{hsr.style.display='none';}
-  }
+  // homeStreak 사용 안 함 (드롭다운 배지로 대체)
 }
 
 /* ── PERSONAL BEST 렌더링 ── */
@@ -1760,7 +1744,12 @@ function openModal(id){
   if(id==='statsModal')renderStats();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.ov').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open')}));
+document.querySelectorAll('.ov').forEach(ov=>{
+  let _downOnOv=false;
+  ov.addEventListener('mousedown',e=>{_downOnOv=!ov.querySelector('.mbox').contains(e.target);});
+  ov.addEventListener('click',e=>{if(_downOnOv&&e.target===ov)ov.classList.remove('open');});
+  ov.addEventListener('touchstart',e=>{_downOnOv=!ov.querySelector('.mbox').contains(e.target);},{passive:true});
+});
 
 /* ── VIEW MODE ── */
 function setVM(mode){
@@ -1831,7 +1820,7 @@ function shareSite(){
   const url='https://nuball.vercel.app';
   const text=ko?'⚾ 누볼 — 숫자야구 퍼즐! 오늘의 도전에 참여해보세요':'⚾ NUBALL — Number Baseball Puzzle! Join today\'s challenge';
   if(navigator.share){
-    navigator.share({title:ko?'누볼':'NUBALL',text,url}).catch(()=>{});
+    navigator.share({title:'NUBALL ⚾ - 내 기록 깹 사람?',text,url}).catch(()=>{});
   }else if(navigator.clipboard){
     navigator.clipboard.writeText(url).then(()=>{
       const el=document.getElementById('copyResultMsg');
