@@ -348,7 +348,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <header class="hdr">
   <div class="hdr-inner" style="position:relative">
     <!-- 좌측: 점점점 메뉴 -->
-    <div class="hdr-side" style="position:relative">
+    <div class="hdr-side" style="position:relative;display:flex;align-items:center;gap:6px">
       <button class="ibtn" id="menuBtn" onclick="toggleMenu()" title="메뉴" style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;color:var(--text)">
         <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.8" fill="currentColor" stroke="none"/></svg>
       </button>
@@ -377,7 +377,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 
       </div>
       <!-- 연속 출석 배지 -->
-      <div id="menuStreakBadge" style="display:none;margin:6px 8px 2px;padding:6px 12px;background:linear-gradient(135deg,#ff6b00,#ff9500);border-radius:8px;color:#fff;font-size:12px;font-weight:800;text-align:center"></div>
+      <div id="menuStreakBadge" style="display:none;padding:5px 10px;background:linear-gradient(135deg,#ff6b00,#ff9500);border-radius:20px;color:#fff;font-size:11px;font-weight:800;white-space:nowrap"></div>
     </div>
 
     <!-- 중앙: 로고 -->
@@ -1039,7 +1039,7 @@ function renderHome(){
   const lvls=[
     {n:3,tag:'LEVEL 1',tKey:'lv3',pts:'1,000',tagline:S.lang==='ko'?'⚡ 실수하면 점수가 확 깎여요':'⚡ Mistakes cut your score fast'},
     {n:4,tag:'LEVEL 2',tKey:'lv4',pts:'1,000',tagline:S.lang==='ko'?'⚖ 난이도와 점수의 균형':'⚖ Balanced difficulty & score'},
-    {n:5,tag:'LEVEL 3',tKey:'lv5',pts:'1,000',tagline:S.lang==='ko'?'🛡 실수해도 점수가 덜 깎여요':'🛡 Mistakes cost less score'},
+    {n:5,tag:'LEVEL 3',tKey:'lv5',pts:'1,000',tagline:S.lang==='ko'?'🛡️ 실수해도 점수가 덜 깎여요':'🛡️ Mistakes cost less score'},
   ];
   const maxLbl=t('maxLabel');
   // 현재 게임 진행 중(시도 1회 이상)이면 레벨 변경 불가
@@ -1376,7 +1376,7 @@ const ACHIEVEMENTS=[
   // ── 도전 ──
   {id:'full_clear',   cat:'도전',    icon:'💪', ko:'퍼펙트 데이',  en:'Perfect Day',     descKo:'하루에 3판 모두 클리어했어요',           descEn:'Cleared all 3 games in one day',             cond:'auto'},
   {id:'lv_explorer',  cat:'도전',    icon:'🧭', ko:'레벨탐험가',   en:'Level Explorer',  descKo:'LV1, LV2, LV3 모두 한 번씩 클리어했어요',descEn:'Cleared each of LV1, LV2, and LV3 once',     cond:'auto'},
-  {id:'no_forfeit',   cat:'도전',    icon:'🛡', ko:'포기 없이',    en:'No Forfeit',      descKo:'포기 없이 3판을 완주했어요',             descEn:'Completed 3 games without forfeiting',       cond:'auto'},
+  {id:'no_forfeit',   cat:'도전',    icon:'🛡️', ko:'포기 없이',    en:'No Forfeit',      descKo:'포기 없이 3판을 완주했어요',             descEn:'Completed 3 games without forfeiting',       cond:'auto'},
   {id:'no_forfeit7',  cat:'도전',    icon:'🔱', ko:'포기하지마',   en:'Never Give Up',   descKo:'포기 없이 7일 연속 플레이했어요',        descEn:'Played 7 days in a row without forfeiting',  cond:'auto'},
   // ── 희귀 ──
   {id:'lv3_oneshot',  cat:'희귀',    icon:'🌟', ko:'전설',         en:'Legend',          descKo:'레벨3를 단 1번 만에 맞혔어요 (전설급!)', descEn:'Got LV3 in 1 attempt (legendary!)',          cond:'won && level===5 && attempts===1'},
@@ -1744,12 +1744,8 @@ function openModal(id){
   if(id==='statsModal')renderStats();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.querySelectorAll('.ov').forEach(ov=>{
-  let _downOnOv=false;
-  ov.addEventListener('mousedown',e=>{_downOnOv=!ov.querySelector('.mbox').contains(e.target);});
-  ov.addEventListener('click',e=>{if(_downOnOv&&e.target===ov)ov.classList.remove('open');});
-  ov.addEventListener('touchstart',e=>{_downOnOv=!ov.querySelector('.mbox').contains(e.target);},{passive:true});
-});
+document.querySelectorAll('.mbox').forEach(mb=>mb.addEventListener('mousedown',e=>e.stopPropagation()));
+document.querySelectorAll('.ov').forEach(ov=>ov.addEventListener('mousedown',()=>ov.classList.remove('open')));
 
 /* ── VIEW MODE ── */
 function setVM(mode){
