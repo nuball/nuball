@@ -653,11 +653,21 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <div class="countdown-lbl" data-i18n="nextGame">새로운 문제까지</div>
         <div class="countdown-val" id="countdownEl">--:--:--</div>
       </div>
+
+      <!-- 2. 랭킹 등록 인라인 -->
+      <div id="statsRegArea" style="display:none;margin-bottom:12px;padding:14px;background:var(--primary-light);border:1.5px solid color-mix(in srgb,var(--primary) 30%,transparent);border-radius:10px">
+        <div style="font-size:12px;font-weight:800;color:var(--primary);margin-bottom:10px" id="statsRegTitle">🏆 일간 랭킹에 등록할까요?</div>
+        <input class="finput" type="text" id="statsNickInput" maxlength="12" placeholder="닉네임 / Nickname" style="margin-bottom:6px">
+        <select class="finput fselect" id="statsCountrySelect" style="margin-bottom:8px"></select>
+        <button class="btn-p" id="statsRegBtn" onclick="registerFromStats()">랭킹 등록하기</button>
+      </div>
+
       <button class="copy-btn" onclick="copyResult()">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         <span data-i18n="copyBtn">결과 복사</span>
       </button>
-      <button class="share-btn" onclick="shareImage()">
+      <!-- 1. 이미지 다운 → 초록 배경 통일 -->
+      <button class="copy-btn" onclick="shareImage()" style="margin-top:8px">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span data-i18n="shareImg">이미지 다운</span>
       </button>
@@ -1242,6 +1252,33 @@ function goHome(){onResultClose()}
 function renderStats(){
   const{dist}=S.stats;
   const koLbl=S.lang==='ko';
+
+  // 랭킹 등록 영역 표시/숨김
+  const regArea=document.getElementById('statsRegArea');
+  if(S.consumed>=1 && !S.registered){
+    regArea.style.display='block';
+    const title=document.getElementById('statsRegTitle');
+    const btn=document.getElementById('statsRegBtn');
+    if(title)title.textContent=koLbl?'🏆 일간 랭킹에 등록할까요?':'🏆 Register for today\'s ranking?';
+    if(btn)btn.textContent=koLbl?'랭킹 등록하기':'Register Ranking';
+    // 국가 셀렉트 채우기
+    const sel=document.getElementById('statsCountrySelect');
+    if(sel){
+      const cur=sel.value||S.country;
+      sel.innerHTML=CC.map(x=>'<option value="'+x.c+'"'+(x.c===cur?' selected':'')+'>'
+        +x.f+' '+(S.lang==='ko'?x.ko:x.en)+'</option>').join('');
+    }
+  }else if(S.registered){
+    regArea.style.display='block';
+    const title=document.getElementById('statsRegTitle');
+    const btn=document.getElementById('statsRegBtn');
+    if(title)title.textContent=koLbl?'✅ 랭킹에 등록됐어요!':'✅ You\'re on the leaderboard!';
+    if(btn){btn.textContent=koLbl?'랭킹 보기':'View Ranking';btn.onclick=function(){closeModal('statsModal');openModal('rankingModal');};btn.disabled=false;}
+    const inputs=['statsNickInput','statsCountrySelect'];
+    inputs.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  }else{
+    regArea.style.display='none';
+  }
   // 분포 차트
   const maxCnt=Math.max(1,...Object.values(dist).map(Number));
   const keys=[];for(let i=1;i<=22;i++)keys.push(String(i));
@@ -1287,6 +1324,70 @@ function fallbackCopy(text){
 }
 
 /* ── RANKING (Firebase) ── */
+/* ── STATS 내 랭킹 등록 ── */
+async function registerFromStats(){
+  const nick=document.getElementById('statsNickInput').value.trim();
+  if(!nick){alert(t('nickAlert'));return}
+  const country=document.getElementById('statsCountrySelect').value;
+  // 메인 nickInput과 countrySelect 동기화
+  document.getElementById('nickInput').value=nick;
+  // registerRanking 로직 재사용 (statsRegBtn을 임시로 regBtn처럼 처리)
+  const origBtn=document.getElementById('regBtn');
+  const statsBtn=document.getElementById('statsRegBtn');
+  statsBtn.disabled=true;
+  statsBtn.textContent=S.lang==='ko'?'등록 중...':'Saving...';
+
+  const ko=S.lang==='ko';
+  const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
+  const bestGame=S.scores.find(g=>g.score===bestScore)||S.scores[0];
+  const entry={nick,country,score:bestScore,level:bestGame?bestGame.level:0,day:S.dayId,uid:S.uid,ts:Date.now()};
+
+  S.rankings=S.rankings.filter(r=>r.id!==S.uid);
+  S.rankings.push({id:S.uid,...entry});
+  S.rankings.sort((a,b)=>b.score-a.score);
+  S.rankings=S.rankings.slice(0,100);
+  S.registered=true;saveDaily();saveRankings();
+
+  if(window._fbReady){
+    try{
+      const path='rankings/'+S.dayId+'/'+S.uid;
+      await window._fbSet(window._fbRef(window._fbDb,path),entry);
+      alert(t('regOk'));
+      renderHome();
+      renderStats(); // 등록 완료 상태로 업데이트
+    }catch(e){
+      console.warn('Firebase write failed',e);
+      alert(ko?'랭킹에 등록됐지만 서버 동기화에 실패했어요.\n잠시 후 다시 시도해 주세요.':'Registered locally, but server sync failed.');
+      S.registered=false;saveDaily();
+      statsBtn.disabled=false;statsBtn.textContent=ko?'랭킹 등록하기':'Register Ranking';
+      statsBtn.onclick=registerFromStats;
+    }
+  }else{
+    let waited=0;
+    const retry=setInterval(async()=>{
+      waited+=500;
+      if(window._fbReady){
+        clearInterval(retry);
+        try{
+          await window._fbSet(window._fbRef(window._fbDb,'rankings/'+S.dayId+'/'+S.uid),entry);
+          alert(t('regOk'));renderHome();renderStats();
+        }catch(e){
+          alert(ko?'서버 연결에 실패했습니다.':'Server connection failed.');
+          S.registered=false;saveDaily();
+          statsBtn.disabled=false;statsBtn.textContent=ko?'랭킹 등록하기':'Register Ranking';
+          statsBtn.onclick=registerFromStats;
+        }
+      }else if(waited>=5000){
+        clearInterval(retry);
+        alert(ko?'서버에 연결할 수 없어요.':'Cannot connect to server.');
+        S.registered=false;saveDaily();
+        statsBtn.disabled=false;statsBtn.textContent=ko?'랭킹 등록하기':'Register Ranking';
+        statsBtn.onclick=registerFromStats;
+      }
+    },500);
+  }
+}
+
 async function registerRanking(){
   const nick=document.getElementById('nickInput').value.trim();
   if(!nick){alert(t('nickAlert'));return}
