@@ -357,7 +357,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </button>
         <button class="hdr-menu-item" onclick="closeMenu();openModal('statsModal')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 12v8"/><path d="M12 4v16"/><path d="M20 8v12"/></svg>
-          <span id="menuLbl2">공유하기</span>
+          <span id="menuLbl2">통계·공유</span>
         </button>
         <button class="hdr-menu-item" onclick="closeMenu();openModal('supportModal')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -519,17 +519,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       </div>
     </div>
 
-    <div class="reg-card hidden" id="regCard">
-      <div class="total-box">
-        <div class="total-lbl" data-i18n="totalScore">오늘의 최종 점수</div>
-        <div class="total-val" id="totalValEl">0 PTS</div>
-      </div>
-      <div class="sec-title" data-i18n="regTitle">일간 랭킹에 등록하기</div>
-      <input class="finput" type="text" id="nickInput" maxlength="12" placeholder="닉네임 / Nickname">
-      <select class="finput fselect" id="countrySelect"></select>
-      <button class="btn-p" id="regBtn" onclick="registerRanking()" data-i18n="submit">랭킹 등록하기</button>
-      <button class="btn-p btn-o" onclick="openModal('rankingModal')" style="margin-top:6px" data-i18n="viewRank">랭킹 보기</button>
-    </div>
   </div>
 
   <!-- GAME -->
@@ -880,7 +869,7 @@ en:{
 const t=k=>MSGS[S.lang][k]||k;
 
 /* ── STATE ── */
-const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',dayId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false,streak:0,personalBest:{3:null,4:null,5:null},achievements:{}};
+const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',dayId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false,streak:0,personalBest:{3:null,4:null,5:null},achievements:{},registeredScore:0};
 
 /* ── UTILS ── */
 function mulberry32(seed){return()=>{let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
@@ -915,7 +904,7 @@ function calcScore(level,attempts){
 async function detectCC(){try{const r=await fetch('https://ipapi.co/json/',{signal:AbortSignal.timeout(4000)});const d=await r.json();return d.country_code||'KR'}catch{return'KR'}}
 
 /* ── SAVE ── */
-function saveDaily(){localStorage.setItem('nb_consumed',S.consumed);localStorage.setItem('nb_scores',JSON.stringify(S.scores));localStorage.setItem('nb_total',S.totalScore);localStorage.setItem('nb_reg',S.registered);localStorage.setItem('nb_vr',S.vrUsed?'1':'0')}
+function saveDaily(){localStorage.setItem('nb_consumed',S.consumed);localStorage.setItem('nb_scores',JSON.stringify(S.scores));localStorage.setItem('nb_total',S.totalScore);localStorage.setItem('nb_reg',S.registered);localStorage.setItem('nb_vr',S.vrUsed?'1':'0');localStorage.setItem('nb_reg_score',S.registeredScore||0);}
 function saveRankings(){localStorage.setItem('nb_rankings',JSON.stringify(S.rankings))}
 function saveStats(){localStorage.setItem('nb_stats',JSON.stringify(S.stats))}
 function saveExtra(){
@@ -942,13 +931,14 @@ async function init(){
   const saved=localStorage.getItem('nb_date');
   if(saved!==S.today){
     localStorage.setItem('nb_date',S.today);
-    S.consumed=0;S.scores=[];S.totalScore=0;S.registered=false;S.vrUsed=false;
+    S.consumed=0;S.scores=[];S.totalScore=0;S.registered=false;S.vrUsed=false;S.registeredScore=0;
     localStorage.removeItem('nb_inprog');saveDaily();
   }else{
     S.consumed=parseInt(localStorage.getItem('nb_consumed')||'0');
     S.scores=JSON.parse(localStorage.getItem('nb_scores')||'[]');
     S.totalScore=parseInt(localStorage.getItem('nb_total')||'0');
     S.registered=localStorage.getItem('nb_reg')==='true';
+    S.registeredScore=parseInt(localStorage.getItem('nb_reg_score')||'0');
     S.vrUsed=localStorage.getItem('nb_vr')==='1';
     const ip=localStorage.getItem('nb_inprog');
     if(ip&&S.scores.length<S.consumed){
@@ -1000,7 +990,7 @@ function applyLang(){
   const ko=S.lang==='ko';
   const e=id=>document.getElementById(id);
   if(e('menuLbl1'))e('menuLbl1').textContent=ko?'일간 랭킹':'Daily Ranking';
-  if(e('menuLbl2'))e('menuLbl2').textContent=ko?'공유하기':'Share';
+  if(e('menuLbl2'))e('menuLbl2').textContent=ko?'통계·공유':'Stats & Share';
   if(e('menuLbl3'))e('menuLbl3').textContent=ko?'문의·후원':'Contact & Support';
   if(e('menuLbl4'))e('menuLbl4').textContent=ko?'게임 방법':'How to Play';
   if(e('menuLbl5'))e('menuLbl5').textContent=ko?'나의업적':'My Achievements';
@@ -1009,9 +999,13 @@ function applyLang(){
   if(e('inquiryLabel'))e('inquiryLabel').textContent=ko?'문의하기':'Inquiry';
 }
 function buildCountrySelect(){
-  const sel=document.getElementById('countrySelect'),cur=sel.value||S.country;
-  sel.innerHTML=CC.map(x=>'<option value="'+x.c+'"'+(x.c===cur?' selected':'')+'>'
-    +x.f+' '+(S.lang==='ko'?x.ko:x.en)+'</option>').join('');
+  ['statsCountrySelect'].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const cur=sel.value||S.country;
+    sel.innerHTML=CC.map(x=>'<option value="'+x.c+'"'+(x.c===cur?' selected':'')+'>'
+      +x.f+' '+(S.lang==='ko'?x.ko:x.en)+'</option>').join('');
+  });
 }
 
 /* ── HOME ── */
@@ -1064,19 +1058,8 @@ function renderHome(){
       '</button>';
   }).join('');
   // 등록 카드
-  const rc=document.getElementById('regCard');
-  if(S.consumed>=1){
-    rc.classList.remove('hidden');
-    const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
-document.getElementById('totalValEl').textContent=bestScore.toLocaleString()+' PTS';
-    const rb=document.getElementById('regBtn');
-    if(S.registered){rb.textContent='✅ '+(S.lang==='ko'?'등록 완료':'Registered!');rb.disabled=true;}
-    else{rb.textContent=t('submit');rb.disabled=false;}
-  }else rc.classList.add('hidden');
+
   applyLang();buildCountrySelect();
-  // 저장된 닉네임 복원
-  const savedNick=localStorage.getItem('nb_nick');
-  if(savedNick){const ni=document.getElementById('nickInput');if(ni&&!ni.value)ni.value=savedNick;}
 }
 
 /* ── CANCEL LEVEL (시도 0회일 때 기회 소모 없이 홈 복귀) ── */
@@ -1307,17 +1290,28 @@ function renderStats(){
   const{dist}=S.stats;
   const koLbl=S.lang==='ko';
 
-  // 랭킹 등록 영역 표시/숨김
+  // 랭킹 등록 영역
   const regArea=document.getElementById('statsRegArea');
-  if(S.consumed>=1 && !S.registered){
+  const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
+  const canRegister=S.consumed>=1;
+  const needUpdate=S.registered&&bestScore>(S.registeredScore||0);
+  const showForm=canRegister&&(!S.registered||needUpdate);
+
+  if(showForm){
     regArea.style.display='block';
     const title=document.getElementById('statsRegTitle');
     const btn=document.getElementById('statsRegBtn');
-    if(title)title.textContent=koLbl?'🏆 일간 랭킹에 등록할까요?':'🏆 Register for today\'s ranking?';
-    if(btn)btn.textContent=koLbl?'랭킹 등록하기':'Register Ranking';
-    // 국가 셀렉트 채우기
-    const sel=document.getElementById('statsCountrySelect');
     const sni=document.getElementById('statsNickInput');
+    const sel=document.getElementById('statsCountrySelect');
+    if(sni)sni.style.display='';
+    if(sel)sel.style.display='';
+    if(needUpdate){
+      if(title)title.textContent=koLbl?'🔄 더 높은 점수로 갱신할까요?':'🔄 Update with a higher score?';
+      if(btn){btn.textContent=koLbl?'점수 갱신하기':'Update Score';btn.onclick=registerFromStats;btn.disabled=false;}
+    }else{
+      if(title)title.textContent=koLbl?'🏆 일간 랭킹에 등록할까요?':'🏆 Register for today\'s ranking?';
+      if(btn){btn.textContent=koLbl?'랭킹 등록하기':'Register Ranking';btn.onclick=registerFromStats;btn.disabled=false;}
+    }
     const savedNick=localStorage.getItem('nb_nick');
     if(sni&&savedNick&&!sni.value)sni.value=savedNick;
     if(sel){
@@ -1325,14 +1319,16 @@ function renderStats(){
       sel.innerHTML=CC.map(x=>'<option value="'+x.c+'"'+(x.c===cur?' selected':'')+'>'
         +x.f+' '+(S.lang==='ko'?x.ko:x.en)+'</option>').join('');
     }
-  }else if(S.registered){
+  }else if(S.registered&&!needUpdate){
     regArea.style.display='block';
     const title=document.getElementById('statsRegTitle');
     const btn=document.getElementById('statsRegBtn');
+    const sni=document.getElementById('statsNickInput');
+    const sel=document.getElementById('statsCountrySelect');
+    if(sni)sni.style.display='none';
+    if(sel)sel.style.display='none';
     if(title)title.textContent=koLbl?'✅ 랭킹에 등록됐어요!':'✅ You\'re on the leaderboard!';
     if(btn){btn.textContent=koLbl?'랭킹 보기':'View Ranking';btn.onclick=function(){closeModal('statsModal');openModal('rankingModal');};btn.disabled=false;}
-    const inputs=['statsNickInput','statsCountrySelect'];
-    inputs.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
   }else{
     regArea.style.display='none';
   }
@@ -1514,8 +1510,7 @@ async function registerFromStats(){
   if(!nick){alert(t('nickAlert'));return}
   localStorage.setItem('nb_nick',nick);
   const country=document.getElementById('statsCountrySelect').value;
-  // 메인 nickInput과 countrySelect 동기화
-  document.getElementById('nickInput').value=nick;
+  // 메인 nickInput과 countrySelect 동기화 (regCard 제거로 불필요)
   // registerRanking 로직 재사용 (statsRegBtn을 임시로 regBtn처럼 처리)
   const origBtn=document.getElementById('regBtn');
   const statsBtn=document.getElementById('statsRegBtn');
@@ -1529,7 +1524,7 @@ async function registerFromStats(){
 
   S.rankings=S.rankings.filter(r=>r.id!==S.uid);
   S.rankings.push({id:S.uid,...entry});
-  S.rankings.sort((a,b)=>b.score-a.score);
+  S.rankings.sort((a,b)=>b.score-a.score||(b.level||0)-(a.level||0));
   S.rankings=S.rankings.slice(0,100);
   S.registered=true;saveDaily();saveRankings();
   registerAchievement('first_rank');showAchievementPopup('first_rank');
@@ -1575,72 +1570,8 @@ async function registerFromStats(){
 }
 
 async function registerRanking(){
-  const nick=document.getElementById('nickInput').value.trim();
-  if(!nick){alert(t('nickAlert'));return}
-  localStorage.setItem('nb_nick',nick);
-  const country=document.getElementById('countrySelect').value;
-  const ko=S.lang==='ko';
-
-  // 버튼 비활성화 (중복 클릭 방지)
-  const btn=document.getElementById('regBtn');
-  btn.disabled=true;
-  btn.textContent=ko?'등록 중...':'Saving...';
-
-  const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
-  const bestGame=S.scores.find(g=>g.score===bestScore)||S.scores[0];
-  const entry={nick,country,score:bestScore,level:bestGame?bestGame.level:0,day:S.dayId,uid:S.uid,ts:Date.now()};
-
-  // 로컬 반영
-  S.rankings=S.rankings.filter(r=>r.id!==S.uid);
-  S.rankings.push({id:S.uid,...entry});
-  S.rankings.sort((a,b)=>b.score-a.score);
-  S.rankings=S.rankings.slice(0,100);
-  S.registered=true;saveDaily();saveRankings();
-
-  // Firebase 저장
-  if(window._fbReady){
-    try{
-      const path='rankings/'+S.dayId+'/'+S.uid;
-      await window._fbSet(window._fbRef(window._fbDb,path),entry);
-      // Firebase 성공
-      alert(t('regOk'));
-      renderHome();openModal('rankingModal');
-    }catch(e){
-      // Firebase 실패 — 로컬에는 저장됨, 사용자에게 알림
-      console.warn('Firebase write failed',e);
-      alert(ko
-        ?'랭킹에 등록됐지만 서버 동기화에 실패했어요.\n잠시 후 다시 시도해 주세요.'
-        :'Registered locally, but server sync failed.\nPlease try again later.');
-      S.registered=false;saveDaily();
-      btn.disabled=false;
-      btn.textContent=t('submit');
-    }
-  }else{
-    // Firebase 미로드 — 잠시 대기 후 재시도
-    let waited=0;
-    const retry=setInterval(async()=>{
-      waited+=500;
-      if(window._fbReady){
-        clearInterval(retry);
-        try{
-          const path='rankings/'+S.dayId+'/'+S.uid;
-          await window._fbSet(window._fbRef(window._fbDb,path),entry);
-          alert(t('regOk'));
-          renderHome();openModal('rankingModal');
-        }catch(e){
-          console.warn('Firebase write failed after retry',e);
-          alert(ko?'서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.':'Server connection failed. Please try again.');
-          S.registered=false;saveDaily();
-          btn.disabled=false;btn.textContent=t('submit');
-        }
-      }else if(waited>=5000){
-        clearInterval(retry);
-        alert(ko?'서버에 연결할 수 없어요. 인터넷 연결을 확인해 주세요.':'Cannot connect to server. Please check your internet connection.');
-        S.registered=false;saveDaily();
-        btn.disabled=false;btn.textContent=t('submit');
-      }
-    },500);
-  }
+  // regCard 제거 후 registerFromStats로 위임
+  return registerFromStats();
 }
 
 let _rankTab=0; // 0=통합, 1=LV1, 2=LV2, 3=LV3
@@ -1697,7 +1628,7 @@ async function renderRankList(){
           const d=child.val();
           entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,day:d.day});
         });
-        entries.sort((a,b)=>b.score-a.score);
+        entries.sort((a,b)=>b.score-a.score||(b.level||0)-(a.level||0));
         S.rankings=entries;saveRankings();
       }
     }catch(e){
