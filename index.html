@@ -172,9 +172,9 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .empty-ico{font-size:26px;display:block;margin-bottom:8px;opacity:.4}
 
 /* ── MODALS ── */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s;overflow:hidden}
 .ov.open{opacity:1;pointer-events:all}
-.mbox{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;transform:translateY(16px);transition:transform .2s;box-shadow:var(--sh-xl)}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;will-change:scroll-position;transform:translateY(16px);transition:transform .2s;box-shadow:var(--sh-xl)}
 .ov.open .mbox{transform:translateY(0)}
 .mhdr{padding:18px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:1;border-radius:16px 16px 0 0}
 .mtitle{font-size:16px;font-weight:800}
@@ -1434,7 +1434,7 @@ function renderPersonalBest(){
   const items=lvs.map(lv=>{
     const b=S.personalBest[lv.n];
     return '<div style="text-align:center;flex:1;background:var(--bg2);border-radius:8px;padding:10px 6px">'+
-      '<div style="font-size:20px;font-weight:900;color:var(--primary);font-family:\"DM Mono\",monospace;line-height:1">'+(b!==null?b+'번':'-')+'</div>'+
+      '<div style="font-size:20px;font-weight:900;color:var(--primary);font-family:\"DM Mono\",monospace;line-height:1">'+(b!==null?b+(ko?'번':' att'):'-')+'</div>'+
       '<div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:4px">'+lv.k+'</div>'+
       '</div>';
   }).join('');
