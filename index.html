@@ -200,6 +200,10 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .btn-danger{padding:13px;background:var(--lose);border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;color:#fff}
 
 /* ── RANKING ── */
+.rank-tabs{display:flex;gap:4px;margin-bottom:14px}
+.rank-tab{flex:1;padding:8px 4px;background:var(--bg2);border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;color:var(--muted);transition:all .12s}
+.rank-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.rank-tab:hover:not(.active){border-color:var(--primary);color:var(--primary)}
 .rank-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}.rank-row:last-child{border-bottom:none}
 .rank-pos{width:30px;font-size:13px;font-weight:900;color:var(--subtle);text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}.rank-pos.medal{font-size:20px}
 .rank-info{flex:1}.rank-nick{font-size:15px;font-weight:700}.rank-country{font-size:11px;color:var(--muted);margin-top:1px}
@@ -625,7 +629,16 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <div class="ov" id="rankingModal">
   <div class="mbox">
     <div class="mhdr"><span class="mtitle" data-i18n="rankTitle">🏆 일간 랭킹</span><button class="mclose" onclick="closeModal('rankingModal')">✕</button></div>
-    <div class="mbody"><div id="rankList"></div><div class="rank-reset" id="rankResetEl"></div></div>
+    <div class="mbody">
+      <div class="rank-tabs">
+        <button class="rank-tab active" id="rtab0" onclick="setRankTab(0)" data-i18n="rankTabAll">통합</button>
+        <button class="rank-tab" id="rtab1" onclick="setRankTab(1)">LV.1</button>
+        <button class="rank-tab" id="rtab2" onclick="setRankTab(2)">LV.2</button>
+        <button class="rank-tab" id="rtab3" onclick="setRankTab(3)">LV.3</button>
+      </div>
+      <div id="rankList"></div>
+      <div class="rank-reset" id="rankResetEl"></div>
+    </div>
   </div>
 </div>
 
@@ -704,8 +717,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <thead><tr><th data-i18n="level">레벨</th><th data-i18n="maxPt">최고점</th><th data-i18n="minPt">최저점</th><th data-i18n="minAt">최저 기준</th></tr></thead>
         <tbody>
           <tr><td>LV.1 · 3자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th1">9회~</td></tr>
-          <tr><td>LV.2 · 4자리</td><td style="color:var(--win);font-weight:800">2,000</td><td>300</td><td data-i18n="th2">13회~</td></tr>
-          <tr><td>LV.3 · 5자리</td><td style="color:var(--win);font-weight:800">3,000</td><td>300</td><td data-i18n="th3">18회~</td></tr>
+          <tr><td>LV.2 · 4자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th2">13회~</td></tr>
+          <tr><td>LV.3 · 5자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th3">18회~</td></tr>
         </tbody>
       </table>
     </div>
@@ -751,13 +764,13 @@ const ccLabel=(code,lang)=>{const r=CC.find(x=>x.c===code)||CC[CC.length-1];retu
 /* ── i18n ── */
 const MSGS={
 ko:{
-  totalScore:'오늘의 최종 점수',regTitle:'일간 랭킹에 등록하기',submit:'랭킹 등록하기',viewRank:'랭킹 보기',
+  totalScore:'오늘의 최고 점수',regTitle:'일간 랭킹 등록하기',submit:'랭킹 등록하기',viewRank:'랭킹 보기',
   forfeit:'포기',forfeitTitle:'정말 포기할까요?',forfeitDesc:'포기하면 이번 게임은 0점 처리되고 한 번의 기회가 소진됩니다.',
   keepPlaying:'계속하기',confirmForfeit:'포기하기',confirm:'확인',
   history:'기록',answer:'정답',gameScore:'이번 게임 점수',goHome:'메인으로',
   supportTitle:'개발자 응원하기',supportDesc:'누볼을 즐기고 계신가요? 개발자에게 커피 한 잔 보내주세요!',
   watchAd:'📺 광고 보기',adNote:'광고 시청 시 하루 1회 기회 초기화 가능',
-  helpTitle:'게임 방법',rankTitle:'🏆 일간 랭킹',
+  helpTitle:'게임 방법',rankTitle:'🏆 일간 랭킹',rankTabAll:'통합',
   statsTitle:'통계',distTitle:'도전 분포',nextGame:'새로운 문제까지',copyBtn:'결과 복사',shareImg:'이미지 다운',
   rule1:'1~9 사이의 중복 없는 숫자를 맞추세요 (0 제외)',
   rule2:'Strike: 숫자와 자리가 모두 일치',rule3:'Ball: 숫자는 있지만 자리가 다름',
@@ -793,13 +806,13 @@ ko:{
   kofiBtn:'☕ Ko-fi로 응원하기',
 },
 en:{
-  totalScore:"Today's Total Score",regTitle:'Register Daily Ranking',submit:'Submit Ranking',viewRank:'View Rankings',
+  totalScore:"Today's Best Score",regTitle:'Register Daily Ranking',submit:'Submit Ranking',viewRank:'View Rankings',
   forfeit:'Forfeit',forfeitTitle:'Give up?',forfeitDesc:'Forfeiting scores 0 for this game and uses one of your 3 daily chances.',
   keepPlaying:'Keep Playing',confirmForfeit:'Forfeit',confirm:'Submit',
   history:'History',answer:'Answer',gameScore:'Game Score',goHome:'Back to Main',
   supportTitle:'Support the Dev',supportDesc:'Enjoying Nuball? Support to keep it alive!',
   watchAd:'📺 Watch Ad',adNote:'Watching an ad resets your daily chances (1x)',
-  helpTitle:'How to Play',rankTitle:'🏆 Daily Ranking',
+  helpTitle:'How to Play',rankTitle:'🏆 Daily Ranking',rankTabAll:'All',
   statsTitle:'Statistics',distTitle:'Attempt Distribution',nextGame:'Next puzzle in',copyBtn:'Copy Result',shareImg:'Download Image',
   rule1:'Guess numbers 1-9, no repeats, no 0',
   rule2:'Strike: Correct number AND position',rule3:'Ball: Correct number, wrong position',
@@ -864,7 +877,7 @@ function genTarget(uid,dateStr,level,idx){
   return res;
 }
 function calcScore(level,attempts){
-  const cfg={3:{max:1000,min:300,th:9},4:{max:2000,min:300,th:13},5:{max:3000,min:300,th:18}};
+  const cfg={3:{max:1000,min:300,th:9},4:{max:1000,min:300,th:13},5:{max:1000,min:300,th:18}};
   const{max,min,th}=cfg[level];
   if(attempts>=th)return min;
   return Math.max(min,Math.round(max-(attempts-1)*(max-min)/(th-1)));
@@ -984,9 +997,9 @@ function renderHome(){
   }
   // 2. 레벨 카드 — 시도 전이면 레벨 변경 가능, 시도 후/3판 완료면 비활성
   const lvls=[
-    {n:3,tag:'LEVEL 1',tKey:'lv3',pts:'1,000'},
-    {n:4,tag:'LEVEL 2',tKey:'lv4',pts:'2,000'},
-    {n:5,tag:'LEVEL 3',tKey:'lv5',pts:'3,000'},
+    {n:3,tag:'LEVEL 1',tKey:'lv3',pts:'1,000',tagline:S.lang==='ko'?'⚡ 실수하면 점수가 확 깎여요':'⚡ Mistakes cut your score fast'},
+    {n:4,tag:'LEVEL 2',tKey:'lv4',pts:'1,000',tagline:S.lang==='ko'?'⚖️ 난이도와 점수의 균형':'⚖️ Balanced difficulty & score'},
+    {n:5,tag:'LEVEL 3',tKey:'lv5',pts:'1,000',tagline:S.lang==='ko'?'🛡️ 시도해도 점수가 잘 버텨요':'🛡️ Score holds up even if you try more'},
   ];
   const maxLbl=t('maxLabel');
   // 현재 게임 진행 중(시도 1회 이상)이면 레벨 변경 불가
@@ -996,15 +1009,17 @@ function renderHome(){
     // 게임 진행 중일 때 현재 레벨 하이라이트
     const isCurrent = S.game && S.game.level===lv.n;
     return '<button class="lvl-card'+(isCurrent?' lvl-current':'')+'" onclick="selectLevel('+lv.n+')"'+(disabled&&!isCurrent?' disabled':'')+'>'+
-      '<div><div class="lvl-tag">'+lv.tag+'</div><div class="lvl-title">'+t(lv.tKey)+'</div></div>'+
+      '<div><div class="lvl-tag">'+lv.tag+'</div><div class="lvl-title">'+t(lv.tKey)+'</div>'+
+      '<div style="font-size:11px;color:var(--muted);margin-top:3px;font-weight:600">'+lv.tagline+'</div></div>'+
       '<div class="lvl-pts"><div style="font-size:11px;font-weight:700;letter-spacing:.5px">'+maxLbl+'</div><span class="lvl-pts-num">'+lv.pts+'<span style="font-family:inherit;font-size:15px;font-weight:900;letter-spacing:0">'+t('ptsUnit')+'</span></span></div>'+
       '</button>';
   }).join('');
   // 등록 카드
   const rc=document.getElementById('regCard');
-  if(S.consumed>=3){
+  if(S.consumed>=1){
     rc.classList.remove('hidden');
-    document.getElementById('totalValEl').textContent=S.totalScore.toLocaleString()+' PTS';
+    const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
+document.getElementById('totalValEl').textContent=bestScore.toLocaleString()+' PTS';
     const rb=document.getElementById('regBtn');
     if(S.registered){rb.textContent='✅ '+(S.lang==='ko'?'등록 완료':'Registered!');rb.disabled=true;}
     else{rb.textContent=t('submit');rb.disabled=false;}
@@ -1219,7 +1234,7 @@ function onResultClose(){
   document.getElementById('gameScreen').style.display='none';
   document.getElementById('homeScreen').classList.remove('hidden');
   S.game=null;renderHome();
-  if(S.consumed>=3){setTimeout(()=>openModal('statsModal'),300);}
+  if(S.consumed>=1){setTimeout(()=>openModal('statsModal'),300);}
 }
 function goHome(){onResultClose()}
 
@@ -1283,7 +1298,9 @@ async function registerRanking(){
   btn.disabled=true;
   btn.textContent=ko?'등록 중...':'Saving...';
 
-  const entry={nick,country,score:S.totalScore,day:S.dayId,uid:S.uid,ts:Date.now()};
+  const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
+  const bestGame=S.scores.find(g=>g.score===bestScore)||S.scores[0];
+  const entry={nick,country,score:bestScore,level:bestGame?bestGame.level:0,day:S.dayId,uid:S.uid,ts:Date.now()};
 
   // 로컬 반영
   S.rankings=S.rankings.filter(r=>r.id!==S.uid);
@@ -1338,28 +1355,35 @@ async function registerRanking(){
   }
 }
 
+let _rankTab=0; // 0=통합, 1=LV1, 2=LV2, 3=LV3
+function setRankTab(n){
+  _rankTab=n;
+  [0,1,2,3].forEach(i=>document.getElementById('rtab'+i).classList.toggle('active',i===n));
+  renderRankList();
+}
+
 async function renderRankList(){
   const listEl=document.getElementById('rankList');
-  listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">불러오는 중...</div>';
+  listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+
+    (S.lang==='ko'?'불러오는 중...':'Loading...')+'</div>';
 
   let entries=[];
 
-  // Firebase에서 이번 주 랭킹 가져오기
+  // Firebase에서 오늘 랭킹 가져오기
   if(window._fbReady){
     try{
       const q=window._fbQuery(
         window._fbRef(window._fbDb,'rankings/'+S.dayId),
         window._fbOrderByChild('score'),
-        window._fbLimitToLast(100)
+        window._fbLimitToLast(300)
       );
       const snap=await window._fbGet(q);
       if(snap.exists()){
         snap.forEach(child=>{
           const d=child.val();
-          entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,week:d.week});
+          entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,day:d.day});
         });
         entries.sort((a,b)=>b.score-a.score);
-        // 로컬 캐시 업데이트
         S.rankings=entries;saveRankings();
       }
     }catch(e){
@@ -1370,15 +1394,21 @@ async function renderRankList(){
     entries=[...S.rankings];
   }
 
+  // 탭 필터링
+  const lvMap={1:3,2:4,3:5};
+  const filtered=_rankTab===0?entries:entries.filter(r=>r.level===lvMap[_rankTab]);
+
   const medals=['🥇','🥈','🥉'];
-  if(!entries.length){
-    listEl.innerHTML='<p style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">'+(S.lang==='ko'?'아직 등록된 참가자가 없습니다':'No participants yet')+'</p>';
+  if(!filtered.length){
+    listEl.innerHTML='<p style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">'+
+      (S.lang==='ko'?'아직 등록된 참가자가 없습니다':'No participants yet')+'</p>';
   }else{
-    listEl.innerHTML=entries.slice(0,100).map((r,i)=>{
+    listEl.innerHTML=filtered.slice(0,100).map((r,i)=>{
       const rank=i+1,isMe=r.id===S.uid;
+      const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
       return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
         '<div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div>'+
-        '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+'</div>'+
+        '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+(_rankTab===0?lvBadge:'')+'</div>'+
         '<div class="rank-country">'+ccLabel(r.country,S.lang)+'</div></div>'+
         '<div class="rank-score">'+r.score.toLocaleString()+'</div></div>';
     }).join('');
