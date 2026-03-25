@@ -1074,6 +1074,9 @@ document.getElementById('totalValEl').textContent=bestScore.toLocaleString()+' P
     else{rb.textContent=t('submit');rb.disabled=false;}
   }else rc.classList.add('hidden');
   applyLang();buildCountrySelect();
+  // 저장된 닉네임 복원
+  const savedNick=localStorage.getItem('nb_nick');
+  if(savedNick){const ni=document.getElementById('nickInput');if(ni&&!ni.value)ni.value=savedNick;}
 }
 
 /* ── CANCEL LEVEL (시도 0회일 때 기회 소모 없이 홈 복귀) ── */
@@ -1314,6 +1317,9 @@ function renderStats(){
     if(btn)btn.textContent=koLbl?'랭킹 등록하기':'Register Ranking';
     // 국가 셀렉트 채우기
     const sel=document.getElementById('statsCountrySelect');
+    const sni=document.getElementById('statsNickInput');
+    const savedNick=localStorage.getItem('nb_nick');
+    if(sni&&savedNick&&!sni.value)sni.value=savedNick;
     if(sel){
       const cur=sel.value||S.country;
       sel.innerHTML=CC.map(x=>'<option value="'+x.c+'"'+(x.c===cur?' selected':'')+'>'
@@ -1506,6 +1512,7 @@ function fallbackCopy(text){
 async function registerFromStats(){
   const nick=document.getElementById('statsNickInput').value.trim();
   if(!nick){alert(t('nickAlert'));return}
+  localStorage.setItem('nb_nick',nick);
   const country=document.getElementById('statsCountrySelect').value;
   // 메인 nickInput과 countrySelect 동기화
   document.getElementById('nickInput').value=nick;
@@ -1570,6 +1577,7 @@ async function registerFromStats(){
 async function registerRanking(){
   const nick=document.getElementById('nickInput').value.trim();
   if(!nick){alert(t('nickAlert'));return}
+  localStorage.setItem('nb_nick',nick);
   const country=document.getElementById('countrySelect').value;
   const ko=S.lang==='ko';
 
