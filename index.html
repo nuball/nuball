@@ -227,7 +227,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 /* 8. 통계 모달 */
 .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 .stat-box{text-align:center;padding:12px 6px;background:var(--bg2);border-radius:10px}
-.stat-num{font-size:26px;font-weight:900;color:var(--text);font-family:'DM Mono',monospace;line-height:1}
+.stat-num{font-size:26px;font-weight:900;color:var(--text);font-family:\"DM Mono\",monospace;line-height:1}
 .stat-lbl{font-size:10px;font-weight:700;color:var(--muted);margin-top:5px;line-height:1.3}
 .dist-title{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
 .dist-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
@@ -327,6 +327,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 .tut-hint{font-size:11px;font-weight:700;color:var(--muted);background:var(--bg2);border-radius:6px;padding:6px 10px;margin-top:4px;line-height:1.5}
 .tut-divider{height:1px;background:var(--border);margin:16px 0}
 @keyframes winPop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes achSlide{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .tut-win-anim{animation:winPop .45s ease forwards}
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -349,6 +350,10 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <button class="hdr-menu-item" onclick="closeMenu();openModal('rankingModal')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
           <span id="menuLbl1">일간 랭킹</span>
+        </button>
+        <button class="hdr-menu-item" onclick="closeMenu();openAchModal()">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+          <span id="menuLbl5">나의업적</span>
         </button>
         <button class="hdr-menu-item" onclick="closeMenu();openModal('statsModal')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 12v8"/><path d="M12 4v16"/><path d="M20 8v12"/></svg>
@@ -386,6 +391,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <main>
   <!-- HOME -->
   <div id="homeScreen">
+    <!-- 스트릭 배지 -->
+    <div id="homeStreak" style="text-align:center;margin-bottom:8px"></div>
     <!-- 3. 야구공 기회 표시 -->
     <div class="balls-row" id="ballsRow"></div>
     <div class="slots" id="slotsEl"></div>
@@ -630,6 +637,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <div class="mbox">
     <div class="mhdr"><span class="mtitle" data-i18n="rankTitle">🏆 일간 랭킹</span><button class="mclose" onclick="closeModal('rankingModal')">✕</button></div>
     <div class="mbody">
+      <div id="yesterdayTop" style="display:none"></div>
       <div class="rank-tabs">
         <button class="rank-tab active" id="rtab0" onclick="setRankTab(0)" data-i18n="rankTabAll">통합</button>
         <button class="rank-tab" id="rtab1" onclick="setRankTab(1)">LV.1</button>
@@ -647,6 +655,10 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <div class="mbox">
     <div class="mhdr"><span class="mtitle" data-i18n="statsTitle">통계</span><button class="mclose" onclick="closeModal('statsModal')">✕</button></div>
     <div class="mbody">
+      <!-- 스트릭 -->
+      <div id="streakDisplay" style="display:none;text-align:center;padding:8px 14px;background:linear-gradient(135deg,#ff6b00,#ff9500);border-radius:10px;color:#fff;font-size:14px;font-weight:800;margin-bottom:14px"></div>
+      <!-- 개인 최고 기록 -->
+      <div id="personalBestArea" style="margin-bottom:16px"></div>
       <div class="dist-title" data-i18n="distTitle">도전 분포</div>
       <div id="distChart"></div>
       <div class="countdown-box">
@@ -677,6 +689,14 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       </button>
       <div class="copy-result" id="copyResultMsg"></div>
     </div>
+  </div>
+</div>
+
+<!-- 업적 모달 -->
+<div class="ov" id="achModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="achModalTitle">🏅 업적</span><button class="mclose" onclick="closeModal('achModal')">✕</button></div>
+    <div class="mbody"><div id="achArea"></div></div>
   </div>
 </div>
 
@@ -860,7 +880,7 @@ en:{
 const t=k=>MSGS[S.lang][k]||k;
 
 /* ── STATE ── */
-const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',dayId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false};
+const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',dayId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false,streak:0,personalBest:{3:null,4:null,5:null},achievements:{}};
 
 /* ── UTILS ── */
 function mulberry32(seed){return()=>{let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
@@ -898,9 +918,17 @@ async function detectCC(){try{const r=await fetch('https://ipapi.co/json/',{sign
 function saveDaily(){localStorage.setItem('nb_consumed',S.consumed);localStorage.setItem('nb_scores',JSON.stringify(S.scores));localStorage.setItem('nb_total',S.totalScore);localStorage.setItem('nb_reg',S.registered);localStorage.setItem('nb_vr',S.vrUsed?'1':'0')}
 function saveRankings(){localStorage.setItem('nb_rankings',JSON.stringify(S.rankings))}
 function saveStats(){localStorage.setItem('nb_stats',JSON.stringify(S.stats))}
+function saveExtra(){
+  localStorage.setItem('nb_streak',S.streak);
+  localStorage.setItem('nb_best',JSON.stringify(S.personalBest));
+  localStorage.setItem('nb_ach',JSON.stringify(S.achievements));
+}
 function loadStats(){
   const raw=localStorage.getItem('nb_stats');
   if(raw){try{S.stats=JSON.parse(raw)}catch(e){}}
+  S.streak=parseInt(localStorage.getItem('nb_streak')||'0')||0;
+  try{const b=localStorage.getItem('nb_best');if(b){const p=JSON.parse(b);if(p&&typeof p==='object')S.personalBest=Object.assign({3:null,4:null,5:null},p);}}catch(e){}
+  try{const a=localStorage.getItem('nb_ach');if(a){const ac=JSON.parse(a);if(ac&&typeof ac==='object')S.achievements=ac;}}catch(e){}
 }
 
 function seedRankings(){return[]} // 더미 데이터 제거
@@ -975,6 +1003,8 @@ function applyLang(){
   if(e('menuLbl2'))e('menuLbl2').textContent=ko?'공유하기':'Share';
   if(e('menuLbl3'))e('menuLbl3').textContent=ko?'문의·후원':'Contact & Support';
   if(e('menuLbl4'))e('menuLbl4').textContent=ko?'게임 방법':'How to Play';
+  if(e('menuLbl5'))e('menuLbl5').textContent=ko?'나의업적':'My Achievements';
+  if(e('achModalTitle'))e('achModalTitle').textContent=ko?'🏅 업적':'🏅 Achievements';
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유하기':'Share NUBALL';
   if(e('inquiryLabel'))e('inquiryLabel').textContent=ko?'문의하기':'Inquiry';
 }
@@ -986,6 +1016,15 @@ function buildCountrySelect(){
 
 /* ── HOME ── */
 function renderHome(){
+  // 홈 스트릭 표시
+  const hsr=document.getElementById('homeStreak');
+  if(hsr){
+    if(S.streak>=2){
+      const ko=S.lang==='ko';
+      hsr.innerHTML='<span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:800">🔥 '+(ko?S.streak+'일 연속':S.streak+' day streak')+'</span>';
+      hsr.style.display='block';
+    }else{hsr.style.display='none';}
+  }
   // 3. 야구공 기회 표시
   const br=document.getElementById('ballsRow');br.innerHTML='';
   for(let i=0;i<3;i++){
@@ -1206,7 +1245,6 @@ function executeForfeit(){closeModal('forfeitModal');finishGame(false,0)}
 /* ── FINISH ── */
 function finishGame(won,score){
   const{level,attempts,target}=S.game;
-  // vrUsed 정보도 score에 저장
   S.scores.push({level,score,attempts,won,vr:S.vrUsedThisGame});
   S.totalScore=S.scores.reduce((a,g)=>a+g.score,0);
   S.stats.total++;
@@ -1215,8 +1253,21 @@ function finishGame(won,score){
     if(S.stats.streak>S.stats.best)S.stats.best=S.stats.streak;
     const key=String(Math.min(attempts,22));
     S.stats.dist[key]=(S.stats.dist[key]||0)+1;
+    // 개인 최고 기록
+    if(!S.personalBest)S.personalBest={3:null,4:null,5:null};
+    if(S.personalBest[level]===null||attempts<S.personalBest[level])S.personalBest[level]=attempts;
+    // 스트릭 업데이트
+    const lastPlay=localStorage.getItem('nb_lastPlay');
+    const ydObj=new Date();ydObj.setDate(ydObj.getDate()-1);
+    const yesterday=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
+    if(lastPlay!==S.today){
+      if(lastPlay===yesterday)S.streak=(S.streak||0)+1;
+      else S.streak=1;
+      localStorage.setItem('nb_lastPlay',S.today);
+    }
   }else{S.stats.streak=0;}
-  saveStats();
+  saveStats();saveExtra();
+  setTimeout(()=>checkAchievements(won,level,attempts),400);
   localStorage.removeItem('nb_inprog');saveDaily();
   showResult(won,score,target.join(''),attempts);
 }
@@ -1284,16 +1335,143 @@ function renderStats(){
   const keys=[];for(let i=1;i<=22;i++)keys.push(String(i));
   // 실제 데이터 있는 키만
   const usedKeys=keys.filter(k=>dist[k]);
-  if(!usedKeys.length){document.getElementById('distChart').innerHTML='<p style="font-size:12px;color:var(--subtle);text-align:center;padding:10px 0">'+(koLbl?'아직 기록 없음':'No data yet')+'</p>';return}
-  document.getElementById('distChart').innerHTML=usedKeys.map(k=>{
-    const cnt=dist[k]||0;
-    const pct=Math.max(5,Math.round(cnt/maxCnt*100));
-    return '<div class="dist-row">'+
-      '<div class="dist-lbl">'+k+'</div>'+
-      '<div class="dist-bar-wrap"><div class="dist-bar" style="width:'+pct+'%"><span class="dist-cnt">'+cnt+'</span></div></div>'+
+  if(!usedKeys.length){
+    document.getElementById('distChart').innerHTML='<p style="font-size:12px;color:var(--subtle);text-align:center;padding:10px 0">'+(koLbl?'아직 기록 없음':'No data yet')+'</p>';
+  }else{
+    document.getElementById('distChart').innerHTML=usedKeys.map(k=>{
+      const cnt=dist[k]||0;
+      const pct=Math.max(5,Math.round(cnt/maxCnt*100));
+      return '<div class="dist-row">'+
+        '<div class="dist-lbl">'+k+'</div>'+
+        '<div class="dist-bar-wrap"><div class="dist-bar" style="width:'+pct+'%"><span class="dist-cnt">'+cnt+'</span></div></div>'+
+        '</div>';
+    }).join('');
+  }
+  document.getElementById('countdownEl').textContent=timeUntilMidnight();
+  renderStreak();
+  renderPersonalBest();
+}
+
+
+/* ── ACHIEVEMENTS ── */
+const ACHIEVEMENTS=[
+  {id:'first_play',   cat:'첫 경험', icon:'⚾', ko:'첫 타석',     en:'First At Bat',    descKo:'처음으로 누볼을 플레이했어요',          descEn:'Played NUBALL for the first time',           cond:'auto'},
+  {id:'first_lv1',    cat:'첫 경험', icon:'🎯', ko:'LV1 클리어',  en:'LV1 Clear',       descKo:'레벨1을 처음 클리어했어요',              descEn:'Cleared Level 1 for the first time',         cond:'auto'},
+  {id:'first_lv2',    cat:'첫 경험', icon:'🎯', ko:'LV2 클리어',  en:'LV2 Clear',       descKo:'레벨2를 처음 클리어했어요',              descEn:'Cleared Level 2 for the first time',         cond:'auto'},
+  {id:'first_lv3',    cat:'첫 경험', icon:'🎯', ko:'LV3 클리어',  en:'LV3 Clear',       descKo:'레벨3를 처음 클리어했어요',              descEn:'Cleared Level 3 for the first time',         cond:'auto'},
+  {id:'first_rank',   cat:'첫 경험', icon:'🏆', ko:'첫 랭킹 등록',en:'First Ranking',   descKo:'처음으로 일간 랭킹에 등록했어요',        descEn:'Registered on the daily ranking',            cond:'auto'},
+  {id:'fast_lv1',     cat:'실력',    icon:'⚡', ko:'3번 안에 LV1',en:'Quick LV1',       descKo:'레벨1을 3번 이내에 맞혔어요',            descEn:'Cleared LV1 in 3 attempts or less',          cond:'won && level===3 && attempts<=3'},
+  {id:'fast_lv3',     cat:'실력',    icon:'🚀', ko:'10번 안에 LV3',en:'LV3 Ace',        descKo:'레벨3를 10번 이내에 맞혔어요',           descEn:'Cleared LV3 in 10 attempts or less',         cond:'won && level===5 && attempts<=10'},
+  {id:'one_shot',     cat:'실력',    icon:'💫', ko:'원샷!',        en:'One Shot!',       descKo:'단 1번 만에 정답을 맞혔어요',            descEn:'Got the answer in just 1 attempt',           cond:'won && attempts===1'},
+  {id:'streak3',      cat:'꾸준함',  icon:'🔥', ko:'3일 연속',     en:'3-Day Streak',    descKo:'3일 연속으로 누볼을 플레이했어요',       descEn:'Played NUBALL 3 days in a row',              cond:'streak>=3'},
+  {id:'streak7',      cat:'꾸준함',  icon:'🔥', ko:'7일 연속',     en:'7-Day Streak',    descKo:'7일 연속으로 누볼을 플레이했어요',       descEn:'Played NUBALL 7 days in a row',              cond:'streak>=7'},
+  {id:'full_clear',   cat:'도전',    icon:'💪', ko:'퍼펙트 데이',  en:'Perfect Day',     descKo:'하루에 3판 모두 클리어했어요',           descEn:'Cleared all 3 games in one day',             cond:'auto'},
+  {id:'no_forfeit',   cat:'도전',    icon:'🛡️', ko:'포기 없이',    en:'No Forfeit',      descKo:'포기 없이 3판을 완주했어요',             descEn:'Completed 3 games without forfeiting',       cond:'auto'},
+  {id:'lv3_oneshot',  cat:'희귀',    icon:'🌟', ko:'전설',         en:'Legend',          descKo:'레벨3를 단 1번 만에 맞혔어요 (전설급!)', descEn:'Got LV3 in 1 attempt (legendary!)',          cond:'won && level===5 && attempts===1'},
+];
+
+function checkAchievements(won,level,attempts){
+  const toUnlock=[];
+  // 1회 이상 플레이
+  if(S.stats.total>=1)toUnlock.push('first_play');
+  // 첫 레벨별 클리어
+  if(won&&level===3)toUnlock.push('first_lv1');
+  if(won&&level===4)toUnlock.push('first_lv2');
+  if(won&&level===5)toUnlock.push('first_lv3');
+  // 실력 업적
+  if(won&&level===3&&attempts<=3)toUnlock.push('fast_lv1');
+  if(won&&level===5&&attempts<=10)toUnlock.push('fast_lv3');
+  if(won&&attempts===1)toUnlock.push('one_shot');
+  if(won&&level===5&&attempts===1)toUnlock.push('lv3_oneshot');
+  // 스트릭
+  if(S.streak>=3)toUnlock.push('streak3');
+  if(S.streak>=7)toUnlock.push('streak7');
+  // 오늘 전부 클리어
+  if(S.scores.length===3&&S.scores.every(g=>g.won)){toUnlock.push('full_clear');}
+  if(S.scores.length===3&&!S.scores.some(g=>!g.won&&g.score===0)){toUnlock.push('no_forfeit');}
+
+  let newOnes=[];
+  toUnlock.forEach(id=>{
+    if(!S.achievements[id]){
+      S.achievements[id]=S.today;
+      newOnes.push(id);
+    }
+  });
+  if(newOnes.length)saveExtra();
+  // 팝업
+  newOnes.forEach((id,i)=>{
+    setTimeout(()=>showAchievementPopup(id),i*800);
+  });
+}
+
+function registerAchievement(id){
+  if(!S.achievements[id]){S.achievements[id]=S.today;saveExtra();}
+}
+
+function showAchievementPopup(id){
+  const ach=ACHIEVEMENTS.find(a=>a.id===id);if(!ach)return;
+  const ko=S.lang==='ko';
+  const pop=document.createElement('div');
+  pop.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;border-radius:12px;padding:12px 18px;font-size:13px;font-weight:700;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:achSlide .35s ease;white-space:nowrap';
+  pop.innerHTML='<span style="font-size:20px">'+ach.icon+'</span><div><div style="font-size:10px;opacity:.8;letter-spacing:.5px;margin-bottom:1px">'+(ko?'업적 달성!':'Achievement Unlocked!')+'</div><div>'+( ko?ach.ko:ach.en)+'</div></div>';
+  document.body.appendChild(pop);
+  setTimeout(()=>{pop.style.animation='achSlide .3s ease reverse';setTimeout(()=>pop.remove(),300);},2500);
+}
+
+/* ── STREAK 화면 표시 ── */
+function renderStreak(){
+  const el=document.getElementById('streakDisplay');
+  if(!el)return;
+  const ko=S.lang==='ko';
+  if(S.streak>=2){
+    el.textContent='🔥 '+(ko?S.streak+'일 연속':S.streak+' day streak');
+    el.style.display='block';
+  }else{
+    el.style.display='none';
+  }
+}
+
+/* ── PERSONAL BEST 렌더링 ── */
+function renderPersonalBest(){
+  const el=document.getElementById('personalBestArea');
+  if(!el)return;
+  const ko=S.lang==='ko';
+  const lvs=[{n:3,k:'LV.1'},{n:4,k:'LV.2'},{n:5,k:'LV.3'}];
+  const items=lvs.map(lv=>{
+    const b=S.personalBest[lv.n];
+    return '<div style="text-align:center;flex:1;background:var(--bg2);border-radius:8px;padding:10px 6px">'+
+      '<div style="font-size:20px;font-weight:900;color:var(--primary);font-family:\"DM Mono\",monospace;line-height:1">'+(b!==null?b+'번':'-')+'</div>'+
+      '<div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:4px">'+lv.k+'</div>'+
       '</div>';
   }).join('');
-  document.getElementById('countdownEl').textContent=timeUntilMidnight();
+  el.innerHTML='<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">'+(ko?'개인 최고 기록':'Personal Best')+'</div>'+
+    '<div style="display:flex;gap:6px">'+items+'</div>';
+}
+
+/* ── ACHIEVEMENTS 렌더링 ── */
+function renderAchievements(){
+  const el=document.getElementById('achArea');
+  if(!el)return;
+  const ko=S.lang==='ko';
+  // 카테고리별 그룹
+  const cats=[...new Set(ACHIEVEMENTS.map(a=>a.cat))];
+  let html='<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">'+(ko?'업적':'Achievements')+'</div>';
+  cats.forEach(cat=>{
+    const items=ACHIEVEMENTS.filter(a=>a.cat===cat);
+    html+='<div style="font-size:10px;font-weight:800;color:var(--subtle);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;margin-top:12px">'+cat+'</div>';
+    items.forEach(ach=>{
+      const done=!!S.achievements[ach.id];
+      html+='<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;margin-bottom:4px;border:1px solid var(--border);background:var(--card);opacity:'+(done?'1':'0.5')+'">' +
+        '<span style="font-size:18px;flex-shrink:0">'+(done?ach.icon:'🔒')+'</span>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:13px;font-weight:800;color:'+(done?'var(--text)':'var(--subtle)')+'">'+( ko?ach.ko:ach.en)+'</div>'+
+          '<div style="font-size:11px;color:var(--muted);margin-top:1px">'+(done?(ko?'달성일: ':'Achieved: ')+S.achievements[ach.id]:(ko?ach.descKo:ach.descEn))+'</div>'+
+        '</div>'+
+        (done?'<span style="font-size:14px">✅</span>':'')+
+      '</div>';
+    });
+  });
+  el.innerHTML=html;
 }
 
 /* ── 결과 복사 ── */
@@ -1347,6 +1525,7 @@ async function registerFromStats(){
   S.rankings.sort((a,b)=>b.score-a.score);
   S.rankings=S.rankings.slice(0,100);
   S.registered=true;saveDaily();saveRankings();
+  registerAchievement('first_rank');showAchievementPopup('first_rank');
 
   if(window._fbReady){
     try{
@@ -1468,6 +1647,32 @@ async function renderRankList(){
   listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+
     (S.lang==='ko'?'불러오는 중...':'Loading...')+'</div>';
 
+  // 어제 1등 조회
+  const ydObj=new Date();ydObj.setDate(ydObj.getDate()-1);
+  const ydStr=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
+  const ydEl=document.getElementById('yesterdayTop');
+  if(ydEl&&window._fbReady){
+    try{
+      const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(1));
+      const ydSnap=await window._fbGet(ydQ);
+      if(ydSnap.exists()){
+        let top=null;ydSnap.forEach(ch=>{const d=ch.val();top={nick:d.nick,score:d.score,country:d.country};});
+        if(top){
+          const ko=S.lang==='ko';
+          ydEl.innerHTML=[
+            '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--primary-light);border-radius:8px;margin-bottom:12px">',
+            '<span>🥇</span>',
+            '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--primary)">'+(ko?'어제 1등':"Yesterday's #1")+'</div>',
+            '<div style="font-size:14px;font-weight:800">'+top.nick+' <span style="color:var(--muted)">'+ccLabel(top.country,S.lang)+'</span></div></div>',
+            '<div style="font-size:16px;font-weight:900;color:var(--primary)">'+top.score.toLocaleString()+'</div>',
+            '</div>'
+          ].join('');
+          ydEl.style.display='block';
+        }else{ydEl.style.display='none';}
+      }else{ydEl.style.display='none';}
+    }catch(e){ydEl.style.display='none';}
+  }
+
   let entries=[];
 
   // Firebase에서 오늘 랭킹 가져오기
@@ -1518,6 +1723,7 @@ async function renderRankList(){
 }
 
 /* ── MODALS ── */
+function openAchModal(){renderAchievements();openModal('achModal');}
 function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id==='rankingModal'){_rankTab=0;[0,1,2,3].forEach(i=>{const el=document.getElementById('rtab'+i);if(el)el.classList.toggle('active',i===0);});renderRankList();}
@@ -1678,11 +1884,10 @@ function revealEmail(){
 /* ── 9. 이미지 공유 (Canvas) ── */
 function shareImage(){
   const ko=S.lang==='ko';
-  const W=480,PAD=28,ROW=62,GAP=8;
-  const lvMap={3:'LV.1 · 3자리',4:'LV.2 · 4자리',5:'LV.3 · 5자리'};
-  const lvMapEn={3:'LV.1 · 3-Digit',4:'LV.2 · 4-Digit',5:'LV.3 · 5-Digit'};
-  const nCards=S.scores.length||1;
-  const H=PAD+52+PAD*0.5+nCards*(ROW+GAP)-GAP+PAD*0.5+48+PAD;
+  const W=480,PAD=24;
+  const HEADER=90,ROW=72,GAP=10;
+  const nCards=Math.max(S.scores.length,1);
+  const H=HEADER+nCards*(ROW+GAP)-GAP+PAD+56+PAD;
 
   const cv=document.createElement('canvas');
   const dpr=Math.min(window.devicePixelRatio||1,2);
@@ -1690,84 +1895,102 @@ function shareImage(){
   const ctx=cv.getContext('2d');
   ctx.scale(dpr,dpr);
 
-  const dark=S.dark;
-  const BG=dark?'#0d1117':'#ffffff';
-  const CARD=dark?'#1c2230':'#f3f8f4';
-  const BORDER=dark?'#30363d':'#d8ece0';
-  const TEXT=dark?'#e6edf3':'#1a1a1a';
-  const MUT=dark?'#8b949e':'#6b7280';
-  const GRN='#16a34a';
-  const LOSE='#dc2626';
+  // ── 색상 (항상 다크 야구장 테마) ──
+  const BG1='#0a2e1a',BG2='#0f3d22';
+  const CARD='rgba(255,255,255,0.07)';
+  const CARD_WIN='rgba(22,163,74,0.22)';
+  const CARD_LOSE='rgba(220,38,38,0.15)';
+  const GRN='#4ade80',GRN2='#16a34a';
+  const LOSE='#f87171';
+  const MUT='rgba(255,255,255,0.45)';
+  const WHITE='rgba(255,255,255,0.92)';
+  const BORDER_WIN='rgba(74,222,128,0.35)';
+  const BORDER_LOSE='rgba(248,113,113,0.25)';
+  const BORDER='rgba(255,255,255,0.1)';
 
-  ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
+  // ── 배경 그라디언트 ──
+  const grd=ctx.createLinearGradient(0,0,0,H);
+  grd.addColorStop(0,BG1);grd.addColorStop(1,BG2);
+  ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
 
-  // ── 헤더 (아이콘 + 이름 + 날짜, 컴팩트하게)
+  // ── 헤더 ──
   ctx.textAlign='center';
-  ctx.fillStyle=GRN;ctx.font='800 22px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
-  ctx.fillText(ko?'⚾ 누볼':'⚾ NUBALL',W/2,PAD+22);
-  ctx.fillStyle=MUT;ctx.font='400 12px "Plus Jakarta Sans",sans-serif';
-  ctx.fillText(S.today,W/2,PAD+40);
+  ctx.fillStyle=GRN;
+  ctx.font='900 26px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
+  ctx.fillText('⚾ '+(ko?'누볼':'NUBALL'),W/2,PAD+26);
+  ctx.fillStyle=MUT;
+  ctx.font='400 12px "Plus Jakarta Sans",sans-serif';
+  ctx.fillText(S.today+(S.streak>=2?' 🔥'+S.streak+(ko?'일 연속':' day streak'):''),W/2,PAD+48);
+  // 구분선
+  ctx.strokeStyle='rgba(74,222,128,0.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(PAD,HEADER-10);ctx.lineTo(W-PAD,HEADER-10);ctx.stroke();
 
-  let y=PAD+52+PAD*0.3;
+  let y=HEADER;
+  const lvMapKo={3:'LV.1 · 3자리',4:'LV.2 · 4자리',5:'LV.3 · 5자리'};
+  const lvMapEn={3:'LV.1 · 3-Digit',4:'LV.2 · 4-Digit',5:'LV.3 · 5-Digit'};
 
-  S.scores.forEach((g)=>{
-    // 카드
-    ctx.fillStyle=CARD;
+  S.scores.forEach((g,idx)=>{
+    // 카드 배경
+    ctx.fillStyle=g.won?CARD_WIN:CARD_LOSE;
     roundRect(ctx,PAD,y,W-PAD*2,ROW,10);ctx.fill();
-    ctx.strokeStyle=BORDER;ctx.lineWidth=1.2;
+    ctx.strokeStyle=g.won?BORDER_WIN:BORDER_LOSE;ctx.lineWidth=1;
     roundRect(ctx,PAD,y,W-PAD*2,ROW,10);ctx.stroke();
 
     // 레벨 태그
-    ctx.fillStyle=GRN;ctx.font='600 10px "Plus Jakarta Sans",sans-serif';
     ctx.textAlign='left';
-    ctx.fillText((ko?lvMap:lvMapEn)[g.level]||'',PAD+14,y+16);
+    ctx.fillStyle=g.won?GRN:LOSE;
+    ctx.font='700 10px "Plus Jakarta Sans",sans-serif';
+    ctx.fillText((ko?lvMapKo:lvMapEn)[g.level]||'',PAD+14,y+18);
 
-    // 결과 텍스트
+    // 결과
     if(g.won){
-      ctx.fillStyle=GRN;ctx.font='800 18px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
-      ctx.fillText('✓  '+g.score.toLocaleString()+(ko?'점':' pts'),PAD+14,y+44);
+      ctx.fillStyle=WHITE;
+      ctx.font='800 20px "DM Mono",monospace';
+      ctx.fillText(g.score.toLocaleString()+(ko?'점':' pts'),PAD+14,y+52);
+      // 야구공 시도횟수
+      ctx.textAlign='right';
+      ctx.font='14px sans-serif';
+      const ballStr='⚾'.repeat(Math.min(g.attempts,9))+(g.attempts>9?'+':'');
+      ctx.fillText(ballStr,W-PAD-14,y+32);
+      ctx.fillStyle=MUT;ctx.font='700 11px "Plus Jakarta Sans",sans-serif';
+      ctx.fillText(g.attempts+(ko?'번':'att'),W-PAD-14,y+52);
     }else{
-      ctx.fillStyle=LOSE;ctx.font='800 16px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
-      ctx.fillText('✕  '+(ko?'포기':'Forfeit'),PAD+14,y+44);
-    }
-
-    // 시도횟수 ⚾ x5
-    ctx.textAlign='right';
-    ctx.fillStyle=MUT;ctx.font='700 13px "DM Mono",monospace';
-    if(g.won)ctx.fillText('⚾ x'+g.attempts,W-PAD-14,y+36);
-
-    // VR 배지
-    if(g.vr){
-      ctx.fillStyle=dark?'#1e3a5f':'#dbeafe';
-      roundRect(ctx,W-PAD-14-42,y+42,38,14,4);ctx.fill();
-      ctx.fillStyle='#0284c7';ctx.font='600 9px sans-serif';
-      ctx.fillText('📹 VR',W-PAD-14-42+19,y+52);
+      ctx.fillStyle=LOSE;
+      ctx.font='700 16px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
+      ctx.fillText('🏳️ '+(ko?'포기':'Forfeit'),PAD+14,y+50);
     }
 
     y+=ROW+GAP;
   });
 
-  // 합산 + 사이트 (타이트하게)
+  // ── 최고점 표시 ──
   y+=6;
+  const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
   ctx.textAlign='center';
-  ctx.fillStyle=GRN;ctx.font='800 20px "DM Mono",monospace';
-  ctx.fillText('TOTAL  '+S.totalScore.toLocaleString()+' PTS',W/2,y+20);
-  ctx.fillStyle=BORDER;ctx.fillRect(PAD+20,y+28,W-PAD*2-40,1);
+  ctx.strokeStyle='rgba(74,222,128,0.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(PAD,y);ctx.lineTo(W-PAD,y);ctx.stroke();
+  ctx.fillStyle=GRN;ctx.font='800 18px "DM Mono",monospace';
+  ctx.fillText((ko?'최고 ':'Best ')+bestScore.toLocaleString()+(ko?'점':' pts'),W/2,y+30);
   ctx.fillStyle=MUT;ctx.font='400 11px "Plus Jakarta Sans",sans-serif';
-  ctx.fillText('nuball.vercel.app',W/2,y+44);
+  ctx.fillText('nuball.vercel.app',W/2,y+52);
 
-  // 다운로드
   cv.toBlob(async blob=>{
     if(!blob)return;
-    const ko=S.lang==='ko';
     const el=document.getElementById('copyResultMsg');
     const fname='nuball-'+S.today+'.png';
     if(window.showSaveFilePicker){
       try{
-        const fh=await window.showSaveFilePicker({suggestedName:fname,types:[{description:'PNG Image',accept:{'image/png':['.png']}}]});
+        const fh=await window.showSaveFilePicker({suggestedName:fname,types:[{description:'PNG',accept:{'image/png':['.png']}}]});
         const ws=await fh.createWritable();await ws.write(blob);await ws.close();
         el.textContent=ko?'이미지가 저장됐어요!':'Image saved!';setTimeout(()=>el.textContent='',2500);return;
       }catch(err){if(err.name==='AbortError')return;}
+    }
+    // 모바일: 공유 시트
+    if(navigator.share&&navigator.canShare){
+      const file=new File([blob],fname,{type:'image/png'});
+      if(navigator.canShare({files:[file]})){
+        try{await navigator.share({files:[file],title:ko?'누볼 결과':'NUBALL Result'});return;}catch(e){}
+      }
     }
     downloadImg(URL.createObjectURL(blob),fname);
     el.textContent=ko?'이미지가 저장됐어요!':'Image saved!';setTimeout(()=>el.textContent='',2500);
