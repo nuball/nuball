@@ -1520,7 +1520,7 @@ async function renderRankList(){
 /* ── MODALS ── */
 function openModal(id){
   document.getElementById(id).classList.add('open');
-  if(id==='rankingModal')renderRankList();
+  if(id==='rankingModal'){_rankTab=0;[0,1,2,3].forEach(i=>{const el=document.getElementById('rtab'+i);if(el)el.classList.toggle('active',i===0);});renderRankList();}
   if(id==='statsModal')renderStats();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
