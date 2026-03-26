@@ -181,8 +181,15 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 /* ── MODALS ── */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s;overflow:hidden}
 .ov.open{opacity:1;pointer-events:all}
-.mbox{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:460px;max-height:88vh;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:101;transform:translateY(16px);transition:transform .2s;box-shadow:var(--sh-xl)}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:460px;max-height:88vh;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:101;transform:translateY(16px);transition:transform .2s;box-shadow:var(--sh-xl);scrollbar-width:none;-ms-overflow-style:none}.mbox::-webkit-scrollbar{display:none}
 .ov.open .mbox{transform:translateY(0)}
+.mbox-wrap{position:relative;width:100%;max-width:460px}
+.mbox-wrap .mbox{width:100%;max-width:100%}
+.scroll-fade{position:sticky;bottom:0;left:0;right:0;height:56px;margin-top:-56px;background:linear-gradient(to bottom,transparent,var(--card));border-radius:0 0 16px 16px;pointer-events:none;transition:opacity .2s;z-index:10}
+.scroll-arrow{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);width:28px;height:28px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scroll-arrow svg{display:block}
+.scroll-fade-top{position:sticky;top:0;left:0;right:0;height:56px;margin-bottom:-56px;background:linear-gradient(to top,transparent,var(--card));border-radius:16px 16px 0 0;pointer-events:none;transition:opacity .2s;z-index:10;opacity:0}
+.scroll-arrow-top{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:28px;height:28px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .mhdr{padding:18px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:1;border-radius:16px 16px 0 0}
 .mtitle{font-size:16px;font-weight:800}
 .mclose{width:30px;height:30px;border:none;background:var(--bg2);border-radius:6px;cursor:pointer;color:var(--muted);font-size:14px;display:flex;align-items:center;justify-content:center;font-family:inherit}
@@ -1744,10 +1751,41 @@ async function renderRankList(){
 
 /* ── MODALS ── */
 function openAchModal(){renderAchievements();openModal('achModal');}
+function setupScrollFade(mbox){
+  // 기존 fade 제거
+  mbox.querySelector('.scroll-fade')?.remove();
+  mbox.querySelector('.scroll-fade-top')?.remove();
+  // 위 화살표 (상단 sticky)
+  const fadeTop=document.createElement('div');fadeTop.className='scroll-fade-top';
+  const arrowTop=document.createElement('div');arrowTop.className='scroll-arrow-top';
+  arrowTop.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>';
+  arrowTop.style.pointerEvents='auto';arrowTop.style.cursor='pointer';
+  arrowTop.addEventListener('click',()=>mbox.scrollBy({top:-150,behavior:'smooth'}));
+  fadeTop.appendChild(arrowTop);
+  mbox.prepend(fadeTop);
+  // 아래 화살표 (하단 sticky)
+  const fade=document.createElement('div');fade.className='scroll-fade';
+  const arrow=document.createElement('div');arrow.className='scroll-arrow';
+  arrow.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>';
+  arrow.style.pointerEvents='auto';arrow.style.cursor='pointer';
+  arrow.addEventListener('click',()=>mbox.scrollBy({top:150,behavior:'smooth'}));
+  fade.appendChild(arrow);
+  mbox.appendChild(fade);
+  function updateFade(){
+    const atBottom=mbox.scrollHeight-mbox.scrollTop<=mbox.clientHeight+4;
+    const atTop=mbox.scrollTop<=4;
+    fade.style.opacity=atBottom?'0':'1';
+    fadeTop.style.opacity=atTop?'0':'1';
+    arrowTop.style.pointerEvents=atTop?'none':'auto';
+    arrow.style.pointerEvents=atBottom?'none':'auto';
+  }
+  mbox.addEventListener('scroll',updateFade);
+  setTimeout(updateFade,50);
+}
 function openModal(id){
   const el=document.getElementById(id);el.classList.add('open');
   // 모달 열릴 때 스크롤 최상단
-  const mbox=el.querySelector('.mbox');if(mbox){mbox.scrollTop=0;}
+  const mbox=el.querySelector('.mbox');if(mbox){mbox.scrollTop=0;setupScrollFade(mbox);}
   const mb=el.querySelector('.mbody');if(mb){mb.scrollTop=0;}
   if(id==='rankingModal'){_rankTab=0;[0,1,2,3].forEach(i=>{const t=document.getElementById('rtab'+i);if(t)t.classList.toggle('active',i===0);});renderRankList();}
   if(id==='statsModal')renderStats();
