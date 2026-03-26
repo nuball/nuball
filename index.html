@@ -1752,14 +1752,18 @@ async function renderRankList(){
       const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(1));
       const ydSnap=await window._fbGet(ydQ);
       if(ydSnap.exists()){
-        let top=null;ydSnap.forEach(ch=>{const d=ch.val();top={nick:d.nick,score:d.score,country:d.country};});
+        let top=null;ydSnap.forEach(ch=>{const d=ch.val();top={nick:d.nick,score:d.score,country:d.country,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null};});
         if(top){
           const ko=S.lang==='ko';
+          const topCountry=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country,S.lang);
+          const topStreak=top.streak>0?'<span style="font-size:10px;color:#ff6b00;font-weight:800;margin-left:6px">🔥'+top.streak+'</span>':'';
+          const topAch=top.achCount>0?'<span style="font-size:10px;color:var(--primary);font-weight:800;margin-left:4px">🏆'+top.achCount+'</span>':'';
           ydEl.innerHTML=[
             '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--primary-light);border-radius:8px;margin-bottom:12px">',
             '<span>🥇</span>',
             '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--primary)">'+(ko?'어제 1등':"Yesterday's #1")+'</div>',
-            '<div style="font-size:14px;font-weight:800">'+top.nick+' <span style="color:var(--muted)">'+ccLabel(top.country,S.lang)+'</span></div></div>',
+            '<div style="font-size:14px;font-weight:800">'+top.nick+topStreak+topAch+'</div>',
+            '<div style="font-size:11px;color:var(--muted);margin-top:1px">'+topCountry+'</div></div>',
             '<div style="font-size:16px;font-weight:900;color:var(--primary)">'+top.score.toLocaleString()+'</div>',
             '</div>'
           ].join('');
