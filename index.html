@@ -219,6 +219,12 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .rank-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
 .rank-tab:hover:not(.active){border-color:var(--primary);color:var(--primary)}
 .rank-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}.rank-row:last-child{border-bottom:none}
+.league-tab{flex:1;padding:7px 0;border-radius:8px;border:1.5px solid var(--border);background:none;font-size:12px;font-weight:800;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .15s}
+.league-tab.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary)}
+.team-btn{padding:10px 8px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;font-family:inherit;text-align:center;transition:all .15s}
+.team-btn.selected{border-color:var(--primary);background:var(--primary-light)}
+.team-btn:hover{border-color:var(--primary)}
+.team-nick{font-size:13px;font-weight:900;color:var(--text);display:block}
 .rank-pos{width:30px;font-size:13px;font-weight:900;color:var(--subtle);text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}.rank-pos.medal{font-size:20px}
 .rank-info{flex:1}.rank-nick{font-size:15px;font-weight:700}.rank-country{font-size:11px;color:var(--muted);margin-top:1px}
 .rank-score{font-size:17px;font-weight:900;color:var(--primary);font-family:'DM Mono',monospace}
@@ -367,7 +373,11 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </button>
         <button class="hdr-menu-item" onclick="closeMenu();openAchModal()">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-          <span id="menuLbl5">나의업적</span>
+          <span id="menuLbl5">나의 업적</span>
+        </button>
+        <button class="hdr-menu-item" onclick="closeMenu();openModal('teamModal')">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span id="menuLbl6">내팀 선택</span>
         </button>
         <button class="hdr-menu-item" onclick="closeMenu();openModal('statsModal')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M4 12v8"/><path d="M12 4v16"/><path d="M20 8v12"/></svg>
@@ -698,7 +708,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <!-- 업적 모달 -->
 <div class="ov" id="achModal">
   <div class="mbox">
-    <div class="mhdr"><span class="mtitle" id="achModalTitle">🏅 나의업적</span><button class="mclose" onclick="closeModal('achModal')">✕</button></div>
+    <div class="mhdr"><span class="mtitle" id="achModalTitle">🏅 나의 업적</span><button class="mclose" onclick="closeModal('achModal')">✕</button></div>
     <div class="mbody"><div id="achArea"></div></div>
   </div>
 </div>
@@ -729,6 +739,35 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <span id="emailReveal">이메일</span>
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 내팀 선택 모달 -->
+<div class="ov" id="teamModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="teamModalTitle">⚾ 내팀 선택</span><button class="mclose" onclick="closeModal('teamModal')">✕</button></div>
+    <div class="mbody">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px" id="teamModalDesc">응원하는 팀을 선택하면 랭킹에 표시됩니다</div>
+      <!-- 리그 탭 -->
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button class="league-tab active" id="ltab_KBO" onclick="selectLeague('KBO')">KBO</button>
+        <button class="league-tab" id="ltab_MLB" onclick="selectLeague('MLB')">MLB</button>
+        <button class="league-tab" id="ltab_NPB" onclick="selectLeague('NPB')">NPB</button>
+      </div>
+      <div id="teamGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+<button class="team-btn" onclick="selectTeam('KBO','BEARS')" id="tbtn_BEARS" data-nick="BEARS"><span class="team-nick">BEARS</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">두산 베어스</span></button>
+<button class="team-btn" onclick="selectTeam('KBO','DINOS')" id="tbtn_DINOS" data-nick="DINOS"><span class="team-nick">DINOS</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">NC 다이노스</span></button>
+<button class="team-btn" onclick="selectTeam('KBO','EAGLES')" id="tbtn_EAGLES" data-nick="EAGLES"><span class="team-nick">EAGLES</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">한화 이글스</span></button>
+<button class="team-btn" onclick="selectTeam('KBO','GIANTS')" id="tbtn_GIANTS" data-nick="GIANTS"><span class="team-nick">GIANTS</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">롯데 자이언츠</span></button>
+<button class="team-btn" onclick="selectTeam('KBO','HEROES')" id="tbtn_HEROES" data-nick="HEROES"><span class="team-nick">HEROES</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">키움 히어로즈</span></button>
+<button class="team-btn" onclick="selectTeam('KBO','LANDERS')" id="tbtn_LANDERS" data-nick="LANDERS"><span class="team-nick">LANDERS</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">SSG 랜더스</span></button>
+<button class="team-btn" onclick="selectTeam('KBO','LIONS')" id="tbtn_LIONS" data-nick="LIONS"><span class="team-nick">LIONS</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">삼성 라이온즈</span></button>
+<button class="team-btn" onclick="selectTeam('KBO','TIGERS')" id="tbtn_TIGERS" data-nick="TIGERS"><span class="team-nick">TIGERS</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">KIA 타이거즈</span></button>
+<button class="team-btn" onclick="selectTeam('KBO','TWINS')" id="tbtn_TWINS" data-nick="TWINS"><span class="team-nick">TWINS</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">LG 트윈스</span></button>
+<button class="team-btn" onclick="selectTeam('KBO','WIZ')" id="tbtn_WIZ" data-nick="WIZ"><span class="team-nick">WIZ</span><span class="team-full" style="font-size:10px;color:var(--muted);display:block">kt 위즈</span></button>
+      </div>
+      <button class="btn-cancel" style="margin-top:14px;width:100%" onclick="selectTeam(null,null)"><span id="teamClearBtn">선택 안 함</span></button>
     </div>
   </div>
 </div>
@@ -875,7 +914,7 @@ en:{
 const t=k=>MSGS[S.lang][k]||k;
 
 /* ── STATE ── */
-const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',dayId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false,streak:0,personalBest:{3:null,4:null,5:null},achievements:{},registeredScore:0,noForfeitDays:[]};
+const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',dayId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false,streak:0,personalBest:{3:null,4:null,5:null},achievements:{},registeredScore:0,noForfeitDays:[],team:null,league:null};
 
 /* ── UTILS ── */
 function mulberry32(seed){return()=>{let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
@@ -926,6 +965,7 @@ function loadStats(){
   try{const b=localStorage.getItem('nb_best');if(b){const p=JSON.parse(b);if(p&&typeof p==='object')S.personalBest=Object.assign({3:null,4:null,5:null},p);}}catch(e){}
   try{const a=localStorage.getItem('nb_ach');if(a){const ac=JSON.parse(a);if(ac&&typeof ac==='object')S.achievements=ac;}}catch(e){}
   try{const nf=localStorage.getItem('nb_noforfeit_days');if(nf){const d=JSON.parse(nf);if(Array.isArray(d))S.noForfeitDays=d;}}catch(e){}
+  try{S.team=localStorage.getItem('nb_team')||null;S.league=localStorage.getItem('nb_league')||null;}catch(e){}
 }
 
 function seedRankings(){return[]} // 더미 데이터 제거
@@ -1001,9 +1041,13 @@ function applyLang(){
   if(e('menuLbl2'))e('menuLbl2').textContent=ko?'통계·공유':'Stats & Share';
   if(e('menuLbl3'))e('menuLbl3').textContent=ko?'문의·후원':'Contact & Support';
   if(e('menuLbl4'))e('menuLbl4').textContent=ko?'게임 방법':'How to Play';
-  if(e('menuLbl5'))e('menuLbl5').textContent=ko?'나의업적':'My Achievements';
-  if(e('achModalTitle'))e('achModalTitle').textContent=ko?'🏅 나의업적':'🏅 My Achievements';
+  if(e('menuLbl5'))e('menuLbl5').textContent=ko?'나의 업적':'My Achievements';
+  if(e('achModalTitle'))e('achModalTitle').textContent=ko?'🏅 나의 업적':'🏅 My Achievements';
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
+  if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
+  if(e('teamModalTitle'))e('teamModalTitle').textContent=ko?'⚾ 내팀 선택':'⚾ My Team';
+  if(e('teamModalDesc'))e('teamModalDesc').textContent=ko?'응원하는 팀을 선택하면 랭킹에 표시됩니다':'Select your team to show in rankings';
+  if(e('teamClearBtn'))e('teamClearBtn').textContent=ko?'선택 안 함':'No team';
   const tnd=document.getElementById('tutNameDesc');
   if(tnd){if(ko)tnd.innerHTML='<span style="font-weight:900;color:var(--primary)">누볼</span>은 <b>Nu</b>mber + base<b>ball</b>의 합성어예요 ⚾<br><span style="font-size:12px;color:var(--muted)">NUBALL = Number + Baseball</span>';
   else tnd.innerHTML='<span style="font-weight:900;color:var(--primary)">NUBALL</span> = <b>Nu</b>mber + base<b>ball</b> ⚾<br><span style="font-size:12px;color:var(--muted)">A number baseball puzzle game</span>';}
@@ -1459,6 +1503,37 @@ async function checkRankingAchievements(){
     }
   }catch(e){console.warn('rank ach check failed',e);}
 }
+/* ── 팀 선택 ── */
+const KBO_TEAMS=['BEARS','DINOS','EAGLES','GIANTS','HEROES','LANDERS','LIONS','TIGERS','TWINS','WIZ'];
+const MLB_TEAMS=[];
+const NPB_TEAMS=[];
+const LEAGUE_TEAMS={KBO:KBO_TEAMS,MLB:MLB_TEAMS,NPB:NPB_TEAMS};
+function selectLeague(lg){
+  ['KBO','MLB','NPB'].forEach(l=>document.getElementById('ltab_'+l)?.classList.toggle('active',l===lg));
+  const grid=document.getElementById('teamGrid');
+  if(!grid)return;
+  const mbox=grid.closest('.mbox');if(mbox){mbox.scrollTop=0;}
+  if(!LEAGUE_TEAMS[lg]||!LEAGUE_TEAMS[lg].length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:24px 0;color:var(--muted);font-size:13px;font-weight:700">🔧 '+(S.lang==="ko"?'준비 중이에요. 곧 업데이트될 예정이에요!':'Coming soon! Stay tuned.')+'</div>';
+    return;
+  }
+  grid.innerHTML=LEAGUE_TEAMS[lg].map(t=>`<button class="team-btn${S.team===t&&S.league===lg?' selected':''}" onclick="selectTeam('${lg}','${t}')"><span class="team-nick">${t}</span></button>`).join('');
+}
+function selectTeam(lg,nick){
+  S.team=nick;S.league=lg;
+  localStorage.setItem('nb_team',nick||'');
+  localStorage.setItem('nb_league',lg||'');
+  // 현재 리그 버튼 갱신
+  if(lg)selectLeague(lg);
+  // 선택 안 함
+  if(!nick){closeModal('teamModal');renderTeamMenuBadge();return;}
+  renderTeamMenuBadge();
+  setTimeout(()=>closeModal('teamModal'),300);
+}
+function renderTeamMenuBadge(){
+  const lbl=document.getElementById('menuLbl6');
+  if(lbl)lbl.textContent=S.lang==='ko'?'내팀 선택':'My Team';
+}
 function registerAchievement(id){
   if(!S.achievements[id]){S.achievements[id]=S.today;saveExtra();}
 }
@@ -1596,7 +1671,7 @@ async function registerFromStats(){
   const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
   const bestGame=S.scores.find(g=>g.score===bestScore)||S.scores[0];
   const achCount=Object.keys(S.achievements).length;
-  const entry={nick,country,score:bestScore,level:bestGame?bestGame.level:0,day:S.dayId,uid:S.uid,ts:Date.now(),streak:S.streak||0,achCount};
+  const entry={nick,country,score:bestScore,level:bestGame?bestGame.level:0,day:S.dayId,uid:S.uid,ts:Date.now(),streak:S.streak||0,achCount,team:S.team||null,league:S.league||null};
 
   S.rankings=S.rankings.filter(r=>r.id!==S.uid);
   S.rankings.push({id:S.uid,...entry});
@@ -1741,7 +1816,7 @@ async function renderRankList(){
       return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
         '<div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div>'+
         '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+(_rankTab===0?lvBadge:'')+'</div>'+
-        '<div class="rank-country">'+ccLabel(r.country,S.lang)+'</div></div>'+
+        '<div class="rank-country">'+(r.id===S.uid&&S.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+S.team:r.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+r.team:ccLabel(r.country,S.lang))+'</div></div>'+
         badgeBlock+
         '<div class="rank-score">'+r.score.toLocaleString()+'</div></div>';
     }).join('');
@@ -1787,6 +1862,7 @@ function openModal(id){
   // 모달 열릴 때 스크롤 최상단
   const mbox=el.querySelector('.mbox');if(mbox){mbox.scrollTop=0;setupScrollFade(mbox);}
   const mb=el.querySelector('.mbody');if(mb){mb.scrollTop=0;}
+  if(id==='teamModal'){selectLeague(S.league||'KBO');}
   if(id==='rankingModal'){_rankTab=0;[0,1,2,3].forEach(i=>{const t=document.getElementById('rtab'+i);if(t)t.classList.toggle('active',i===0);});renderRankList();}
   if(id==='statsModal')renderStats();
 }
