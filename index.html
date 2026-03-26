@@ -1726,8 +1726,10 @@ async function renderRankList(){
     listEl.innerHTML=filtered.slice(0,100).map((r,i)=>{
       const rank=i+1,isMe=r.id===S.uid;
       const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
-      const streakBadge=(r.streak>0)?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+r.streak+'</span>':'';
-      const achBadge=(r.achCount>0)?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+r.achCount+'</span>':'';
+      const rStreak=r.id===S.uid?(S.streak||0):(r.streak||0);
+      const rAch=r.id===S.uid?(Object.keys(S.achievements).length):(r.achCount||0);
+      const streakBadge=(rStreak>0)?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+rStreak+'</span>':'';
+      const achBadge=(rAch>0)?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+rAch+'</span>':'';
       const badgeBlock=(streakBadge||achBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+streakBadge+achBadge+'</div>':'';
       return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
         '<div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div>'+
