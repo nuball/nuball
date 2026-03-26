@@ -1783,7 +1783,7 @@ async function renderRankList(){
       if(snap.exists()){
         snap.forEach(child=>{
           const d=child.val();
-          entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,day:d.day});
+          entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,day:d.day,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,league:d.league||null});
         });
         entries.sort((a,b)=>b.score-a.score||(b.level||0)-(a.level||0));
         S.rankings=entries;saveRankings();
