@@ -946,6 +946,15 @@ function calcScore(level,attempts){
   if(attempts>=th)return min;
   return Math.max(min,Math.round(max-(attempts-1)*(max-min)/(th-1)));
 }
+function calcSBBonus(level,logs){
+  // 마지막 시도(정답)는 제외하고 이전 시도들의 S×2 + B×1 합산
+  const bonusCap={3:30,4:35,5:35};
+  const cap=bonusCap[level]||30;
+  // logs는 unshift로 쌓이므로 index 0이 최신(마지막 정답), 나머지가 이전 시도
+  const prevLogs=logs.slice(1); // 마지막 정답 제외
+  const raw=prevLogs.reduce((sum,l)=>sum+l.s*2+l.b*1,0);
+  return Math.min(raw,cap);
+}
 async function detectCC(){try{const r=await fetch('https://ipapi.co/json/',{signal:AbortSignal.timeout(4000)});const d=await r.json();return d.country_code||'KR'}catch{return'KR'}}
 
 /* ── SAVE ── */
@@ -1254,7 +1263,7 @@ function handleGuess(){
   arr.forEach((n,i)=>{if(n===target[i])s++;else if(target.includes(n))b++;});
   S.game.attempts++;logs.unshift({guess:val,s,b});
   input.value='';saveProgress();renderGame();
-  if(s===level)finishGame(true,calcScore(level,S.game.attempts));
+  if(s===level){const base=calcScore(level,S.game.attempts);const bonus=calcSBBonus(level,logs);finishGame(true,base+bonus);}
 }
 
 /* ── FORFEIT (Hold 0.8s) ── */
