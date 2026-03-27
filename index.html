@@ -14,9 +14,30 @@
 <script type="module">
   import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import{getDatabase,ref,set,get,query,orderByChild,limitToLast}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-  const fbApp=initializeApp({apiKey:'AIzaSyBN1kTHhl5auS5Aq_puyVx1l-rqYEXAkTw',databaseURL:'https://nuball-default-rtdb.firebaseio.com'});
+  import{getMessaging,getToken,onMessage}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+  const fbApp=initializeApp({
+    apiKey:'AIzaSyBN1kTHhl5auS5Aq_puyVx1l-rqYEXAkTw',
+    authDomain:'nuball.firebaseapp.com',
+    databaseURL:'https://nuball-default-rtdb.firebaseio.com',
+    projectId:'nuball',
+    storageBucket:'nuball.firebasestorage.app',
+    messagingSenderId:'1097850287054',
+    appId:'1:1097850287054:web:33d0b0c26c1ea50493719f'
+  });
   const db=getDatabase(fbApp);
   window._fbDb=db;
+  // FCM 초기화
+  try{
+    const messaging=getMessaging(fbApp);
+    window._fbMessaging=messaging;
+    // 포그라운드 메시지 수신
+    onMessage(messaging,payload=>{
+      const n=payload.notification||{};
+      if(Notification.permission==='granted'){
+        new Notification(n.title||'NUBALL ⚾',{body:n.body||'오늘의 누볼 도전이 기다리고 있어요!',icon:'/og-image.PNG'});
+      }
+    });
+  }catch(e){console.warn('FCM init failed',e);}
   window._fbRef=ref;
   window._fbSet=set;
   window._fbGet=get;
@@ -79,6 +100,13 @@ body{font-family:'Plus Jakarta Sans','Noto Sans KR',sans-serif;font-size:15px;ba
 .lang-sep{width:1px;background:var(--border)}
 .theme-btn{padding:0 9px;font-size:11px;font-weight:800;background:transparent;border:none;border-left:1.5px solid var(--border);cursor:pointer;font-family:inherit;color:var(--muted);height:30px;border-radius:0 5px 5px 0;transition:background .12s,color .12s}
 .theme-btn:hover{background:var(--bg2);color:var(--text)}
+.notif-row{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:5px;font-size:10px;font-weight:700;color:var(--muted)}
+.notif-toggle{position:relative;width:32px;height:17px;cursor:pointer}
+.notif-toggle input{opacity:0;width:0;height:0;position:absolute}
+.notif-slider{position:absolute;inset:0;background:var(--border);border-radius:17px;transition:.2s}
+.notif-slider:before{content:'';position:absolute;width:13px;height:13px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s}
+.notif-toggle input:checked+.notif-slider{background:var(--primary)}
+.notif-toggle input:checked+.notif-slider:before{transform:translateX(15px)}
 
 /* ── MAIN ── */
 main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
@@ -391,6 +419,10 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <span id="menuLbl4">게임 방법</span>
         </button>
+        <button class="hdr-menu-item" onclick="closeMenu();requestPushPermission()">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span id="menuLbl7">알림 설정</span>
+        </button>
 
       </div>
       <!-- 연속 출석 배지 -->
@@ -408,6 +440,13 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <div class="lang-sep"></div>
         <button class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
         <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">다크</button>
+      </div>
+      <div class="notif-row">
+        <span id="notifLabel">알림</span>
+        <label class="notif-toggle">
+          <input type="checkbox" id="notifToggle" onchange="handleNotifToggle(this.checked)">
+          <span class="notif-slider"></span>
+        </label>
       </div>
     </div>
   </div>
@@ -1016,6 +1055,65 @@ function loadStats(){
 function seedRankings(){return[]} // 더미 데이터 제거
 
 /* ── INIT ── */
+/* ── PUSH 알림 ── */
+async function handleNotifToggle(checked){
+  if(!('Notification' in window)||!('serviceWorker' in navigator)){
+    document.getElementById('notifToggle').checked=false;
+    alert(S.lang==='ko'?'이 브라우저는 알림을 지원하지 않아요.':'Notifications not supported in this browser.');
+    return;
+  }
+  if(checked){
+    await requestPushPermission();
+    // 허용 안 하면 토글 원복
+    if(Notification.permission!=='granted'){
+      document.getElementById('notifToggle').checked=false;
+      localStorage.removeItem('nb_notif');
+    }else{
+      localStorage.setItem('nb_notif','1');
+    }
+  }else{
+    localStorage.removeItem('nb_notif');
+    localStorage.removeItem('nb_fcm_token');
+    // Firebase에서 토큰 삭제
+    if(S.uid&&window._fbReady){
+      try{await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),null);}catch(e){}
+    }
+  }
+}
+function initNotifState(){
+  const toggle=document.getElementById('notifToggle');
+  if(toggle){
+    const saved=localStorage.getItem('nb_notif')==='1'&&Notification.permission==='granted';
+    toggle.checked=saved;
+  }
+}
+async function requestPushPermission(){
+  if(!('Notification' in window)||!window._fbMessaging)return;
+  const ko=S.lang==='ko';
+  try{
+    // Service Worker 등록
+    const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    const perm=await Notification.requestPermission();
+    if(perm==='granted'){
+      const token=await getToken(window._fbMessaging,{
+        vapidKey:'BIzE3xwfKk4TN_xXKZWdWa7s4Ay2pgPB9fYAnmnxs8fcHUhZ2cWy0YNS9rM0TRQ84CZPyzMweajxH46_NLUQwUs',
+        serviceWorkerRegistration:reg
+      });
+      if(token){
+        localStorage.setItem('nb_fcm_token',token);
+        // Firebase에 토큰 저장
+        if(S.uid&&window._fbReady){
+          await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),{
+            token,lang:S.lang,ts:Date.now()
+          });
+        }
+        alert(ko?'구독 신청되었어요! 매일 오전에 누볼 알림을 보내드릴게요 ⚾':'Subscribed! We will send you daily NUBALL reminders ⚾');
+      }
+    }else{
+      alert(ko?'알림을 허용해주셔야 확인할 수 있어요.':'Please allow notifications to receive reminders.');
+    }
+  }catch(e){console.warn('Push permission failed',e);}
+}
 async function init(){
   S.uid=await mkUid();S.today=todayStr();S.dayId=getDayId();
   S.lang=localStorage.getItem('nb_lang')||'ko';
@@ -1058,6 +1156,7 @@ async function init(){
   setInterval(()=>{const el=document.getElementById('countdownEl');if(el&&el.offsetParent)el.textContent=timeUntilMidnight();},1000);
   // 어제 랭킹 1위 업적 체크 (다음날 접속 시)
   setTimeout(()=>checkYesterdayRankAchievements(),2000);
+  initNotifState();
 }
 
 /* ── THEME ── */
@@ -1094,6 +1193,8 @@ function applyLang(){
   if(e('achModalTitle'))e('achModalTitle').textContent=ko?'🏅 나의 업적':'🏅 My Achievements';
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
+  if(e('menuLbl7'))e('menuLbl7').textContent=ko?'알림 설정':'Notifications';
+  if(e('notifLabel'))e('notifLabel').textContent=ko?'알림':'Alerts';
   if(e('teamModalTitle'))e('teamModalTitle').textContent=ko?'⚾ 내팀 선택':'⚾ My Team';
   if(e('teamModalDesc'))e('teamModalDesc').textContent=ko?'응원하는 팀을 선택하면 랭킹에 표시됩니다':'Select your team to show in rankings';
   if(e('teamClearBtn'))e('teamClearBtn').textContent=ko?'선택 안 함':'No team';
