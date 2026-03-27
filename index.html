@@ -1099,6 +1099,12 @@ async function requestPushPermission(){
   try{
     // Service Worker 등록
     const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    // 이미 차단된 경우 브라우저 설정 안내
+    if(Notification.permission==='denied'){
+      alert(ko?'알림이 차단되어 있어요.\n브라우저 주소창 옆 자물쇠 아이콘 → 알림 → 허용으로 변경해주세요.'
+        :'Notifications are blocked.\nClick the lock icon in your browser address bar → Notifications → Allow.');
+      return;
+    }
     const perm=await Notification.requestPermission();
     if(perm==='granted'){
       const token=await window._fbGetToken(window._fbMessaging,{
@@ -1107,7 +1113,6 @@ async function requestPushPermission(){
       });
       if(token){
         localStorage.setItem('nb_fcm_token',token);
-        // Firebase에 토큰 저장
         if(S.uid&&window._fbReady){
           await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),{
             token,lang:S.lang,ts:Date.now()
@@ -1119,7 +1124,8 @@ async function requestPushPermission(){
         alert(ko?'구독 신청되었어요! 매일 오전 8시에 누볼 알림을 보내드릴게요 ⚾':'Subscribed! We\'ll send NUBALL reminders every morning at 8AM ⚾');
       }
     }else{
-      alert(ko?'알림을 허용해주셔야 확인할 수 있어요.':'Please allow notifications to receive reminders.');
+      // 허용 안 함 - 조용히 처리
+      closeModal('notifInfoModal');
     }
   }catch(e){console.warn('Push permission failed',e);}
 }
