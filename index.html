@@ -1611,7 +1611,7 @@ function renderStreak(){
   if(mb){
     if(S.streak>=1){
       const span=mb.querySelector('span');
-      if(span)span.textContent='🔥 '+S.streak+(ko?'일 연속':' day'+(S.streak===1?'':' s')+' streak');
+      if(span)span.textContent='🔥 '+S.streak+(ko?'일 연속':' day'+(S.streak===1?'':'s')+' streak');
       mb.style.display='block';
     }else{mb.style.display='none';}
   }
