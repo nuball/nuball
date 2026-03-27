@@ -29,24 +29,22 @@ async function sendDailyNotifications() {
 
   console.log(`Sending notifications to ${tokens.length} users`);
 
-  // 배치 전송 (FCM은 최대 500개씩)
   const batchSize = 500;
   for (let i = 0; i < tokens.length; i += batchSize) {
     const batch = tokens.slice(i, i + batchSize);
 
+    // data-only 메시지: notification 필드 없음 → FCM 자동표시 없음
+    // Service Worker의 onBackgroundMessage만 실행됨 → 알림 한 번만 표시
     const message = {
-      notification: {
+      data: {
         title: 'NUBALL ⚾',
         body: '오늘의 누볼이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
+        icon: 'https://nuball.vercel.app/og-image.PNG',
+        url: 'https://nuball.vercel.app'
       },
       webpush: {
-        notification: {
-          title: 'NUBALL ⚾',
-          body: '오늘의 누볼이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
-          icon: 'https://nuball.vercel.app/og-image.PNG',
-          badge: 'https://nuball.vercel.app/og-image.PNG',
-          tag: 'nuball-daily',
-          renotify: true,
+        headers: {
+          TTL: '86400'
         },
         fcmOptions: {
           link: 'https://nuball.vercel.app'

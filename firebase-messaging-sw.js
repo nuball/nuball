@@ -13,16 +13,17 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// 백그라운드 메시지 수신
+// data-only 메시지 수신 → 직접 알림 표시 (사진 포함)
 messaging.onBackgroundMessage(payload => {
-  const {title, body, icon} = payload.notification || {};
-  self.registration.showNotification(title || 'NUBALL ⚾', {
-    body: body || '오늘의 누볼 도전이 기다리고 있어요!',
-    icon: icon || '/og-image.PNG',
-    badge: '/og-image.PNG',
+  const data = payload.data || {};
+  self.registration.showNotification(data.title || 'NUBALL ⚾', {
+    body: data.body || '오늘의 누볼이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
+    icon: data.icon || 'https://nuball.vercel.app/og-image.PNG',
+    image: data.icon || 'https://nuball.vercel.app/og-image.PNG',
+    badge: 'https://nuball.vercel.app/og-image.PNG',
     tag: 'nuball-daily',
     renotify: true,
-    data: { url: 'https://nuball.vercel.app' }
+    data: { url: data.url || 'https://nuball.vercel.app' }
   });
 });
 
