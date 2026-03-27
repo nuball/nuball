@@ -1068,7 +1068,7 @@ function handleNotifBtn(){
   if(!('Notification' in window)||!('serviceWorker' in navigator)){
     if(isIOS&&!isStandalone){
       openModal('notifInfoModal');
-      updateNotifModalForIOS(ko);
+      updateNotifModalForIOS(ko,isStandalone);
     }else{
       alert(ko?'이 브라우저는 알림을 지원하지 않아요.':'Notifications not supported.');
     }
@@ -1076,12 +1076,13 @@ function handleNotifBtn(){
   }
   const isOn=localStorage.getItem('nb_notif')==='1'&&Notification.permission==='granted';
   if(isOn){
+    // OFF: Firebase 실패 여부와 무관하게 항상 처리
     localStorage.removeItem('nb_notif');
     localStorage.removeItem('nb_fcm_token');
+    updateNotifBtn(false);
     if(S.uid&&window._fbReady){
       try{window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),null);}catch(e){}
     }
-    updateNotifBtn(false);
   }else{
     openModal('notifInfoModal');
     setTimeout(()=>updateNotifModal(ko),50);
@@ -1152,17 +1153,15 @@ function updateNotifModalForIOS(ko,isStandalone){
   const pwaBtn=document.getElementById('pwaInstallBtn');
   const allowBtn=document.getElementById('notifAllowBtn');
   if(isStandalone){
-    // 이미 설치됨
+    // iOS PWA: 알림 받기 버튼만
     if(pwaBtn)pwaBtn.style.display='none';
+    if(allowBtn){allowBtn.style.display='';allowBtn.textContent=ko?'알림 받기':'Get Alerts';}
     return;
   }
-  // Safari 미설치: PWA 안내 + 버튼 + 알림만 받기
+  // iOS Safari 미설치: PWA 안내 + 두 버튼
   if(pwaBox)pwaBox.style.display='block';
-  if(pwaBtn){
-    pwaBtn.style.display='block';
-    pwaBtn.textContent=ko?'홈 화면에 추가하고 알림 받기':'Add to Home Screen for Alerts';
-  }
-  if(allowBtn)allowBtn.textContent=ko?'알림만 받기':'Alerts Only';
+  if(pwaBtn){pwaBtn.style.display='block';pwaBtn.textContent=ko?'홈 화면에 추가하고 알림 받기':'Add to Home Screen for Alerts';}
+  if(allowBtn){allowBtn.style.display='';allowBtn.textContent=ko?'알림만 받기':'Alerts Only';}
 }
 function updateNotifBtn(on){
   const btn=document.getElementById('notifBtn');
@@ -1269,12 +1268,7 @@ window.addEventListener('appinstalled',()=>{
 });
 async function handlePwaInstall(){
   const ko=S.lang==='ko';
-  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
-  if(isStandalone){
-    alert(ko?'이미 홈 화면에 설치되어 있어요!':'Already installed on your Home Screen!');
-    return;
-  }
   if(isIOS){
     alert(ko?'Safari 하단 공유 버튼 ⬆️ → 홈 화면에 추가 → 앱으로 실행 후 알림 허용':'Tap Share ⬆️ in Safari → Add to Home Screen → Open as app and allow');
     return;
