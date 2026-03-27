@@ -28,20 +28,23 @@ async function sendDailyNotifications() {
   for (let i = 0; i < tokens.length; i += batchSize) {
     const batch = tokens.slice(i, i + batchSize);
 
+    // data-only: notification 필드 없음
+    // → FCM 자동처리 없음 → SW의 onBackgroundMessage만 실행
+    // → 알림 한 번만 표시, Android 백그라운드 안정적
     const message = {
-      notification: {
+      data: {
         title: 'NUBALL ⚾',
         body: '오늘의 누볼이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
+        icon: 'https://nuball.vercel.app/og-image.PNG',
+        url: 'https://nuball.vercel.app'
+      },
+      android: {
+        priority: 'high'
       },
       webpush: {
-        notification: {
-          title: 'NUBALL ⚾',
-          body: '오늘의 누볼이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
-          icon: 'https://nuball.vercel.app/og-image.PNG',
-          image: 'https://nuball.vercel.app/og-image.PNG',
-          badge: 'https://nuball.vercel.app/og-image.PNG',
-          tag: 'nuball-daily',
-          renotify: false,
+        headers: {
+          Urgency: 'high',
+          TTL: '86400'
         },
         fcmOptions: {
           link: 'https://nuball.vercel.app'
