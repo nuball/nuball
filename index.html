@@ -802,10 +802,10 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <!-- 알림 안내 모달 -->
 <div class="ov" id="notifInfoModal">
   <div class="mbox">
-    <div class="mhdr"><span class="mtitle">🔔 알림 설정</span><button class="mclose" onclick="closeModal('notifInfoModal')">✕</button></div>
+    <div class="mhdr"><span class="mtitle" id="notifModalTitle">🔔 알림 설정</span><button class="mclose" onclick="closeModal('notifInfoModal')">✕</button></div>
     <div class="mbody">
-      <div style="text-align:center;font-size:15px;font-weight:800;margin-bottom:6px">매일 오전 8시에 누볼 알림을 보내드려요!</div>
-      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px">알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾</div>
+      <div style="text-align:center;font-size:15px;font-weight:800;margin-bottom:6px" id="notifModalHeading">매일 오전 8시에 누볼 알림을 보내드려요!</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px" id="notifModalSub">알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾</div>
       <!-- 안내 텍스트 박스 -->
       <div id="notifModalDesc" style="font-size:12px;color:var(--muted);background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:14px;line-height:1.7;white-space:pre-line;display:none"></div>
       <!-- PWA 안내 박스 (연두색) -->
@@ -1140,12 +1140,13 @@ function updateNotifModal(ko){
     return;
   }
 
-  // Android: PWA 안내 + 버튼
-  if(pwaBox)pwaBox.style.display='block';
-  if(!isStandalone){
+  // Android: _pwaPrompt 있을 때만 주황 버튼 표시 (PWA 미설치 상태)
+  if(_pwaPrompt){
+    if(pwaBox)pwaBox.style.display='block';
     if(pwaBtn)pwaBtn.style.display='block';
     if(allowBtn)allowBtn.textContent=ko?'알림만 받기':'Alerts Only';
   }
+  // PWA 설치됨(_pwaPrompt 없음): 알림 받기 버튼만
 }
 function updateNotifModalForIOS(ko,isStandalone){
   const desc=document.getElementById('notifModalDesc');
@@ -1364,6 +1365,9 @@ function applyLang(){
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
   if(e('menuLbl7'))e('menuLbl7').textContent=ko?'알림 설정':'Notifications';
+  if(e('notifModalTitle'))e('notifModalTitle').textContent=ko?'🔔 알림 설정':'🔔 Notification Settings';
+  if(e('notifModalHeading'))e('notifModalHeading').textContent=ko?'매일 오전 8시에 누볼 알림을 보내드려요!':'We send NUBALL reminders every morning at 8AM!';
+  if(e('notifModalSub'))e('notifModalSub').textContent=ko?'알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾':'Allow notifications to never miss your daily NUBALL ⚾';
   if(e('pwaInstallBtn'))e('pwaInstallBtn').textContent=ko?'홈 화면에 추가하고 알림 받기':'Add to Home Screen for Alerts';
   if(e('notifAllowBtn'))e('notifAllowBtn').textContent=ko?'알림 받기':'Get Alerts';
   if(e('pwaAdviceText'))e('pwaAdviceText').textContent=ko
