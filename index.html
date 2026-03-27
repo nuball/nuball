@@ -1118,9 +1118,16 @@ function updateNotifModal(ko){
   // 차단된 경우
   if(Notification.permission==='denied'){
     if(desc){
-      desc.textContent=isPC
-        ?(ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 → 사이트 설정 → 알림 → 허용':'Blocked. Click icon left of address bar → Site settings → Notifications → Allow')
-        :(ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 → 권한 → 알림 → 허용':'Blocked. Click icon left of address bar → Permissions → Notifications → Allow');
+      if(isStandalone){
+        // PWA: 앱 설정 안내
+        desc.textContent=ko?'앱 설정에서 알림을 허용해주세요.':'Please allow notifications in app settings.';
+      }else if(isPC){
+        // PC 웹
+        desc.textContent=ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 → 사이트 설정 → 알림 → 허용':'Blocked. Click icon left of address bar → Site settings → Notifications → Allow';
+      }else{
+        // Android 웹
+        desc.textContent=ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 → 권한 → 알림 → 허용':'Blocked. Click icon left of address bar → Permissions → Notifications → Allow';
+      }
       desc.style.display='block';
     }
     if(allowBtn)allowBtn.style.display='none';
