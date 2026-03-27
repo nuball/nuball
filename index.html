@@ -804,11 +804,21 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <div class="mbox">
     <div class="mhdr"><span class="mtitle">🔔 알림 설정</span><button class="mclose" onclick="closeModal('notifInfoModal')">✕</button></div>
     <div class="mbody">
-      <div style="text-align:center;font-size:15px;font-weight:800;margin-bottom:8px">매일 오전 8시에 누볼 알림을 보내드려요!</div>
-      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px">알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾</div>
+      <div style="text-align:center;font-size:15px;font-weight:800;margin-bottom:6px" id="notifModalTitle">매일 오전 8시에 누볼 알림을 보내드려요!</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px" id="notifModalSub">알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾</div>
+      <!-- 절전모드 안내 -->
       <div id="notifModalDesc" style="font-size:12px;color:var(--muted);background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:16px;line-height:1.7;white-space:pre-line;display:none"></div>
-      <button class="btn-p" id="notifAllowBtn" onclick="requestPushPermission()">허용하기</button>
-      <button class="btn-p" id="pwaInstallBtn" onclick="handlePwaInstall()" style="display:none;margin-top:10px;background:var(--bg2);color:var(--text);border:1.5px solid var(--border)">📲 홈 화면에 추가</button>
+      <!-- PWA 안내 박스 -->
+      <div id="pwaAdviceBox" style="background:#fff3e0;border:1.5px solid #ff9800;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#7a4500;line-height:1.7;display:none" id="pwaAdviceBox">
+        <span id="pwaAdviceText">절전모드 사용 시 알림이 안 올 수 있어요.
+홈 화면에 추가하면 더 안정적으로 알림을 받을 수 있어요!</span>
+      </div>
+      <!-- 홈 화면에 추가하고 알람 받기 버튼 (주황) -->
+      <button class="btn-p" id="pwaInstallBtn" onclick="handlePwaInstall()" style="display:none;background:#ff9800;border-color:#ff9800;margin-bottom:10px">📲 홈 화면에 추가하고 알림 받기</button>
+      <!-- PWA 불가 시 안내 버튼 -->
+      <button class="btn-p" id="pwaManualBtn" onclick="handlePwaManual()" style="display:none;background:#ff9800;border-color:#ff9800;margin-bottom:10px">📲 홈 화면에 추가하고 알림 받기</button>
+      <!-- 알림만 받기 버튼 (초록) -->
+      <button class="btn-p" id="notifAllowBtn" onclick="requestPushPermission()">알림만 받기</button>
     </div>
   </div>
 </div>
@@ -1080,29 +1090,41 @@ function handleNotifBtn(){
   }
 }
 function updateNotifModal(ko){
-  // PWA 설치 버튼 표시 여부
-  const pwaBtn=document.getElementById('pwaInstallBtn');
-  if(pwaBtn)pwaBtn.style.display=_pwaPrompt?'block':'none';
-  const desc=document.getElementById('notifModalDesc');
-  const btn=document.getElementById('notifAllowBtn');
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
   const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+  const desc=document.getElementById('notifModalDesc');
+  const pwaBox=document.getElementById('pwaAdviceBox');
+  const pwaBtn=document.getElementById('pwaInstallBtn');
+  const pwaManual=document.getElementById('pwaManualBtn');
+  const allowBtn=document.getElementById('notifAllowBtn');
+  // 초기화
+  if(desc){desc.textContent='';desc.style.display='none';}
+  if(pwaBox)pwaBox.style.display='none';
+  if(pwaBtn)pwaBtn.style.display='none';
+  if(pwaManual)pwaManual.style.display='none';
+  if(allowBtn)allowBtn.style.display='';
+  // iOS 일반 브라우저
   if(isIOS&&!isStandalone){
     updateNotifModalForIOS(ko);
     return;
   }
-  const isPC=!/Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+  // 차단된 경우
   if(Notification.permission==='denied'){
-    if(isPC){
-      if(desc)desc.textContent=ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 클릭 → 사이트 설정 → 알림 → 허용':'Blocked. Click the icon left of address bar → Site settings → Notifications → Allow';
-    }else{
-      if(desc)desc.textContent=ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 클릭 → 권한 → 알림 → 허용':'Blocked. Click the icon left of address bar → Permissions → Notifications → Allow';
+    const isPC=!/Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+    if(desc){
+      desc.textContent=isPC
+        ?(ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 → 사이트 설정 → 알림 → 허용':'Blocked. Click icon left of address bar → Site settings → Notifications → Allow')
+        :(ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 → 권한 → 알림 → 허용':'Blocked. Click icon left of address bar → Permissions → Notifications → Allow');
+      desc.style.display='block';
     }
-    if(desc)desc.style.display='block';
-    if(btn)btn.style.display='none';
-  }else{
-    if(desc){desc.textContent='';desc.style.display='none';}
-    if(btn)btn.style.display='';
+    if(allowBtn)allowBtn.style.display='none';
+    return;
+  }
+  // 정상: PWA 안내 표시
+  if(pwaBox)pwaBox.style.display='block';
+  if(!isStandalone){
+    // PWA 버튼 항상 표시 (설치/재설치 모두)
+    if(pwaBtn)pwaBtn.style.display='block';
   }
 }
 function updateNotifModalForIOS(ko){
@@ -1128,6 +1150,15 @@ async function waitForFCM(timeout=5000){
   while(!window._fbMessaging||!window._fbGetToken){
     if(Date.now()-start>timeout)throw new Error('FCM timeout');
     await new Promise(r=>setTimeout(r,200));
+  }
+}
+function handlePwaManual(){
+  const ko=S.lang==='ko';
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  if(isIOS){
+    alert(ko?'Safari 하단 공유 버튼 ⬆️ → 홈 화면에 추가 → 앱으로 실행 후 알림 허용':'Tap Share ⬆️ in Safari → Add to Home Screen → Open as app and allow');
+  }else{
+    alert(ko?'브라우저 메뉴(⋮) → 홈 화면에 추가 또는 앱 설치 버튼을 눌러주세요.\n설치 후 앱으로 실행하면 알림이 더 안정적으로 와요!':'Tap browser menu(⋮) → Add to Home Screen or Install app.\nAlerts are more reliable when launched as app!');
   }
 }
 async function requestPushPermission(){
@@ -1159,7 +1190,7 @@ async function requestPushPermission(){
         localStorage.setItem('nb_notif','1');
         updateNotifBtn(true);
         closeModal('notifInfoModal');
-        alert(ko?'구독 신청되었어요! 매일 오전 8시에 알림을 보내드릴게요 ⚾\n\n절전모드 사용 시 알림이 늦게 오거나 안 올 수 있어요. 더 안정적인 알림을 원하시면 홈 화면에 추가해주세요!':'Subscribed! Reminders at 8AM daily ⚾\n\nNote: Battery saver mode may delay or block notifications. Add to Home Screen for reliable alerts!');
+        alert(ko?'구독 신청되었어요! 매일 오전 8시에 알림을 보내드릴게요 ⚾':'Subscribed! We will send NUBALL reminders every morning at 8AM ⚾');
       }
     }else{
       closeModal('notifInfoModal');
@@ -1185,16 +1216,27 @@ window.addEventListener('appinstalled',()=>{
 });
 async function handlePwaInstall(){
   const ko=S.lang==='ko';
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+  if(isStandalone){
+    alert(ko?'이미 홈 화면에 설치되어 있어요! 📲':'Already installed on your Home Screen! 📲');
+    return;
+  }
   if(!_pwaPrompt){
-    alert(ko?'이미 설치되어 있거나 이 브라우저에서는 지원하지 않아요.':'Already installed or not supported in this browser.');
+    // prompt 없음 → 수동 안내
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+    if(isIOS){
+      alert(ko?'Safari 하단 공유 버튼 ⬆️ → 홈 화면에 추가 → 앱으로 실행 후 알림 허용':'Tap Share ⬆️ in Safari → Add to Home Screen → Open as app and allow');
+    }else{
+      alert(ko?'브라우저 메뉴(⋮) → 홈 화면에 추가를 눌러주세요.\n설치 후 앱으로 실행하면 알림이 더 안정적으로 와요!':'Tap browser menu(⋮) → Add to Home Screen.\nAlerts are more reliable when launched as app!');
+    }
     return;
   }
   _pwaPrompt.prompt();
   const result=await _pwaPrompt.userChoice;
   if(result.outcome==='accepted'){
     _pwaPrompt=null;
-    const btn=document.getElementById('pwaInstallBtn');
-    if(btn)btn.style.display='none';
+    // 설치 완료 후 알림 허용 요청
+    setTimeout(()=>requestPushPermission(),1000);
   }
 }
 async function init(){
