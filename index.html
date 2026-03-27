@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <link rel="manifest" href="/manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NUBALL ⚾ - 머리 쓰는 숫자야구</title>
@@ -807,6 +808,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px">알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾</div>
       <div id="notifModalDesc" style="font-size:12px;color:var(--muted);background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:16px;line-height:1.7;white-space:pre-line;display:none"></div>
       <button class="btn-p" id="notifAllowBtn" onclick="requestPushPermission()">허용하기</button>
+      <button class="btn-p" id="pwaInstallBtn" onclick="handlePwaInstall()" style="display:none;margin-top:10px;background:var(--bg2);color:var(--text);border:1.5px solid var(--border)">📲 홈 화면에 추가</button>
     </div>
   </div>
 </div>
@@ -1078,6 +1080,9 @@ function handleNotifBtn(){
   }
 }
 function updateNotifModal(ko){
+  // PWA 설치 버튼 표시 여부
+  const pwaBtn=document.getElementById('pwaInstallBtn');
+  if(pwaBtn)pwaBtn.style.display=_pwaPrompt?'block':'none';
   const desc=document.getElementById('notifModalDesc');
   const btn=document.getElementById('notifAllowBtn');
   const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
@@ -1154,7 +1159,7 @@ async function requestPushPermission(){
         localStorage.setItem('nb_notif','1');
         updateNotifBtn(true);
         closeModal('notifInfoModal');
-        alert(ko?'구독 신청되었어요! 매일 오전 8시에 누볼 알림을 보내드릴게요 ⚾':'Subscribed! We will send NUBALL reminders every morning at 8AM ⚾');
+        alert(ko?'구독 신청되었어요! 매일 오전 8시에 알림을 보내드릴게요 ⚾\n\n절전모드 사용 시 알림이 늦게 오거나 안 올 수 있어요. 더 안정적인 알림을 원하시면 홈 화면에 추가해주세요!':'Subscribed! Reminders at 8AM daily ⚾\n\nNote: Battery saver mode may delay or block notifications. Add to Home Screen for reliable alerts!');
       }
     }else{
       closeModal('notifInfoModal');
@@ -1162,6 +1167,34 @@ async function requestPushPermission(){
   }catch(e){
     console.warn('Push permission failed',e);
     // 오류 시 조용히 처리
+  }
+}
+/* ── PWA 설치 ── */
+let _pwaPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  _pwaPrompt=e;
+  // 알림 모달 열려있으면 버튼 표시
+  const btn=document.getElementById('pwaInstallBtn');
+  if(btn)btn.style.display='block';
+});
+window.addEventListener('appinstalled',()=>{
+  _pwaPrompt=null;
+  const btn=document.getElementById('pwaInstallBtn');
+  if(btn)btn.style.display='none';
+});
+async function handlePwaInstall(){
+  const ko=S.lang==='ko';
+  if(!_pwaPrompt){
+    alert(ko?'이미 설치되어 있거나 이 브라우저에서는 지원하지 않아요.':'Already installed or not supported in this browser.');
+    return;
+  }
+  _pwaPrompt.prompt();
+  const result=await _pwaPrompt.userChoice;
+  if(result.outcome==='accepted'){
+    _pwaPrompt=null;
+    const btn=document.getElementById('pwaInstallBtn');
+    if(btn)btn.style.display='none';
   }
 }
 async function init(){
@@ -1244,6 +1277,7 @@ function applyLang(){
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
   if(e('menuLbl7'))e('menuLbl7').textContent=ko?'알림 설정':'Notifications';
+  if(e('pwaInstallBtn'))e('pwaInstallBtn').textContent=ko?'📲 홈 화면에 추가':'📲 Add to Home Screen';
   if(e('notifLabel'))e('notifLabel').textContent=ko?'알림':'Alerts';
   if(e('teamModalTitle'))e('teamModalTitle').textContent=ko?'⚾ 내팀 선택':'⚾ My Team';
   if(e('teamModalDesc'))e('teamModalDesc').textContent=ko?'응원하는 팀을 선택하면 랭킹에 표시됩니다':'Select your team to show in rankings';
