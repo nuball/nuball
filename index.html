@@ -369,7 +369,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div class="hdr-menu" id="hdrMenu">
         <button class="hdr-menu-item" onclick="closeMenu();openModal('rankingModal')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
-          <span id="menuLbl1">일간 랭킹</span>
+          <span id="menuLbl1">나의 랭킹</span>
         </button>
         <button class="hdr-menu-item" onclick="closeMenu();openAchModal()">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
@@ -654,8 +654,14 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <!-- RANKING -->
 <div class="ov" id="rankingModal">
   <div class="mbox">
-    <div class="mhdr"><span class="mtitle" data-i18n="rankTitle">🏆 일간 랭킹</span><button class="mclose" onclick="closeModal('rankingModal')">✕</button></div>
+    <div class="mhdr"><span class="mtitle" data-i18n="rankTitle">🏆 나의 랭킹</span><button class="mclose" onclick="closeModal('rankingModal')">✕</button></div>
     <div class="mbody">
+      <!-- 기간 탭 -->
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button class="league-tab active" id="ptab_daily" onclick="setRankPeriod('daily')" id="ptabDaily">일간</button>
+        <button class="league-tab" id="ptab_weekly" onclick="setRankPeriod('weekly')">주간</button>
+        <button class="league-tab" id="ptab_monthly" onclick="setRankPeriod('monthly')">월간</button>
+      </div>
       <div id="yesterdayTop" style="display:none;margin-bottom:4px;padding-bottom:8px;border-bottom:1px solid var(--border)"></div>
       <div class="rank-tabs">
         <button class="rank-tab active" id="rtab0" onclick="setRankTab(0)" data-i18n="rankTabAll">통합</button>
@@ -842,7 +848,7 @@ ko:{
   history:'기록',answer:'정답',gameScore:'이번 게임 점수',goHome:'메인으로',
   supportTitle:'개발자 응원하기',supportDesc:'누볼을 즐기고 계신가요? 개발자에게 커피 한 잔 보내주세요!',
   watchAd:'📺 광고 보기',adNote:'광고 시청 시 비디오판독 1회 추가 (하루 1회)',
-  helpTitle:'게임 방법',rankTitle:'🏆 일간 랭킹',rankTabAll:'통합',
+  helpTitle:'게임 방법',rankTitle:'🏆 나의 랭킹',rankTabAll:'통합',
   statsTitle:'통계·공유',distTitle:'도전 분포',nextGame:'새로운 문제까지',copyBtn:'결과 복사',shareImg:'이미지 다운',
   rule1:'1~9 사이의 중복 없는 숫자를 맞추세요 (0 제외)',
   rule2:'Strike: 숫자와 자리가 모두 일치',rule3:'Ball: 숫자는 있지만 자리가 다름',
@@ -880,7 +886,7 @@ en:{
   history:'History',answer:'Answer',gameScore:'Game Score',goHome:'Back to Main',
   supportTitle:'Support the Dev',supportDesc:'Enjoying Nuball? Support to keep it alive!',
   watchAd:'📺 Watch Ad',adNote:'Watch an ad to get 1 extra Video Review (once per day)',
-  helpTitle:'How to Play',rankTitle:'🏆 Daily Ranking',rankTabAll:'All',
+  helpTitle:'How to Play',rankTitle:'🏆 Ranking',rankTabAll:'All',
   statsTitle:'Stats & Share',distTitle:'Attempt Distribution',nextGame:'Next puzzle in',copyBtn:'Copy Result',shareImg:'Download Image',
   rule1:'Guess numbers 1-9, no repeats, no 0',
   rule2:'Strike: Correct number AND position',rule3:'Ball: Correct number, wrong position',
@@ -929,6 +935,37 @@ async function mkUid(){
 }
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
 function getDayId(){return todayStr()}
+function getWeekId(){
+  const d=new Date();
+  const day=d.getDay()||7; // 일=7
+  d.setDate(d.getDate()-day+1); // 이번주 월요일
+  return 'W'+d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+function getMonthId(){
+  const d=new Date();
+  return 'M'+d.getFullYear()+'-'+(d.getMonth()+1);
+}
+function getNextMonday(){
+  const d=new Date();
+  const day=d.getDay()||7;
+  d.setDate(d.getDate()+(8-day));
+  d.setHours(0,0,0,0);
+  return d;
+}
+function timeUntilNextMonday(){
+  const diff=getNextMonday()-new Date();
+  const h=Math.floor(diff/3600000);
+  const m=Math.floor((diff%3600000)/60000);
+  return h+'h '+m+'m';
+}
+function timeUntilNextMonth(){
+  const d=new Date();
+  const next=new Date(d.getFullYear(),d.getMonth()+1,1);
+  const diff=next-d;
+  const days=Math.floor(diff/86400000);
+  const h=Math.floor((diff%86400000)/3600000);
+  return days+'d '+h+'h';
+}
 function timeUntilMidnight(){
   const now=new Date(),nm=new Date(now);nm.setHours(24,0,0,0);
   const diff=nm-now,h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
@@ -1048,7 +1085,10 @@ function applyLang(){
   // 메뉴 라벨
   const ko=S.lang==='ko';
   const e=id=>document.getElementById(id);
-  if(e('menuLbl1'))e('menuLbl1').textContent=ko?'일간 랭킹':'Daily Ranking';
+  if(e('menuLbl1'))e('menuLbl1').textContent=ko?'나의 랭킹':'Ranking';
+  if(e('ptab_daily'))e('ptab_daily').textContent=ko?'일간':'Daily';
+  if(e('ptab_weekly'))e('ptab_weekly').textContent=ko?'주간':'Weekly';
+  if(e('ptab_monthly'))e('ptab_monthly').textContent=ko?'월간':'Monthly';
   if(e('menuLbl2'))e('menuLbl2').textContent=ko?'통계·공유':'Stats & Share';
   if(e('menuLbl3'))e('menuLbl3').textContent=ko?'문의·후원':'Contact & Support';
   if(e('menuLbl4'))e('menuLbl4').textContent=ko?'게임 방법':'How to Play';
@@ -1744,6 +1784,19 @@ async function registerFromStats(){
     try{
       const path='rankings/'+S.dayId+'/'+S.uid;
       await window._fbSet(window._fbRef(window._fbDb,path),entry);
+      // 주간/월간 랭킹에도 등록 (더 높은 점수일 때만)
+      try{
+        const weekPath='rankings_weekly/'+getWeekId()+'/'+S.uid;
+        const monthPath='rankings_monthly/'+getMonthId()+'/'+S.uid;
+        const wSnap=await window._fbGet(window._fbRef(window._fbDb,weekPath));
+        if(!wSnap.exists()||wSnap.val().score<bestScore){
+          await window._fbSet(window._fbRef(window._fbDb,weekPath),entry);
+        }
+        const mSnap=await window._fbGet(window._fbRef(window._fbDb,monthPath));
+        if(!mSnap.exists()||mSnap.val().score<bestScore){
+          await window._fbSet(window._fbRef(window._fbDb,monthPath),entry);
+        }
+      }catch(e){console.warn('weekly/monthly reg failed',e);}
       alert(t('regOk'));
       renderHome();
       renderStats();
@@ -1788,6 +1841,18 @@ async function registerRanking(){
 }
 
 let _rankTab=0; // 0=통합, 1=LV1, 2=LV2, 3=LV3
+let _rankPeriod='daily'; // daily/weekly/monthly
+function setRankPeriod(p){
+  _rankPeriod=p;
+  ['daily','weekly','monthly'].forEach(k=>{
+    const el=document.getElementById('ptab_'+k);
+    if(el)el.classList.toggle('active',k===p);
+  });
+  // 주간/월간은 어제1등 숨기기
+  const ydEl=document.getElementById('yesterdayTop');
+  if(ydEl)ydEl.style.display=p==='daily'?'block':'none';
+  renderRankList();
+}
 function setRankTab(n){
   _rankTab=n;
   [0,1,2,3].forEach(i=>document.getElementById('rtab'+i).classList.toggle('active',i===n));
@@ -1798,11 +1863,20 @@ async function renderRankList(){
   const listEl=document.getElementById('rankList');
   listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+
     (S.lang==='ko'?'불러오는 중...':'Loading...')+'</div>';
+  // 모달 타이틀 업데이트
+  const ko=S.lang==='ko';
+  const titleEl=document.querySelector('#rankingModal .mtitle');
+  if(titleEl){
+    const titles={daily:ko?'🏆 일간 랭킹':'🏆 Daily Ranking',weekly:ko?'🏆 주간 랭킹':'🏆 Weekly Ranking',monthly:ko?'🏆 월간 랭킹':'🏆 Monthly Ranking'};
+    titleEl.textContent=titles[_rankPeriod]||titles.daily;
+  }
+  // 주간/월간이면 어제1등 숨기기
+  const ydEl=document.getElementById('yesterdayTop');
+  if(ydEl)ydEl.style.display=(_rankPeriod==='daily'&&ydEl.innerHTML)?'block':'none';
 
   // 어제 1등 조회
   const ydObj=new Date();ydObj.setDate(ydObj.getDate()-1);
   const ydStr=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
-  const ydEl=document.getElementById('yesterdayTop');
   if(ydEl&&window._fbReady){
     try{
       const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(1));
@@ -1810,7 +1884,6 @@ async function renderRankList(){
       if(ydSnap.exists()){
         let top=null;ydSnap.forEach(ch=>{const d=ch.val();top={nick:d.nick,score:d.score,country:d.country,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null};});
         if(top){
-          const ko=S.lang==='ko';
           const topCountry=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country,S.lang);
           const topStreak=top.streak>0?'<span style="font-size:10px;color:#ff6b00;font-weight:800;margin-left:6px">🔥'+top.streak+'</span>':'';
           const topAch=top.achCount>0?'<span style="font-size:10px;color:var(--primary);font-weight:800;margin-left:4px">🏆'+top.achCount+'</span>':'';
@@ -1838,8 +1911,10 @@ async function renderRankList(){
   // Firebase에서 오늘 랭킹 가져오기
   if(window._fbReady){
     try{
+      const periodId=_rankPeriod==='weekly'?getWeekId():_rankPeriod==='monthly'?getMonthId():S.dayId;
+      const fbPath=_rankPeriod==='daily'?'rankings/'+periodId:'rankings_'+_rankPeriod+'/'+periodId;
       const q=window._fbQuery(
-        window._fbRef(window._fbDb,'rankings/'+S.dayId),
+        window._fbRef(window._fbDb,fbPath),
         window._fbOrderByChild('score'),
         window._fbLimitToLast(300)
       );
@@ -1869,7 +1944,7 @@ async function renderRankList(){
     listEl.innerHTML='<p style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">'+
       (S.lang==='ko'?'아직 등록된 참가자가 없습니다':'No participants yet')+'</p>';
   }else{
-    listEl.innerHTML=filtered.slice(0,100).map((r,i)=>{
+    listEl.innerHTML=filtered.slice(0,(_rankPeriod==='daily'?50:50)).map((r,i)=>{
       const rank=i+1,isMe=r.id===S.uid;
       const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
       const rStreak=r.id===S.uid?(S.streak||0):(r.streak||0);
@@ -1885,7 +1960,12 @@ async function renderRankList(){
         '<div class="rank-score">'+r.score.toLocaleString()+'</div></div>';
     }).join('');
   }
-  document.getElementById('rankResetEl').textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
+  const rEl=document.getElementById('rankResetEl');
+  if(rEl){
+    if(_rankPeriod==='weekly')rEl.textContent=ko?'주간 랭킹 · 매주 월요일 00시 초기화 · '+timeUntilNextMonday()+' 남음':'Weekly · Resets every Monday · '+timeUntilNextMonday()+' left';
+    else if(_rankPeriod==='monthly')rEl.textContent=ko?'월간 랭킹 · 매월 1일 00시 초기화 · '+timeUntilNextMonth()+' 남음':'Monthly · Resets on 1st · '+timeUntilNextMonth()+' left';
+    else rEl.textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
+  }
 }
 
 /* ── MODALS ── */
@@ -1927,7 +2007,12 @@ function openModal(id){
   const mbox=el.querySelector('.mbox');if(mbox){mbox.scrollTop=0;setupScrollFade(mbox);}
   const mb=el.querySelector('.mbody');if(mb){mb.scrollTop=0;}
   if(id==='teamModal'){selectLeague(S.league||'KBO');}
-  if(id==='rankingModal'){_rankTab=0;[0,1,2,3].forEach(i=>{const t=document.getElementById('rtab'+i);if(t)t.classList.toggle('active',i===0);});renderRankList();}
+  if(id==='rankingModal'){
+    _rankTab=0;_rankPeriod='daily';
+    [0,1,2,3].forEach(i=>{const t=document.getElementById('rtab'+i);if(t)t.classList.toggle('active',i===0);});
+    ['daily','weekly','monthly'].forEach(k=>{const t=document.getElementById('ptab_'+k);if(t)t.classList.toggle('active',k==='daily');});
+    renderRankList();
+  }
   if(id==='statsModal')renderStats();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
