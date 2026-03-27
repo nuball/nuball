@@ -13,12 +13,20 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// notification 필드가 있으면 FCM이 자동 표시 + SW도 실행됨
-// tag:'nuball-daily' + renotify:false 로 중복 방지
+// Android/PC 백그라운드 모두 대응
+// Service Worker에서 직접 showNotification 호출
 messaging.onBackgroundMessage(payload => {
-  // notification 필드가 있으면 FCM이 이미 자동으로 표시함
-  // 여기서는 아무것도 하지 않음 → 알림 한 번만 표시
-  console.log('Background message received', payload);
+  const n = payload.notification || {};
+  const title = n.title || 'NUBALL ⚾';
+  const options = {
+    body: n.body || '오늘의 누볼이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
+    icon: 'https://nuball.vercel.app/og-image.PNG',
+    badge: 'https://nuball.vercel.app/og-image.PNG',
+    tag: 'nuball-daily',
+    renotify: false,
+    data: { url: 'https://nuball.vercel.app' }
+  };
+  return self.registration.showNotification(title, options);
 });
 
 self.addEventListener('notificationclick', e => {
