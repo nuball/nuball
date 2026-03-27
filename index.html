@@ -820,7 +820,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <div style="font-size:12px;font-weight:800;margin-bottom:4px" id="notifIosTitle">🍎 iPhone (iOS)</div>
         <div style="font-size:12px;color:var(--muted);line-height:1.7" id="notifIosDesc">Safari 하단 공유 버튼 ⬆️ → 홈 화면에 추가<br>앱처럼 실행 후 알림을 허용해주세요.</div>
       </div>
-      <button class="btn-p" id="notifAllowBtn" onclick="requestPushPermission().then(()=>closeModal('notifInfoModal'))">허용하기</button>
+      <button class="btn-p" id="notifAllowBtn" onclick="requestPushPermission()">허용하기</button>
     </div>
   </div>
 </div>
@@ -1113,7 +1113,10 @@ async function requestPushPermission(){
             token,lang:S.lang,ts:Date.now()
           });
         }
-        alert(ko?'구독 신청되었어요! 매일 오전에 누볼 알림을 보내드릴게요 ⚾':'Subscribed! We will send you daily NUBALL reminders ⚾');
+        localStorage.setItem('nb_notif','1');
+        updateNotifBtn(true);
+        closeModal('notifInfoModal');
+        alert(ko?'구독 신청되었어요! 매일 오전 8시에 누볼 알림을 보내드릴게요 ⚾':'Subscribed! We\'ll send NUBALL reminders every morning at 8AM ⚾');
       }
     }else{
       alert(ko?'알림을 허용해주셔야 확인할 수 있어요.':'Please allow notifications to receive reminders.');

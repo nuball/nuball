@@ -37,12 +37,12 @@ async function sendDailyNotifications() {
     const message = {
       notification: {
         title: 'NUBALL ⚾',
-        body: '오늘의 누볼 도전이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
+        body: '오늘의 누볼이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
       },
       webpush: {
         notification: {
           title: 'NUBALL ⚾',
-          body: '오늘의 누볼 도전이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
+          body: '오늘의 누볼이 기다리고 있어요! 지금 바로 플레이하세요 🎯',
           icon: 'https://nuball.vercel.app/og-image.PNG',
           badge: 'https://nuball.vercel.app/og-image.PNG',
           tag: 'nuball-daily',
