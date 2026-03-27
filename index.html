@@ -31,13 +31,6 @@
     const messaging=getMessaging(fbApp);
     window._fbMessaging=messaging;
     window._fbGetToken=getToken;
-    // 포그라운드 메시지 수신
-    onMessage(messaging,payload=>{
-      const n=payload.notification||{};
-      if(Notification.permission==='granted'){
-        new Notification(n.title||'NUBALL ⚾',{body:n.body||'오늘의 누볼 도전이 기다리고 있어요!',icon:'/og-image.PNG'});
-      }
-    });
   }catch(e){console.warn('FCM init failed',e);}
   window._fbRef=ref;
   window._fbSet=set;
