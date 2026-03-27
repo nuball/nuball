@@ -30,6 +30,7 @@
   try{
     const messaging=getMessaging(fbApp);
     window._fbMessaging=messaging;
+    window._fbGetToken=getToken;
     // 포그라운드 메시지 수신
     onMessage(messaging,payload=>{
       const n=payload.notification||{};
@@ -100,13 +101,6 @@ body{font-family:'Plus Jakarta Sans','Noto Sans KR',sans-serif;font-size:15px;ba
 .lang-sep{width:1px;background:var(--border)}
 .theme-btn{padding:0 9px;font-size:11px;font-weight:800;background:transparent;border:none;border-left:1.5px solid var(--border);cursor:pointer;font-family:inherit;color:var(--muted);height:30px;border-radius:0 5px 5px 0;transition:background .12s,color .12s}
 .theme-btn:hover{background:var(--bg2);color:var(--text)}
-.notif-row{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:5px;font-size:10px;font-weight:700;color:var(--muted)}
-.notif-toggle{position:relative;width:32px;height:17px;cursor:pointer}
-.notif-toggle input{opacity:0;width:0;height:0;position:absolute}
-.notif-slider{position:absolute;inset:0;background:var(--border);border-radius:17px;transition:.2s}
-.notif-slider:before{content:'';position:absolute;width:13px;height:13px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s}
-.notif-toggle input:checked+.notif-slider{background:var(--primary)}
-.notif-toggle input:checked+.notif-slider:before{transform:translateX(15px)}
 
 /* ── MAIN ── */
 main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
@@ -393,6 +387,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <button class="ibtn" id="menuBtn" onclick="toggleMenu()" title="메뉴" style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;color:var(--text)">
         <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.8" fill="currentColor" stroke="none"/></svg>
       </button>
+      <button class="ibtn" id="notifBtn" onclick="handleNotifBtn()" title="알림"
+        style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;font-size:18px;line-height:1">🔕</button>
       <!-- 드롭다운 메뉴 -->
       <div class="hdr-menu" id="hdrMenu">
         <button class="hdr-menu-item" onclick="closeMenu();openModal('rankingModal')">
@@ -440,13 +436,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <div class="lang-sep"></div>
         <button class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
         <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">다크</button>
-      </div>
-      <div class="notif-row">
-        <span id="notifLabel">알림</span>
-        <label class="notif-toggle">
-          <input type="checkbox" id="notifToggle" onchange="handleNotifToggle(this.checked)">
-          <span class="notif-slider"></span>
-        </label>
       </div>
     </div>
   </div>
@@ -816,6 +805,26 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   </div>
 </div>
 
+<!-- 알림 안내 모달 -->
+<div class="ov" id="notifInfoModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="notifInfoTitle">🔔 알림 안내</span><button class="mclose" onclick="closeModal('notifInfoModal')">✕</button></div>
+    <div class="mbody">
+      <div style="text-align:center;font-size:15px;font-weight:800;margin-bottom:6px" id="notifInfoTime">매일 오전 8시에 누볼 알림을 보내드려요!</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px" id="notifInfoSub">알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾</div>
+      <div style="background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:800;margin-bottom:4px" id="notifAndroidTitle">🤖 Android / PC</div>
+        <div style="font-size:12px;color:var(--muted)" id="notifAndroidDesc">아래 버튼을 누르고 알림을 허용하면 바로 받을 수 있어요.</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:20px">
+        <div style="font-size:12px;font-weight:800;margin-bottom:4px" id="notifIosTitle">🍎 iPhone (iOS)</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7" id="notifIosDesc">Safari 하단 공유 버튼 ⬆️ → 홈 화면에 추가<br>앱처럼 실행 후 알림을 허용해주세요.</div>
+      </div>
+      <button class="btn-p" id="notifAllowBtn" onclick="requestPushPermission().then(()=>closeModal('notifInfoModal'))">허용하기</button>
+    </div>
+  </div>
+</div>
+
 <!-- HELP -->
 <div class="ov" id="helpModal">
   <div class="mbox">
@@ -1056,36 +1065,33 @@ function seedRankings(){return[]} // 더미 데이터 제거
 
 /* ── INIT ── */
 /* ── PUSH 알림 ── */
-async function handleNotifToggle(checked){
-  if(!('Notification' in window)||!('serviceWorker' in navigator)){
-    document.getElementById('notifToggle').checked=false;
-    alert(S.lang==='ko'?'이 브라우저는 알림을 지원하지 않아요.':'Notifications not supported in this browser.');
-    return;
-  }
-  if(checked){
-    await requestPushPermission();
-    // 허용 안 하면 토글 원복
-    if(Notification.permission!=='granted'){
-      document.getElementById('notifToggle').checked=false;
-      localStorage.removeItem('nb_notif');
-    }else{
-      localStorage.setItem('nb_notif','1');
-    }
-  }else{
+function handleNotifBtn(){
+  const isOn=localStorage.getItem('nb_notif')==='1'&&Notification.permission==='granted';
+  if(isOn){
     localStorage.removeItem('nb_notif');
     localStorage.removeItem('nb_fcm_token');
-    // Firebase에서 토큰 삭제
     if(S.uid&&window._fbReady){
-      try{await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),null);}catch(e){}
+      try{window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),null);}catch(e){}
+    }
+    updateNotifBtn(false);
+  }else{
+    if(Notification.permission==='granted'){
+      requestPushPermission();
+    }else{
+      openModal('notifInfoModal');
     }
   }
 }
+function updateNotifBtn(on){
+  const btn=document.getElementById('notifBtn');
+  if(!btn)return;
+  btn.textContent=on?'🔔':'🔕';
+  btn.style.borderColor=on?'var(--primary)':'';
+  btn.style.background=on?'var(--primary-light)':'';
+}
 function initNotifState(){
-  const toggle=document.getElementById('notifToggle');
-  if(toggle){
-    const saved=localStorage.getItem('nb_notif')==='1'&&Notification.permission==='granted';
-    toggle.checked=saved;
-  }
+  const on=localStorage.getItem('nb_notif')==='1'&&Notification.permission==='granted';
+  updateNotifBtn(on);
 }
 async function requestPushPermission(){
   if(!('Notification' in window)||!window._fbMessaging)return;
@@ -1095,7 +1101,7 @@ async function requestPushPermission(){
     const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
     const perm=await Notification.requestPermission();
     if(perm==='granted'){
-      const token=await getToken(window._fbMessaging,{
+      const token=await window._fbGetToken(window._fbMessaging,{
         vapidKey:'BIzE3xwfKk4TN_xXKZWdWa7s4Ay2pgPB9fYAnmnxs8fcHUhZ2cWy0YNS9rM0TRQ84CZPyzMweajxH46_NLUQwUs',
         serviceWorkerRegistration:reg
       });
@@ -1194,7 +1200,12 @@ function applyLang(){
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
   if(e('menuLbl7'))e('menuLbl7').textContent=ko?'알림 설정':'Notifications';
-  if(e('notifLabel'))e('notifLabel').textContent=ko?'알림':'Alerts';
+  if(e('notifInfoTitle'))e('notifInfoTitle').textContent=ko?'🔔 알림 안내':'🔔 Notifications';
+  if(e('notifInfoTime'))e('notifInfoTime').textContent=ko?'매일 오전 8시에 누볼 알림을 보내드려요!':'We send NUBALL reminders every morning at 8AM!';
+  if(e('notifInfoSub'))e('notifInfoSub').textContent=ko?'알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾':'Never miss your daily NUBALL ⚾';
+  if(e('notifAndroidDesc'))e('notifAndroidDesc').textContent=ko?'아래 버튼을 누르고 알림을 허용하면 바로 받을 수 있어요.':'Tap below and allow notifications.';
+  if(e('notifIosDesc'))e('notifIosDesc').innerHTML=ko?'Safari 하단 공유 버튼 ⬆️ → 홈 화면에 추가<br>앱처럼 실행 후 알림을 허용해주세요.':'Tap Share ⬆️ in Safari → Add to Home Screen<br>Open as app and allow notifications.';
+  if(e('notifAllowBtn'))e('notifAllowBtn').textContent=ko?'허용하기':'Allow';
   if(e('teamModalTitle'))e('teamModalTitle').textContent=ko?'⚾ 내팀 선택':'⚾ My Team';
   if(e('teamModalDesc'))e('teamModalDesc').textContent=ko?'응원하는 팀을 선택하면 랭킹에 표시됩니다':'Select your team to show in rankings';
   if(e('teamClearBtn'))e('teamClearBtn').textContent=ko?'선택 안 함':'No team';
