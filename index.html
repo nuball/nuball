@@ -1917,33 +1917,63 @@ async function renderRankList(){
 
   let entries=[];
 
-  // Firebase에서 오늘 랭킹 가져오기
+  // Firebase에서 랭킹 가져오기
   if(window._fbReady){
     try{
-      const periodId=_rankPeriod==='weekly'?getWeekId():S.dayId;
-      const fbPath=_rankPeriod==='daily'?'rankings/'+periodId:'rankings_weekly/'+periodId;
-      const q=window._fbQuery(
-        window._fbRef(window._fbDb,fbPath),
-        window._fbOrderByChild('score'),
-        window._fbLimitToLast(300)
-      );
-      const snap=await window._fbGet(q);
-      if(snap.exists()){
-        snap.forEach(child=>{
-          const d=child.val();
-          entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,day:d.day,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,league:d.league||null});
+      if(_rankPeriod==='weekly'){
+        // 이번주 월~오늘 날짜 목록 생성
+        const today=new Date();
+        const dow=today.getDay()||7;
+        const dateStrs=[];
+        for(let i=1;i<=dow;i++){
+          const d=new Date(today);
+          d.setDate(today.getDate()-(dow-i));
+          dateStrs.push(d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate());
+        }
+        // 모든 날짜 병렬 조회
+        const snaps=await Promise.all(
+          dateStrs.map(dStr=>window._fbGet(window._fbRef(window._fbDb,'rankings/'+dStr)))
+        );
+        const userMap={};
+        snaps.forEach(daySnap=>{
+          if(!daySnap.exists())return;
+          daySnap.forEach(child=>{
+            const d2=child.val();
+            const uid=child.key;
+            if(!userMap[uid]){
+              userMap[uid]={id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,achCount:d2.achCount||0,team:d2.team||null,league:d2.league||null,weekScore:0};
+            }
+            userMap[uid].weekScore+=(d2.score||0);
+            // 최신 정보로 갱신
+            if(d2.streak)userMap[uid].streak=d2.streak;
+            if(d2.achCount)userMap[uid].achCount=d2.achCount;
+            if(d2.team)userMap[uid].team=d2.team;
+          });
         });
-        entries.sort((a,b)=>b.score-a.score||(b.level||0)-(a.level||0));
-        // 일간만 로컬 캐시 저장
-        if(_rankPeriod==='daily'){S.rankings=entries;saveRankings();}
+        entries=Object.values(userMap).map(u=>({...u,score:u.weekScore}));
+        entries.sort((a,b)=>b.score-a.score);
+      }else{
+        // 일간
+        const q=window._fbQuery(
+          window._fbRef(window._fbDb,'rankings/'+S.dayId),
+          window._fbOrderByChild('score'),
+          window._fbLimitToLast(300)
+        );
+        const snap=await window._fbGet(q);
+        if(snap.exists()){
+          snap.forEach(child=>{
+            const d=child.val();
+            entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,day:d.day,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,league:d.league||null});
+          });
+          entries.sort((a,b)=>b.score-a.score||(b.level||0)-(a.level||0));
+          S.rankings=entries;saveRankings();
+        }
       }
     }catch(e){
       console.warn('Firebase read failed',e);
-      // 일간만 로컬 폴백, 주간/월간은 빈 배열
       if(_rankPeriod==='daily')entries=[...S.rankings];
     }
   }else{
-    // Firebase 미연결 시 일간만 로컬 폴백
     if(_rankPeriod==='daily')entries=[...S.rankings];
   }
 
