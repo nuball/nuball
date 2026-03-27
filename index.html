@@ -1945,6 +1945,7 @@ async function renderRankList(){
             }
             userMap[uid].weekScore+=(d2.score||0);
             // 최신 정보로 갱신
+            if(d2.nick)userMap[uid].nick=d2.nick;
             if(d2.streak)userMap[uid].streak=d2.streak;
             if(d2.achCount)userMap[uid].achCount=d2.achCount;
             if(d2.team)userMap[uid].team=d2.team;
