@@ -808,18 +808,11 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <!-- 알림 안내 모달 -->
 <div class="ov" id="notifInfoModal">
   <div class="mbox">
-    <div class="mhdr"><span class="mtitle" id="notifInfoTitle">🔔 알림 안내</span><button class="mclose" onclick="closeModal('notifInfoModal')">✕</button></div>
+    <div class="mhdr"><span class="mtitle">🔔 알림 설정</span><button class="mclose" onclick="closeModal('notifInfoModal')">✕</button></div>
     <div class="mbody">
-      <div style="text-align:center;font-size:15px;font-weight:800;margin-bottom:6px" id="notifInfoTime">매일 오전 8시에 누볼 알림을 보내드려요!</div>
-      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px" id="notifInfoSub">알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾</div>
-      <div style="background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:10px">
-        <div style="font-size:12px;font-weight:800;margin-bottom:4px" id="notifAndroidTitle">🤖 Android / PC</div>
-        <div style="font-size:12px;color:var(--muted)" id="notifAndroidDesc">아래 버튼을 누르고 알림을 허용하면 바로 받을 수 있어요.</div>
-      </div>
-      <div style="background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:20px">
-        <div style="font-size:12px;font-weight:800;margin-bottom:4px" id="notifIosTitle">🍎 iPhone (iOS)</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.7" id="notifIosDesc">Safari 하단 공유 버튼 ⬆️ → 홈 화면에 추가<br>앱처럼 실행 후 알림을 허용해주세요.</div>
-      </div>
+      <div style="text-align:center;font-size:15px;font-weight:800;margin-bottom:8px">매일 오전 8시에 누볼 알림을 보내드려요!</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px">알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾</div>
+      <div id="notifModalDesc" style="font-size:12px;color:var(--muted);background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:16px;line-height:1.7;white-space:pre-line;display:none"></div>
       <button class="btn-p" id="notifAllowBtn" onclick="requestPushPermission()">허용하기</button>
     </div>
   </div>
@@ -1067,8 +1060,15 @@ function seedRankings(){return[]} // 더미 데이터 제거
 /* ── PUSH 알림 ── */
 function handleNotifBtn(){
   const ko=S.lang==='ko';
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
   if(!('Notification' in window)||!('serviceWorker' in navigator)){
-    alert(ko?'이 브라우저는 알림을 지원하지 않아요.':'Notifications not supported in this browser.');
+    if(isIOS&&!isStandalone){
+      openModal('notifInfoModal');
+      updateNotifModalForIOS(ko);
+    }else{
+      alert(ko?'이 브라우저는 알림을 지원하지 않아요.':'Notifications not supported.');
+    }
     return;
   }
   const isOn=localStorage.getItem('nb_notif')==='1'&&Notification.permission==='granted';
@@ -1081,16 +1081,37 @@ function handleNotifBtn(){
     updateNotifBtn(false);
   }else{
     openModal('notifInfoModal');
-    setTimeout(()=>{
-      const desc=document.getElementById('notifAndroidDesc');
-      if(!desc)return;
-      if(Notification.permission==='denied'){
-        desc.textContent=ko?'알림이 차단되어 있어요. 주소창 자물쇠 클릭 -> 알림 -> 허용 후 다시 눌러주세요.':
-          'Notifications blocked. Click lock icon in address bar -> Notifications -> Allow.';
-      }else{
-        desc.textContent=ko?'아래 버튼을 누르고 알림을 허용하면 바로 받을 수 있어요.':'Tap the button below and allow notifications.';
-      }
-    },100);
+    setTimeout(()=>updateNotifModal(ko),50);
+  }
+}
+function updateNotifModal(ko){
+  const desc=document.getElementById('notifModalDesc');
+  const btn=document.getElementById('notifAllowBtn');
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+  if(isIOS&&!isStandalone){
+    updateNotifModalForIOS(ko);
+    return;
+  }
+  const isPC=!/Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(Notification.permission==='denied'){
+    if(isPC){
+      if(desc)desc.textContent=ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 클릭 → 사이트 설정 → 알림 → 허용':'Blocked. Click the icon left of address bar → Site settings → Notifications → Allow';
+    }else{
+      if(desc)desc.textContent=ko?'알림이 차단되어 있어요.\n주소창 왼쪽 아이콘 클릭 → 권한 → 알림 → 허용':'Blocked. Click the icon left of address bar → Permissions → Notifications → Allow';
+    }
+    if(desc)desc.style.display='block';
+    if(btn)btn.style.display='none';
+  }else{
+    if(desc){desc.textContent='';desc.style.display='none';}
+    if(btn)btn.style.display='';
+  }
+}
+function updateNotifModalForIOS(ko){
+  const desc=document.getElementById('notifModalDesc');
+  const btn=document.getElementById('notifAllowBtn');
+  if(desc){desc.style.display='block';desc.innerHTML=ko?'iPhone에서는 홈 화면에 추가 후 알림을 받을 수 있어요.<br><br>Safari → 하단 공유 버튼 ⬆️ → 홈 화면에 추가<br>앱으로 실행 후 알림 허용':'On iPhone, add to Home Screen first.<br><br>Safari → Share button ⬆️ → Add to Home Screen<br>Then open as app and allow notifications.';
+  if(btn)btn.style.display='none';
   }
 }
 function updateNotifBtn(on){
@@ -1104,19 +1125,23 @@ function initNotifState(){
   const on=localStorage.getItem('nb_notif')==='1'&&Notification.permission==='granted';
   if(document.getElementById('notifBtn'))updateNotifBtn(on);
 }
+async function waitForFCM(timeout=5000){
+  const start=Date.now();
+  while(!window._fbMessaging||!window._fbGetToken){
+    if(Date.now()-start>timeout)throw new Error('FCM timeout');
+    await new Promise(r=>setTimeout(r,200));
+  }
+}
 async function requestPushPermission(){
   const ko=S.lang==='ko';
   if(!('Notification' in window)||!('serviceWorker' in navigator))return;
   if(Notification.permission==='denied'){
-    alert(ko?'알림이 차단되어 있어요.\n주소창 자물쇠 -> 알림 -> 허용으로 변경 후 다시 시도해주세요.':
-      'Notifications blocked.\nClick lock icon -> Notifications -> Allow, then retry.');
-    return;
-  }
-  if(!window._fbMessaging||!window._fbGetToken){
-    alert(ko?'잠시 후 다시 시도해주세요.':'Please try again in a moment.');
+    updateNotifModal(ko);
     return;
   }
   try{
+    // FCM 준비될때까지 대기
+    await waitForFCM();
     const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
     await navigator.serviceWorker.ready;
     const perm=await Notification.requestPermission();
@@ -1140,7 +1165,10 @@ async function requestPushPermission(){
     }else{
       closeModal('notifInfoModal');
     }
-  }catch(e){console.warn('Push permission failed',e);}
+  }catch(e){
+    console.warn('Push permission failed',e);
+    alert(ko?'잘못 됨 오류: '+e.message:'Error: '+e.message);
+  }
 }
 async function init(){
   S.uid=await mkUid();S.today=todayStr();S.dayId=getDayId();
