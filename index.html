@@ -1174,9 +1174,9 @@ function updateNotifBtn(on){
 function initNotifState(){
   const on=localStorage.getItem('nb_notif')==='1'&&Notification.permission==='granted';
   if(document.getElementById('notifBtn'))updateNotifBtn(on);
-  // PWA 실행 시 FCM 토큰 자동 재등록
+  // PWA 실행 시 FCM 토큰 자동 재등록 (이전에 알림 ON한 경우에만)
   const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
-  if(isStandalone&&Notification.permission==='granted'){
+  if(isStandalone&&Notification.permission==='granted'&&localStorage.getItem('nb_notif')==='1'){
     setTimeout(async()=>{
       try{
         await waitForFCM();
@@ -1370,8 +1370,13 @@ function applyLang(){
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
   if(e('menuLbl7'))e('menuLbl7').textContent=ko?'알림 설정':'Notifications';
-  if(e('pwaInstallBtn'))e('pwaInstallBtn').textContent=ko?'홈 화면에 추가':'Add to Home Screen';
-  if(e('notifLabel'))e('notifLabel').textContent=ko?'알림':'Alerts';
+  if(e('pwaInstallBtn'))e('pwaInstallBtn').textContent=ko?'홈 화면에 추가하고 알림 받기':'Add to Home Screen for Alerts';
+  if(e('notifAllowBtn'))e('notifAllowBtn').textContent=ko?'알림 받기':'Get Alerts';
+  if(e('pwaAdviceText'))e('pwaAdviceText').textContent=ko
+    ?'절전모드 사용 시 알림이 안 올 수 있어요.\n홈 화면에 추가하면 더 안정적으로 알림을 받을 수 있어요!'
+    :'Notifications may not arrive in battery saver mode.\nAdd to Home Screen for more reliable alerts!';
+  // 모달이 열려있으면 즉시 업데이트
+  if(document.getElementById('notifInfoModal')?.classList.contains('open'))updateNotifModal(ko);
   if(e('teamModalTitle'))e('teamModalTitle').textContent=ko?'⚾ 내팀 선택':'⚾ My Team';
   if(e('teamModalDesc'))e('teamModalDesc').textContent=ko?'응원하는 팀을 선택하면 랭킹에 표시됩니다':'Select your team to show in rankings';
   if(e('teamClearBtn'))e('teamClearBtn').textContent=ko?'선택 안 함':'No team';
