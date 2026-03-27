@@ -1167,6 +1167,29 @@ function updateNotifBtn(on){
 function initNotifState(){
   const on=localStorage.getItem('nb_notif')==='1'&&Notification.permission==='granted';
   if(document.getElementById('notifBtn'))updateNotifBtn(on);
+  // PWA 실행 시 FCM 토큰 자동 재등록
+  const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+  if(isStandalone&&Notification.permission==='granted'){
+    setTimeout(async()=>{
+      try{
+        await waitForFCM();
+        const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        await navigator.serviceWorker.ready;
+        const token=await window._fbGetToken(window._fbMessaging,{
+          vapidKey:'BIzE3xwfKk4TN_xXKZWdWa7s4Ay2pgPB9fYAnmnxs8fcHUhZ2cWy0YNS9rM0TRQ84CZPyzMweajxH46_NLUQwUs',
+          serviceWorkerRegistration:reg
+        });
+        if(token&&S.uid&&window._fbReady){
+          await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),{
+            token,lang:S.lang,ts:Date.now()
+          });
+          localStorage.setItem('nb_fcm_token',token);
+          localStorage.setItem('nb_notif','1');
+          updateNotifBtn(true);
+        }
+      }catch(e){console.warn('PWA FCM re-register failed',e);}
+    },2000);
+  }
 }
 async function waitForFCM(timeout=5000){
   const start=Date.now();
@@ -1340,7 +1363,7 @@ function applyLang(){
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
   if(e('menuLbl7'))e('menuLbl7').textContent=ko?'알림 설정':'Notifications';
-  if(e('pwaInstallBtn'))e('pwaInstallBtn').textContent=ko?'📲 홈 화면에 추가':'📲 Add to Home Screen';
+  if(e('pwaInstallBtn'))e('pwaInstallBtn').textContent=ko?'홈 화면에 추가':'Add to Home Screen';
   if(e('notifLabel'))e('notifLabel').textContent=ko?'알림':'Alerts';
   if(e('teamModalTitle'))e('teamModalTitle').textContent=ko?'⚾ 내팀 선택':'⚾ My Team';
   if(e('teamModalDesc'))e('teamModalDesc').textContent=ko?'응원하는 팀을 선택하면 랭킹에 표시됩니다':'Select your team to show in rankings';
