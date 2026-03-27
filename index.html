@@ -387,6 +387,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <button class="ibtn" id="menuBtn" onclick="toggleMenu()" title="메뉴" style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;color:var(--text)">
         <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.8" fill="currentColor" stroke="none"/></svg>
       </button>
+      <button class="ibtn" id="notifBtn" onclick="handleNotifBtn()" title="알림"
+        style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;font-size:18px;line-height:1">🔕</button>
       <!-- 드롭다운 메뉴 -->
       <div class="hdr-menu" id="hdrMenu">
         <button class="hdr-menu-item" onclick="closeMenu();openModal('rankingModal')">
@@ -435,8 +437,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <button class="lang-btn" id="btnEn" onclick="setLang('en')">EN</button>
         <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">다크</button>
       </div>
-      <button class="ibtn" id="notifBtn" onclick="handleNotifBtn()" title="알림"
-        style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;font-size:18px;line-height:1">🔕</button>
     </div>
   </div>
 </header>
@@ -1152,10 +1152,11 @@ async function requestPushPermission(){
       });
       if(token){
         localStorage.setItem('nb_fcm_token',token);
+        // Firebase 저장 실패해도 계속 진행
         if(S.uid&&window._fbReady){
-          await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),{
+          try{await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),{
             token,lang:S.lang,ts:Date.now()
-          });
+          });}catch(fbErr){console.warn('FCM token save failed:',fbErr);}
         }
         localStorage.setItem('nb_notif','1');
         updateNotifBtn(true);
@@ -1167,7 +1168,7 @@ async function requestPushPermission(){
     }
   }catch(e){
     console.warn('Push permission failed',e);
-    alert(ko?'잘못 됨 오류: '+e.message:'Error: '+e.message);
+    // 오류 시 조용히 처리
   }
 }
 async function init(){
