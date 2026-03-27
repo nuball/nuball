@@ -656,7 +656,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <div class="mbox">
     <div class="mhdr"><span class="mtitle" data-i18n="rankTitle">🏆 일간 랭킹</span><button class="mclose" onclick="closeModal('rankingModal')">✕</button></div>
     <div class="mbody">
-      <div id="yesterdayTop" style="display:none"></div>
+      <div id="yesterdayTop" style="display:none;margin-bottom:4px;padding-bottom:8px;border-bottom:1px solid var(--border)"></div>
       <div class="rank-tabs">
         <button class="rank-tab active" id="rtab0" onclick="setRankTab(0)" data-i18n="rankTabAll">통합</button>
         <button class="rank-tab" id="rtab1" onclick="setRankTab(1)">LV.1</button>
@@ -1020,6 +1020,8 @@ async function init(){
   if(S.game){renderGame();document.getElementById('numberInput').focus();}
   // 카운트다운 타이머
   setInterval(()=>{const el=document.getElementById('countdownEl');if(el&&el.offsetParent)el.textContent=timeUntilMidnight();},1000);
+  // 어제 랭킹 1위 업적 체크 (다음날 접속 시)
+  setTimeout(()=>checkYesterdayRankAchievements(),2000);
 }
 
 /* ── THEME ── */
@@ -1498,17 +1500,62 @@ function checkAchievements(won,level,attempts){
   newOnes.forEach((id,i)=>setTimeout(()=>showAchievementPopup(id),i*800));
 }
 
+async function checkYesterdayRankAchievements(){
+  if(!window._fbReady)return;
+  // 오늘 이미 체크했으면 스킵
+  const checkedKey='nb_rank_ach_checked';
+  if(localStorage.getItem(checkedKey)===S.today)return;
+  // 어제 날짜 계산
+  const yd=new Date();yd.setDate(yd.getDate()-1);
+  const ydStr=yd.getFullYear()+'-'+(yd.getMonth()+1)+'-'+yd.getDate();
+  try{
+    const dayRef=window._fbRef(window._fbDb,'rankings/'+ydStr);
+    const snap=await window._fbGet(dayRef);
+    if(!snap.exists()){localStorage.setItem(checkedKey,S.today);return;}
+    const allData=snap.val();
+    const allEntries=Object.entries(allData);
+    // 통합 1위: 최소 2명 이상
+    if(!S.achievements['rank1_all']&&allEntries.length>=2){
+      const sorted=[...allEntries].sort((a,b)=>b[1].score-a[1].score||(b[1].level||0)-(a[1].level||0));
+      if(sorted[0][0]===S.uid){registerAchievement('rank1_all');showAchievementPopup('rank1_all');}
+    }
+    // LV별 1위: 최소 2명 이상
+    const lvAchs=[{lv:3,id:'rank1_lv1'},{lv:4,id:'rank1_lv2'},{lv:5,id:'rank1_lv3'}];
+    for(const{lv,id}of lvAchs){
+      if(S.achievements[id])continue;
+      const lvEntries=allEntries
+        .filter(([uid,d])=>d.level===lv)
+        .sort((a,b)=>b[1].score-a[1].score);
+      if(lvEntries.length>=2&&lvEntries[0][0]===S.uid){
+        registerAchievement(id);showAchievementPopup(id);
+      }
+    }
+    localStorage.setItem(checkedKey,S.today);
+  }catch(e){console.warn('yesterday rank ach failed',e);}
+}
 async function checkRankingAchievements(){
   if(!window._fbReady)return;
   try{
-    const tabs=[{tab:'all',id:'rank1_all'},{tab:'lv3',id:'rank1_lv1'},{tab:'lv4',id:'rank1_lv2'},{tab:'lv5',id:'rank1_lv3'}];
-    for(const{tab,id}of tabs){
+    const dayRef=window._fbRef(window._fbDb,'rankings/'+S.dayId);
+    const allSnap=await window._fbGet(dayRef);
+    if(!allSnap.exists())return;
+    const allData=allSnap.val();
+    const allEntries=Object.entries(allData);
+    // 통합 1위: 최소 2명 이상일 때만
+    if(!S.achievements['rank1_all']&&allEntries.length>=2){
+      const sorted=allEntries.sort((a,b)=>b[1].score-a[1].score||(b[1].level||0)-(a[1].level||0));
+      if(sorted[0][0]===S.uid){registerAchievement('rank1_all');showAchievementPopup('rank1_all');}
+    }
+    // LV별 1위: 해당 레벨 최소 2명 이상일 때만
+    const lvAchs=[{lv:3,id:'rank1_lv1'},{lv:4,id:'rank1_lv2'},{lv:5,id:'rank1_lv3'}];
+    for(const{lv,id}of lvAchs){
       if(S.achievements[id])continue;
-      const q=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+S.dayId),window._fbOrderByChild('score'),window._fbLimitToLast(1));
-      const snap=await window._fbGet(q);
-      if(!snap.exists())continue;
-      const topUid=Object.keys(snap.val())[0];
-      if(topUid===S.uid){registerAchievement(id);showAchievementPopup(id);}
+      const lvEntries=allEntries
+        .filter(([uid,d])=>d.level===lv)
+        .sort((a,b)=>b[1].score-a[1].score);
+      if(lvEntries.length>=2&&lvEntries[0][0]===S.uid){
+        registerAchievement(id);showAchievementPopup(id);
+      }
     }
   }catch(e){console.warn('rank ach check failed',e);}
 }
@@ -1767,13 +1814,17 @@ async function renderRankList(){
           const topCountry=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country,S.lang);
           const topStreak=top.streak>0?'<span style="font-size:10px;color:#ff6b00;font-weight:800;margin-left:6px">🔥'+top.streak+'</span>':'';
           const topAch=top.achCount>0?'<span style="font-size:10px;color:var(--primary);font-weight:800;margin-left:4px">🏆'+top.achCount+'</span>':'';
+          const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
+          const ydAchBadge=top.achCount>0?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+top.achCount+'</span>':'';
+          const ydBadgeBlock=(ydStreakBadge||ydAchBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+ydAchBadge+'</div>':'';
           ydEl.innerHTML=[
-            '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--primary-light);border-radius:8px;margin-bottom:12px">',
-            '<span>🥇</span>',
-            '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--primary)">'+(ko?'어제 1등':"Yesterday's #1")+'</div>',
-            '<div style="font-size:14px;font-weight:800">'+top.nick+topStreak+topAch+'</div>',
-            '<div style="font-size:11px;color:var(--muted);margin-top:1px">'+topCountry+'</div></div>',
-            '<div style="font-size:16px;font-weight:900;color:var(--primary)">'+top.score.toLocaleString()+'</div>',
+            '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등':"Yesterday's #1")+'</div>',
+            '<div class="rank-row" style="border-bottom:none;padding:8px 0">',
+            '<div class="rank-pos medal">🥇</div>',
+            '<div class="rank-info"><div class="rank-nick">'+top.nick+'</div>',
+            '<div class="rank-country">'+topCountry+'</div></div>',
+            ydBadgeBlock,
+            '<div class="rank-score">'+top.score.toLocaleString()+'</div>',
             '</div>'
           ].join('');
           ydEl.style.display='block';
