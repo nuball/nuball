@@ -658,9 +658,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="mbody">
       <!-- 기간 탭 -->
       <div style="display:flex;gap:6px;margin-bottom:10px">
-        <button class="league-tab active" id="ptab_daily" onclick="setRankPeriod('daily')" id="ptabDaily">일간</button>
+        <button class="league-tab active" id="ptab_daily" onclick="setRankPeriod('daily')">일간</button>
         <button class="league-tab" id="ptab_weekly" onclick="setRankPeriod('weekly')">주간</button>
-        <button class="league-tab" id="ptab_monthly" onclick="setRankPeriod('monthly')">월간</button>
       </div>
       <div id="yesterdayTop" style="display:none;margin-bottom:4px;padding-bottom:8px;border-bottom:1px solid var(--border)"></div>
       <div class="rank-tabs">
@@ -1088,7 +1087,6 @@ function applyLang(){
   if(e('menuLbl1'))e('menuLbl1').textContent=ko?'나의 랭킹':'Ranking';
   if(e('ptab_daily'))e('ptab_daily').textContent=ko?'일간':'Daily';
   if(e('ptab_weekly'))e('ptab_weekly').textContent=ko?'주간':'Weekly';
-  if(e('ptab_monthly'))e('ptab_monthly').textContent=ko?'월간':'Monthly';
   if(e('menuLbl2'))e('menuLbl2').textContent=ko?'통계·공유':'Stats & Share';
   if(e('menuLbl3'))e('menuLbl3').textContent=ko?'문의·후원':'Contact & Support';
   if(e('menuLbl4'))e('menuLbl4').textContent=ko?'게임 방법':'How to Play';
@@ -1786,15 +1784,26 @@ async function registerFromStats(){
       await window._fbSet(window._fbRef(window._fbDb,path),entry);
       // 주간/월간 랭킹에도 등록 (더 높은 점수일 때만)
       try{
+        // 주간 누적 합산: 하루 최고점을 매일 더해서 누적
         const weekPath='rankings_weekly/'+getWeekId()+'/'+S.uid;
-        const monthPath='rankings_monthly/'+getMonthId()+'/'+S.uid;
         const wSnap=await window._fbGet(window._fbRef(window._fbDb,weekPath));
-        if(!wSnap.exists()||wSnap.val().score<bestScore){
-          await window._fbSet(window._fbRef(window._fbDb,weekPath),entry);
-        }
-        const mSnap=await window._fbGet(window._fbRef(window._fbDb,monthPath));
-        if(!mSnap.exists()||mSnap.val().score<bestScore){
-          await window._fbSet(window._fbRef(window._fbDb,monthPath),entry);
+        const todayStr2=S.today;
+        if(wSnap.exists()){
+          const wd=wSnap.val();
+          const prevDays=wd.days||{};
+          const prevTodayBest=prevDays[todayStr2]||0;
+          // 오늘 점수가 이전 오늘 최고점보다 높을 때만 차액을 합산에 반영
+          if(bestScore>prevTodayBest){
+            const weekTotal=(wd.weekTotal||0)+(bestScore-prevTodayBest);
+            prevDays[todayStr2]=bestScore;
+            const weekEntry={...entry,score:weekTotal,weekTotal,days:prevDays};
+            await window._fbSet(window._fbRef(window._fbDb,weekPath),weekEntry);
+          }
+        }else{
+          // 이번주 첫 등록
+          const days={};days[todayStr2]=bestScore;
+          const weekEntry={...entry,score:bestScore,weekTotal:bestScore,days};
+          await window._fbSet(window._fbRef(window._fbDb,weekPath),weekEntry);
         }
       }catch(e){console.warn('weekly/monthly reg failed',e);}
       alert(t('regOk'));
@@ -1841,10 +1850,10 @@ async function registerRanking(){
 }
 
 let _rankTab=0; // 0=통합, 1=LV1, 2=LV2, 3=LV3
-let _rankPeriod='daily'; // daily/weekly/monthly
+let _rankPeriod='daily'; // daily/weekly
 function setRankPeriod(p){
   _rankPeriod=p;
-  ['daily','weekly','monthly'].forEach(k=>{
+  ['daily','weekly'].forEach(k=>{
     const el=document.getElementById('ptab_'+k);
     if(el)el.classList.toggle('active',k===p);
   });
@@ -1867,7 +1876,7 @@ async function renderRankList(){
   const ko=S.lang==='ko';
   const titleEl=document.querySelector('#rankingModal .mtitle');
   if(titleEl){
-    const titles={daily:ko?'🏆 일간 랭킹':'🏆 Daily Ranking',weekly:ko?'🏆 주간 랭킹':'🏆 Weekly Ranking',monthly:ko?'🏆 월간 랭킹':'🏆 Monthly Ranking'};
+    const titles={daily:ko?'🏆 일간 랭킹':'🏆 Daily Ranking',weekly:ko?'🏆 주간 랭킹':'🏆 Weekly Ranking'};
     titleEl.textContent=titles[_rankPeriod]||titles.daily;
   }
   // 주간/월간이면 어제1등 숨기기
@@ -1911,8 +1920,8 @@ async function renderRankList(){
   // Firebase에서 오늘 랭킹 가져오기
   if(window._fbReady){
     try{
-      const periodId=_rankPeriod==='weekly'?getWeekId():_rankPeriod==='monthly'?getMonthId():S.dayId;
-      const fbPath=_rankPeriod==='daily'?'rankings/'+periodId:'rankings_'+_rankPeriod+'/'+periodId;
+      const periodId=_rankPeriod==='weekly'?getWeekId():S.dayId;
+      const fbPath=_rankPeriod==='daily'?'rankings/'+periodId:'rankings_weekly/'+periodId;
       const q=window._fbQuery(
         window._fbRef(window._fbDb,fbPath),
         window._fbOrderByChild('score'),
@@ -1925,14 +1934,17 @@ async function renderRankList(){
           entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,day:d.day,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,league:d.league||null});
         });
         entries.sort((a,b)=>b.score-a.score||(b.level||0)-(a.level||0));
-        S.rankings=entries;saveRankings();
+        // 일간만 로컬 캐시 저장
+        if(_rankPeriod==='daily'){S.rankings=entries;saveRankings();}
       }
     }catch(e){
       console.warn('Firebase read failed',e);
-      entries=[...S.rankings];
+      // 일간만 로컬 폴백, 주간/월간은 빈 배열
+      if(_rankPeriod==='daily')entries=[...S.rankings];
     }
   }else{
-    entries=[...S.rankings];
+    // Firebase 미연결 시 일간만 로컬 폴백
+    if(_rankPeriod==='daily')entries=[...S.rankings];
   }
 
   // 탭 필터링
@@ -1963,7 +1975,6 @@ async function renderRankList(){
   const rEl=document.getElementById('rankResetEl');
   if(rEl){
     if(_rankPeriod==='weekly')rEl.textContent=ko?'주간 랭킹 · 매주 월요일 00시 초기화 · '+timeUntilNextMonday()+' 남음':'Weekly · Resets every Monday · '+timeUntilNextMonday()+' left';
-    else if(_rankPeriod==='monthly')rEl.textContent=ko?'월간 랭킹 · 매월 1일 00시 초기화 · '+timeUntilNextMonth()+' 남음':'Monthly · Resets on 1st · '+timeUntilNextMonth()+' left';
     else rEl.textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
   }
 }
@@ -2010,7 +2021,7 @@ function openModal(id){
   if(id==='rankingModal'){
     _rankTab=0;_rankPeriod='daily';
     [0,1,2,3].forEach(i=>{const t=document.getElementById('rtab'+i);if(t)t.classList.toggle('active',i===0);});
-    ['daily','weekly','monthly'].forEach(k=>{const t=document.getElementById('ptab_'+k);if(t)t.classList.toggle('active',k==='daily');});
+    ['daily','weekly'].forEach(k=>{const t=document.getElementById('ptab_'+k);if(t)t.classList.toggle('active',k==='daily');});
     renderRankList();
   }
   if(id==='statsModal')renderStats();
