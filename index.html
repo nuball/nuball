@@ -409,11 +409,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           <span id="menuLbl4">게임 방법</span>
         </button>
-        <button class="hdr-menu-item" onclick="closeMenu();requestPushPermission()">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span id="menuLbl7">알림 설정</span>
-        </button>
-
       </div>
       <!-- 연속 출석 배지 -->
     </div>
@@ -889,7 +884,7 @@ ko:{
   forfeit:'포기',forfeitTitle:'정말 포기할까요?',forfeitDesc:'포기하면 이번 게임은 0점 처리되고 한 번의 기회가 소진됩니다.',
   keepPlaying:'계속하기',confirmForfeit:'포기하기',confirm:'확인',
   history:'기록',answer:'정답',gameScore:'이번 게임 점수',goHome:'메인으로',
-  supportTitle:'개발자 응원하기',supportDesc:'누볼을 즐기고 계신가요? 개발자에게 커피 한 잔 보내주세요!',
+  supportTitle:'문의·후원',supportDesc:'누볼을 즐기고 계신가요? 개발자에게 커피 한 잔 보내주세요!',
   watchAd:'📺 광고 보기',adNote:'광고 시청 시 비디오판독 1회 추가 (하루 1회)',
   helpTitle:'게임 방법',rankTitle:'🏆 나의 랭킹',rankTabAll:'통합',
   statsTitle:'통계·공유',distTitle:'도전 분포',nextGame:'새로운 문제까지',copyBtn:'결과 복사',shareImg:'이미지 다운',
@@ -1102,16 +1097,18 @@ function updateNotifModal(ko){
   if(pwaBtn)pwaBtn.style.display='none';
   if(allowBtn){allowBtn.style.display='';allowBtn.textContent=ko?'알림 받기':'Get Alerts';}
 
-  // iOS Safari 아닌 브라우저
-  if(isIOS&&!isStandalone){
-    const isSafari=/Safari/.test(navigator.userAgent)&&!/Chrome/.test(navigator.userAgent);
-    if(!isSafari){
+  // iOS 처리
+  if(isIOS){
+    // iOS에서 Safari 외 브라우저 감지 (Chrome=CriOS, Firefox=FxiOS, Opera=OPiOS)
+    const isSafari=!/CriOS|FxiOS|OPiOS|EdgiOS/.test(navigator.userAgent)&&/Safari/.test(navigator.userAgent);
+    if(!isStandalone&&!isSafari){
+      // iOS 비사파리: 안내만 표시, 버튼 없음
       if(desc){desc.innerHTML=ko?'iPhone에서는 <b>Safari</b>로 접속 후 홈 화면에 추가해야 알림을 받을 수 있어요.':'On iPhone, open in <b>Safari</b> and add to Home Screen to receive alerts.';
         desc.style.display='block';}
       if(allowBtn)allowBtn.style.display='none';
       return;
     }
-    // iOS Safari - PWA 안내
+    // iOS Safari 또는 PWA
     updateNotifModalForIOS(ko,isStandalone);
     return;
   }
@@ -1159,10 +1156,10 @@ function updateNotifModalForIOS(ko,isStandalone){
     if(allowBtn){allowBtn.style.display='';allowBtn.textContent=ko?'알림 받기':'Get Alerts';}
     return;
   }
-  // iOS Safari 미설치: PWA 안내 + 두 버튼
+  // iOS Safari 미설치: PWA 안내 + 홈화면 추가 버튼만 (알림만 받기 없음)
   if(pwaBox)pwaBox.style.display='block';
   if(pwaBtn){pwaBtn.style.display='block';pwaBtn.textContent=ko?'홈 화면에 추가하고 알림 받기':'Add to Home Screen for Alerts';}
-  if(allowBtn){allowBtn.style.display='';allowBtn.textContent=ko?'알림만 받기':'Alerts Only';}
+  if(allowBtn)allowBtn.style.display='none';
 }
 function updateNotifBtn(on){
   const btn=document.getElementById('notifBtn');
@@ -1364,7 +1361,6 @@ function applyLang(){
   if(e('achModalTitle'))e('achModalTitle').textContent=ko?'🏅 나의 업적':'🏅 My Achievements';
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
-  if(e('menuLbl7'))e('menuLbl7').textContent=ko?'알림 설정':'Notifications';
   if(e('notifModalTitle'))e('notifModalTitle').textContent=ko?'🔔 알림 설정':'🔔 Notification Settings';
   if(e('notifModalHeading'))e('notifModalHeading').textContent=ko?'매일 오전 8시에 누볼 알림을 보내드려요!':'We send NUBALL reminders every morning at 8AM!';
   if(e('notifModalSub'))e('notifModalSub').textContent=ko?'알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾':'Allow notifications to never miss your daily NUBALL ⚾';
@@ -2087,11 +2083,24 @@ async function registerFromStats(){
           await window._fbSet(window._fbRef(window._fbDb,weekPath),weekEntry);
         }
       }catch(e){console.warn('weekly/monthly reg failed',e);}
-      alert(t('regOk'));
-      renderHome();
-      renderStats();
-      // 랭킹 1위 업적 체크
-      setTimeout(()=>checkRankingAchievements(),500);
+      // 등록 완료 메시지 후 모달 자동 닫힘
+      const ko2=S.lang==='ko';
+      const statsMbody=document.querySelector('#statsModal .mbody');
+      if(statsMbody){
+        const origContent=statsMbody.innerHTML;
+        statsMbody.innerHTML='<div style="text-align:center;padding:40px 20px;font-size:18px;font-weight:800">✅ '+(ko2?'랭킹 등록 완료!':'Ranking Registered!')+'</div>';
+        setTimeout(()=>{
+          closeModal('statsModal');
+          statsMbody.innerHTML=origContent;
+          renderHome();
+          renderStats();
+          setTimeout(()=>checkRankingAchievements(),500);
+        },1500);
+      }else{
+        renderHome();renderStats();
+        closeModal('statsModal');
+        setTimeout(()=>checkRankingAchievements(),500);
+      }
     }catch(e){
       console.warn('Firebase write failed',e);
       alert(ko?'랭킹에 등록됐지만 서버 동기화에 실패했어요.\n잠시 후 다시 시도해 주세요.':'Registered locally, but server sync failed.');
@@ -2107,7 +2116,9 @@ async function registerFromStats(){
         clearInterval(retry);
         try{
           await window._fbSet(window._fbRef(window._fbDb,'rankings/'+S.dayId+'/'+S.uid),entry);
-          alert(t('regOk'));renderHome();renderStats();
+          const ko3=S.lang==='ko';
+          const statsMbody2=document.querySelector('#statsModal .mbody');
+          if(statsMbody2){statsMbody2.innerHTML='<div style="text-align:center;padding:40px 20px;font-size:18px;font-weight:800">✅ '+(ko3?'랭킹 등록 완료!':'Ranking Registered!')+'</div>';setTimeout(()=>{closeModal('statsModal');renderHome();renderStats();},1500);}else{renderHome();renderStats();closeModal('statsModal');}
         }catch(e){
           alert(ko?'서버 연결에 실패했습니다.':'Server connection failed.');
           S.registered=false;saveDaily();
@@ -2164,10 +2175,10 @@ async function renderRankList(){
   const ydEl=document.getElementById('yesterdayTop');
   if(ydEl)ydEl.style.display=(_rankPeriod==='daily'&&ydEl.innerHTML)?'block':'none';
 
-  // 어제 1등 조회
+  // 어제 1등 조회 (일간 탭에서만)
   const ydObj=new Date();ydObj.setDate(ydObj.getDate()-1);
   const ydStr=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
-  if(ydEl&&window._fbReady){
+  if(ydEl&&window._fbReady&&_rankPeriod==='daily'){
     try{
       const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(1));
       const ydSnap=await window._fbGet(ydQ);
