@@ -799,7 +799,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <div class="mbox">
     <div class="mhdr"><span class="mtitle" id="notifModalTitle">🔔 알림 설정</span><button class="mclose" onclick="closeModal('notifInfoModal')">✕</button></div>
     <div class="mbody">
-      <div style="text-align:center;font-size:15px;font-weight:800;margin-bottom:6px" id="notifModalHeading">매일 오전 8시에 누볼 알림을 보내드려요!</div>
+      <div style="text-align:center;font-size:15px;font-weight:800;margin-bottom:6px" id="notifModalHeading">매일 아침 누볼 알림을 보내드려요!</div>
       <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px" id="notifModalSub">알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾</div>
       <!-- 안내 텍스트 박스 -->
       <div id="notifModalDesc" style="font-size:12px;color:var(--muted);background:var(--bg2);border-radius:10px;padding:12px 14px;margin-bottom:14px;line-height:1.7;white-space:pre-line;display:none"></div>
@@ -1240,7 +1240,7 @@ async function requestPushPermission(){
         localStorage.setItem('nb_notif','1');
         updateNotifBtn(true);
         closeModal('notifInfoModal');
-        alert(ko?'구독 신청되었어요! 매일 오전 8시에 알림을 보내드릴게요 ⚾':'Subscribed! We will send NUBALL reminders every morning at 8AM ⚾');
+        alert(ko?'구독 신청되었어요! 매일 아침 알림을 보내드릴게요 ⚾':'Subscribed! We will send NUBALL reminders every morning ⚾');
       }
     }else{
       closeModal('notifInfoModal');
@@ -1362,7 +1362,7 @@ function applyLang(){
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
   if(e('notifModalTitle'))e('notifModalTitle').textContent=ko?'🔔 알림 설정':'🔔 Notification Settings';
-  if(e('notifModalHeading'))e('notifModalHeading').textContent=ko?'매일 오전 8시에 누볼 알림을 보내드려요!':'We send NUBALL reminders every morning at 8AM!';
+  if(e('notifModalHeading'))e('notifModalHeading').textContent=ko?'매일 아침 누볼 알림을 보내드려요!':'We send NUBALL reminders every morning!';
   if(e('notifModalSub'))e('notifModalSub').textContent=ko?'알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾':'Allow notifications to never miss your daily NUBALL ⚾';
   if(e('pwaInstallBtn'))e('pwaInstallBtn').textContent=ko?'홈 화면에 추가하고 알림 받기':'Add to Home Screen for Alerts';
   if(e('notifAllowBtn'))e('notifAllowBtn').textContent=ko?'알림 받기':'Get Alerts';
