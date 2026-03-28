@@ -2180,10 +2180,16 @@ async function renderRankList(){
   const ydStr=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
   if(ydEl&&window._fbReady&&_rankPeriod==='daily'){
     try{
-      const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(1));
+      const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(10));
       const ydSnap=await window._fbGet(ydQ);
       if(ydSnap.exists()){
-        let top=null;ydSnap.forEach(ch=>{const d=ch.val();top={nick:d.nick,score:d.score,country:d.country,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null};});
+        // 최고점 찾기 → 동점이면 먼저 등록한(ts 작은) 사람이 1등
+        let candidates=[];
+        ydSnap.forEach(ch=>{const d=ch.val();candidates.push({nick:d.nick,score:d.score,country:d.country,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,ts:d.ts||0});});
+        const maxScore=Math.max(...candidates.map(c=>c.score));
+        const topCandidates=candidates.filter(c=>c.score===maxScore);
+        topCandidates.sort((a,b)=>a.ts-b.ts);
+        let top=topCandidates[0]||null;
         if(top){
           const topCountry=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country,S.lang);
           const topStreak=top.streak>0?'<span style="font-size:10px;color:#ff6b00;font-weight:800;margin-left:6px">🔥'+top.streak+'</span>':'';
