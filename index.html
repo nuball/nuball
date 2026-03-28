@@ -1495,7 +1495,7 @@ function saveProgress(){
 /* ── RENDER GAME ── */
 function renderGame(){
   const{level,attempts}=S.game;
-  const cfg={3:{max:1000,th:9},4:{max:2000,th:13},5:{max:3000,th:18}};
+  const cfg={3:{max:1000,th:9},4:{max:1000,th:13},5:{max:1000,th:18}};
   const{max,th}=cfg[level];
   document.getElementById('gameLvlTag').textContent='LEVEL '+(level-2)+' · '+level+t('digitLabel');
   document.getElementById('gameAttEl').textContent=attempts+t('attLabel');
