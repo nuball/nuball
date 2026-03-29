@@ -613,42 +613,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       </div>
     </div>
   </div>
-  <div id="roomGameScreen" style="display:none;background:var(--bg,#fff)">
-    <div class="game-hdr">
-      <div class="game-hdr-btns" style="display:flex;align-items:center;gap:8px;flex:1;margin-right:12px">
-        <div style="font-size:12px;color:var(--muted);font-weight:700" id="roomGameInfo"></div>
-        <div style="font-size:13px;font-weight:800;color:var(--primary)" id="roomTimerLabel">⏱️ <span id="roomTimerVal">00:00</span></div>
-      </div>
-      <div class="game-meta" style="flex-shrink:0">
-        <div class="game-lvl-tag" id="roomGameTitle"></div>
-      </div>
-    </div>
-    <div class="game-layout">
-      <div>
-        <div class="score-prev">
-          <div class="score-prev-lbl">시도 횟수</div>
-          <div class="score-prev-val" id="roomAttemptsEl">0</div>
-        </div>
-        <input class="num-input" type="text" inputmode="numeric" id="roomNumberInput" placeholder="..." autocomplete="off" style="color:var(--text,#111);-webkit-text-fill-color:var(--text,#111)">
-        <div id="roomInputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:4px;opacity:0;transition:opacity .2s"></div>
-        <div class="act-btns" style="grid-template-columns:1fr">
-          <button class="btn-p" onclick="handleRoomGuess()" id="roomConfirmBtn">확인</button>
-        </div>
-      </div>
-      <div>
-        <div class="hist-hdr">
-          <span class="hist-title">기록</span>
-        </div>
-        <div id="roomLogContainer"></div>
-      </div>
-    </div>
-  </div>
-</main>
-
-<footer>
-  누볼 &middot; 숫자야구 &middot; nuball.app
-</footer>
-</div>
 
 <!-- 비디오판독 모달 -->
 <div class="ov" id="vrModal">
@@ -2208,9 +2172,6 @@ async function startRoomFromUrl(code){
     if(!ok)return;
     // 포기 처리
     S.game=null;
-    document.getElementById('gameScreen').classList.remove('active');
-    document.getElementById('gameScreen').style.display='none';
-    document.getElementById('homeScreen').classList.remove('hidden');
   }
   try{
     const snap=await window._fbGet(window._fbRef(window._fbDb,'rooms/'+code));
@@ -2230,28 +2191,38 @@ async function startRoomFromUrl(code){
 function beginRoomGame(){
   const ko=S.lang==='ko';
   _roomGame={logs:[],attempts:0,startTime:Date.now(),done:false};
-  const e=id=>document.getElementById(id);
-  const lvLabel={3:'LV.1',4:'LV.2',5:'LV.3'};
-  if(e('roomGameTitle'))e('roomGameTitle').textContent=`🆚 ${lvLabel[_roomLevel]||''} ${ko?'같이하기':'Play Together'}`;
-  if(e('roomGameInfo'))e('roomGameInfo').textContent=_roomMode==='B'?(ko?'친구가 낸 문제':"Friend's puzzle"):(ko?'랜덤 문제':'Random puzzle');
-  if(e('roomConfirmBtn'))e('roomConfirmBtn').textContent=ko?'확인':'Confirm';
-  if(e('roomNumberInput'))e('roomNumberInput').value='';
-  if(e('roomLogContainer'))e('roomLogContainer').innerHTML='';
-  if(e('roomInputAlert'))e('roomInputAlert').style.opacity='0';
-  if(e('roomAttemptsEl'))e('roomAttemptsEl').textContent='0';
-  startRoomTimer();
-  // 홈화면 숨기고 룸게임 화면 표시
-  const _hs=document.getElementById('homeScreen');
-  _hs.classList.add('hidden');
-  _hs.style.display='none';
-  document.getElementById('gameScreen').classList.remove('active');
-  document.getElementById('gameScreen').style.display='none';
-  document.getElementById('roomGameScreen').style.display='block';
-  const _inp=document.getElementById('roomNumberInput');
-  if(_inp){
-    setTimeout(()=>{ _inp.focus(); },100);
-    setTimeout(()=>{ _inp.focus(); },600);
+  // 기존 gameScreen 활용 — 포기/VR 버튼 숨기고 룸 모드 표시
+  const bb=document.getElementById('backBtn');
+  const vb=document.getElementById('vrBtn');
+  const hdrBtns=document.querySelector('.game-hdr-btns');
+  if(bb)bb.style.display='none';
+  if(vb)vb.style.display='none';
+  // 헤더에 타이머 표시
+  if(hdrBtns){
+    hdrBtns.innerHTML=`<div id="roomTimerLabel" style="font-size:13px;font-weight:800;color:var(--primary)">⏱️ <span id="roomTimerVal">00:00</span></div><div style="font-size:11px;color:var(--muted);font-weight:700;margin-left:8px">${_roomMode==='B'?(ko?'친구가 낸 문제':"Friend's puzzle"):(ko?'랜덤 문제':'Random puzzle')}</div>`;
   }
+  // 레벨 태그
+  const lvLabel={3:'LV.1 · 3자리',4:'LV.2 · 4자리',5:'LV.3 · 5자리'};
+  const ltag=document.getElementById('gameLvlTag');
+  if(ltag)ltag.textContent=`🆚 ${lvLabel[_roomLevel]||''}`;
+  const attEl=document.getElementById('gameAttEl');
+  if(attEl)attEl.textContent='0회';
+  // 점수 영역에 안내 표시
+  const sp=document.getElementById('scorePrevEl');
+  if(sp)sp.textContent='—';
+  const sh=document.getElementById('scoreHintEl');
+  if(sh)sh.textContent='';
+  // 입력칸, 기록 초기화
+  const ni=document.getElementById('numberInput');
+  if(ni){ni.value='';ni.placeholder=ko?`숫자 ${_roomLevel}개 입력`:'...';}
+  document.getElementById('logContainer').innerHTML='<div class="empty-st"><span class="empty-ico">⚾</span></div>';
+  startRoomTimer();
+  // 화면 전환 (기존 startGame 방식과 동일)
+  document.getElementById('homeScreen').classList.add('hidden');
+  const gs=document.getElementById('gameScreen');
+  gs.style.display='';gs.classList.add('active');
+  // 포커스
+  setTimeout(()=>{if(ni)ni.focus();},150);
 }
 
 function startRoomTimer(){
@@ -2269,8 +2240,8 @@ function startRoomTimer(){
 function handleRoomGuess(){
   const ko=S.lang==='ko';
   if(!_roomGame||_roomGame.done)return;
-  const input=document.getElementById('roomNumberInput');
-  const alertEl=document.getElementById('roomInputAlert');
+  const input=document.getElementById('numberInput');
+  const alertEl=document.getElementById('inputAlert');
   const val=(input?.value||'').trim();
   const level=_roomLevel;
   const digits=val.split('').map(Number);
@@ -2284,8 +2255,8 @@ function handleRoomGuess(){
   _roomGame.attempts++;
   _roomGame.logs.unshift({guess:digits,s,b});
   renderRoomLog();
-  const ae=document.getElementById('roomAttemptsEl');
-  if(ae)ae.textContent=_roomGame.attempts;
+  const ae=document.getElementById('gameAttEl');
+  if(ae)ae.textContent=_roomGame.attempts+'회';
   if(input)input.value='';
   if(s===level){
     _roomGame.done=true;
@@ -2296,7 +2267,7 @@ function handleRoomGuess(){
 }
 
 function renderRoomLog(){
-  const container=document.getElementById('roomLogContainer');
+  const container=document.getElementById('logContainer');
   if(!container||!_roomGame)return;
   const logs=_roomGame.logs;
   const total=logs.length;
@@ -2344,21 +2315,32 @@ function showRoomResult(elapsed){
   `;
   if(e('roomResultCopyBtn'))e('roomResultCopyBtn').textContent=ko?'📋 결과 복사':'📋 Copy Result';
   if(e('roomResultCloseBtn'))e('roomResultCloseBtn').textContent=ko?'닫기':'Close';
-  document.getElementById('roomGameScreen').style.display='none';
+  // 포기/VR 버튼 복구
+  const _bb=document.getElementById('backBtn');
+  const _vb=document.getElementById('vrBtn');
+  if(_bb)_bb.style.display='';
+  if(_vb)_vb.style.display='';
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('gameScreen').style.display='none';
   openModal('roomResultModal');
 }
 
 function closeRoomResult(){
   closeModal('roomResultModal');
   if(_roomTimerInterval){clearInterval(_roomTimerInterval);_roomTimerInterval=null;}
-  // 룸게임 화면 숨기기
-  document.getElementById('roomGameScreen').style.display='none';
-  // 홈화면 복구
-  const hs=document.getElementById('homeScreen');
-  hs.classList.remove('hidden');
-  hs.style.display='';
+  // 포기/VR 버튼 복구
+  const _bb=document.getElementById('backBtn');
+  const _vb=document.getElementById('vrBtn');
+  if(_bb)_bb.style.display='';
+  if(_vb)_vb.style.display='';
+  // gameScreen 숨기기 (혹시 남아있을 경우)
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('gameScreen').style.display='none';
+  // 홈화면 복구 (onResultClose 방식과 동일)
+  document.getElementById('homeScreen').classList.remove('hidden');
   // 상태 초기화
   _roomCode=null;_roomLevel=null;_roomMode='A';_roomAnswer=null;_roomGame=null;_roomStarting=false;
+  S.game=null;
   renderHome();
 }
 function copyRoomResult(){
@@ -2882,18 +2864,7 @@ document.getElementById('numberInput').addEventListener('input',e=>{
   else if(hadDup)showInputMsg(t('dupInputAlert'));
 });
 document.getElementById('numberInput').addEventListener('keypress',e=>{if(e.key==='Enter')handleGuess()});
-document.getElementById('roomNumberInput').addEventListener('input',e=>{
-  const raw=e.target.value;
-  let clean='';
-  for(let i=0;i<raw.length;i++){
-    const c=raw[i];
-    if(!/[1-9]/.test(c))continue;
-    if(clean.includes(c))continue;
-    clean+=c;
-  }
-  e.target.value=clean.slice(0,_roomLevel||5);
-});
-document.getElementById('roomNumberInput').addEventListener('keypress',e=>{if(e.key==='Enter')handleRoomGuess()});
+
 // 모바일: 키보드 올라올 때 마지막 시도 포함해서 보이게
 document.getElementById('numberInput').addEventListener('focus',()=>{
   setTimeout(()=>{
