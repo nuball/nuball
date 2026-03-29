@@ -896,7 +896,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="mbody" style="text-align:center;padding:28px 20px">
       <div style="font-size:32px;margin-bottom:12px">🌐</div>
       <div style="font-size:15px;font-weight:900;margin-bottom:12px" id="kakaoGuideTitle">외부 브라우저로 열어주세요</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px" id="kakaoGuideDesc">카카오톡에서는 게임이 불안정해요.<br><br>화면 오른쪽 아래 <strong>⋮</strong> 버튼을 누르고<br><strong>다른 브라우저로 열기</strong>를 선택해주세요!</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px" id="kakaoGuideDesc">카카오톡에서는 게임이 불안정해요<br><br>화면 오른쪽 아래 → &nbsp;<strong>⋮</strong>&nbsp; 버튼을 누르고<br>다른 브라우저로 열기를 선택해주세요</div>
       <button class="btn-p" onclick="closeModal('kakaoGuideModal')" id="kakaoGuideBtn">확인했습니다</button>
     </div>
   </div>
@@ -1444,7 +1444,7 @@ async function init(){
       const b=document.getElementById('kakaoGuideBtn');
       if(t)t.textContent=ko?'외부 브라우저로 열어주세요':'Open in External Browser';
       if(d)d.innerHTML=ko
-        ?'카카오톡에서는 게임이 불안정해요.<br><br>화면 오른쪽 아래 <strong>⋮</strong> 버튼을 누르고<br><strong>다른 브라우저로 열기</strong>를 선택해주세요!'
+        ?'카카오톡에서는 게임이 불안정해요<br><br>화면 오른쪽 아래 → &nbsp;<strong>⋮</strong>&nbsp; 버튼을 누르고<br>다른 브라우저로 열기를 선택해주세요'
         :'The game may be unstable in KakaoTalk.<br><br>Tap <strong>⋮</strong> at the bottom right<br>and select <strong>Open in browser</strong>.';
       if(b)b.textContent=ko?'확인했습니다':'Got it';
       setTimeout(()=>openModal('kakaoGuideModal'),500);
