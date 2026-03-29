@@ -143,7 +143,8 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 
 /* ── GAME ── */
 #gameScreen{display:none}
-#gameScreen.active{display:block}
+#gameScreen.active{display:block;animation:_gpufix .01s forwards}
+@keyframes _gpufix{0%{opacity:.999}100%{opacity:1}}
 .game-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .back-btn{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--lose);background:none;border:1.5px solid var(--lose);cursor:pointer;padding:8px 14px;border-radius:8px;transition:all .15s;font-family:inherit}
 .back-btn:hover{background:color-mix(in srgb,var(--lose) 8%,transparent)}
@@ -879,7 +880,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <!-- 같이하기 결과 모달 -->
 <div class="ov" id="roomResultModal">
   <div class="mbox">
-    <div class="mhdr"><span class="mtitle" id="roomResultTitle">🏆 결과</span><button class="mclose" onclick="closeModal('roomResultModal')">✕</button></div>
+    <div class="mhdr"><span class="mtitle" id="roomResultTitle">🏆 결과</span><button class="mclose" onclick="closeRoomResult()">✕</button></div>
     <div class="mbody" style="text-align:center">
       <div id="roomResultBody" style="margin-bottom:18px"></div>
       <button class="btn-p" onclick="copyRoomResult()" id="roomResultCopyBtn" style="margin-bottom:10px">📋 결과 복사</button>
@@ -1417,9 +1418,11 @@ async function init(){
   // 어제 랭킹 1위 업적 체크 (다음날 접속 시)
   setTimeout(()=>checkYesterdayRankAchievements(),2000);
   initNotifState();
-  // 방법B: room 파라미터 있으면 homeScreen 완전히 숨기고 바로 게임 진입
+  // room 파라미터 있으면 homeScreen 완전히 숨기고 바로 게임 진입
   if(new URLSearchParams(location.search).get('room')){
-    document.getElementById('homeScreen').classList.add('hidden');
+    const _hss=document.getElementById('homeScreen');
+    _hss.style.display='none';
+    _hss.classList.add('hidden');
   }
   checkRoomUrl();
   // 도메인 이전 공지 (nuball.vercel.app에서만)
@@ -2226,7 +2229,9 @@ function beginRoomGame(){
   document.getElementById('logContainer').innerHTML='<div class="empty-st"><span class="empty-ico">⚾</span></div>';
   startRoomTimer();
   // 화면 전환 (기존 startGame 방식과 동일)
-  document.getElementById('homeScreen').classList.add('hidden');
+  const _hsEl=document.getElementById('homeScreen');
+  _hsEl.style.display='none';
+  _hsEl.classList.add('hidden');
   const gs=document.getElementById('gameScreen');
   gs.style.display='';gs.classList.add('active');
   window.scrollTo(0,0);
@@ -2335,22 +2340,9 @@ function showRoomResult(elapsed){
 }
 
 function closeRoomResult(){
-  closeModal('roomResultModal');
   if(_roomTimerInterval){clearInterval(_roomTimerInterval);_roomTimerInterval=null;}
-  // 포기/VR 버튼 복구
-  const _bb=document.getElementById('backBtn');const _vb=document.getElementById('vrBtn');
-  if(_bb)_bb.style.display='';if(_vb)_vb.style.display='';
-  // score-prev 복구
-  const _spBox=document.querySelector('.score-prev');
-  if(_spBox)_spBox.style.display='';
-  // 상태 초기화
-  _roomCode=null;_roomLevel=null;_roomMode='A';_roomAnswer=null;_roomGame=null;_roomStarting=false;
-  S.game=null;
-  // onResultClose와 동일한 방식으로 홈 복귀
-  document.getElementById('gameScreen').classList.remove('active');
-  document.getElementById('gameScreen').style.display='none';
-  document.getElementById('homeScreen').classList.remove('hidden');
-  renderHome();
+  // 페이지 새로고침으로 홈 복귀 — WebView 렌더링 + 홈 복귀 동시 해결
+  location.replace(location.pathname);
 }
 function copyRoomResult(){
   const ko=S.lang==='ko';
