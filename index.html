@@ -14,7 +14,7 @@
 <meta name="twitter:description" content="내 기록 깰 사람?">
 <script type="module">
   import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import{getDatabase,ref,set,get,query,orderByChild,limitToLast}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+  import{getDatabase,ref,set,get,query,orderByChild,limitToLast,onValue,remove}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
   import{getMessaging,getToken,onMessage}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
   const fbApp=initializeApp({
     apiKey:'AIzaSyBN1kTHhl5auS5Aq_puyVx1l-rqYEXAkTw',
@@ -34,6 +34,8 @@
     window._fbGetToken=getToken;
   }catch(e){console.warn('FCM init failed',e);}
   window._fbRef=ref;
+  window._fbOnValue=onValue;
+  window._fbRemove=remove;
   window._fbSet=set;
   window._fbGet=get;
   window._fbQuery=query;
@@ -381,8 +383,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <button class="ibtn" id="menuBtn" onclick="toggleMenu()" title="메뉴" style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;color:var(--text)">
         <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.8" fill="currentColor" stroke="none"/></svg>
       </button>
-      <button class="ibtn" id="notifBtn" onclick="handleNotifBtn()" title="알림"
-        style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;font-size:18px;line-height:1">🔕</button>
       <!-- 드롭다운 메뉴 -->
       <div class="hdr-menu" id="hdrMenu">
         <button class="hdr-menu-item" onclick="closeMenu();openModal('rankingModal')">
@@ -410,6 +410,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <span id="menuLbl4">게임 방법</span>
         </button>
       </div>
+      <button class="ibtn" id="notifBtn" onclick="handleNotifBtn()" title="알림"
+        style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:8px;font-size:18px;line-height:1">🔕</button>
       <!-- 연속 출석 배지 -->
     </div>
 
@@ -434,8 +436,11 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <!-- HOME -->
   <div id="homeScreen">
     <div id="homeStreak" style="display:none"></div>
-    <!-- 연속출석 배지 -->
-    <div id="menuStreakBadge" style="display:none;text-align:center;margin-bottom:6px"><span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:800"></span></div>
+    <!-- 연속출석 배지 + 같이하기 버튼 한 행 -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
+      <div id="menuStreakBadge" style="display:none"><span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800"></span></div>
+      <button id="roomHomeBtn" onclick="openRoomModal()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;border:1.5px solid #000;background:#000;color:#fff;transition:all .2s">🆚 <span id="roomHomeBtnLabel">같이하기</span></button>
+    </div>
     <!-- 3. 야구공 기회 표시 -->
     <div class="balls-row" id="ballsRow"></div>
     <div id="resetInfoEl" style="text-align:center;font-size:11px;color:var(--muted);font-weight:600;margin-top:-6px;margin-bottom:8px"></div>
@@ -837,6 +842,149 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <tr><td>LV.3 · 5자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th3">18회~</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════ 같이하기 모달들 ════════════ -->
+
+<!-- 같이하기 메인 모달 -->
+<div class="ov" id="roomModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="roomModalTitle">🆚 같이하기</span><button class="mclose" onclick="closeModal('roomModal')">✕</button></div>
+    <div class="mbody">
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:16px" id="roomModalDesc">친구에게 도전장을 보내보세요!</div>
+      <button class="btn-p" onclick="openCreateRoom()" id="roomCreateBtn">🏠 방 만들기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 방 만들기 모달 -->
+<div class="ov" id="roomCreateModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="roomCreateTitle">🏠 방 만들기</span><button class="mclose" onclick="closeModal('roomCreateModal')">✕</button></div>
+    <div class="mbody">
+      <!-- 닉네임 -->
+      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" id="roomNickLbl1">닉네임</div>
+      <input id="roomNickInput1" class="num-input" type="text" maxlength="10" placeholder="닉네임 입력" style="margin-bottom:14px;font-family:inherit;font-size:14px;padding:10px 14px;letter-spacing:normal">
+      <!-- 레벨 선택 -->
+      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px" id="roomLvLbl">레벨 선택</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="vm-btn room-lv-btn" id="roomLv3" onclick="selectRoomLv(3)">LV.1</button>
+        <button class="vm-btn room-lv-btn" id="roomLv4" onclick="selectRoomLv(4)">LV.2</button>
+        <button class="vm-btn room-lv-btn" id="roomLv5" onclick="selectRoomLv(5)">LV.3</button>
+      </div>
+      <!-- 출제 방식 -->
+      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px" id="roomModeLbl">출제 방식</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="vm-btn room-mode-btn" id="roomModeA" onclick="selectRoomMode('A')" style="flex:1">🎲 컴퓨터 출제</button>
+        <button class="vm-btn room-mode-btn" id="roomModeB" onclick="selectRoomMode('B')" style="flex:1">✏️ 내가 출제</button>
+      </div>
+      <!-- 출제 방식 설명 -->
+      <div id="roomModeDescBox" style="font-size:11px;color:var(--muted);background:var(--bg2);border-radius:8px;padding:8px 10px;margin-bottom:14px;line-height:1.6"></div>
+      <!-- 내가 출제: 숫자 입력 -->
+      <div id="roomAnswerWrap" style="display:none;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" id="roomAnswerLbl">정답 숫자 입력</div>
+        <input id="roomAnswerInput" class="num-input" type="text" inputmode="numeric" style="font-family:inherit;letter-spacing:normal;font-size:14px;padding:10px 14px" maxlength="5" placeholder="정답 숫자" style="font-size:14px;padding:10px 14px">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="roomAnswerDesc">1~9 중복없는 숫자를 입력하세요</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:14px" id="roomExpireDesc">⏰ 방은 생성 후 6시간 동안 유효합니다</div>
+      <button class="btn-p" onclick="createRoom()" id="roomCreateConfirmBtn">방 만들기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 방 공유 모달 (방 만든 후) -->
+<div class="ov" id="roomShareModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="roomShareTitle">🔗 방 링크 공유</span><button class="mclose" onclick="closeModal('roomShareModal')">✕</button></div>
+    <div class="mbody" style="text-align:center">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px" id="roomShareDesc">친구에게 링크를 공유하세요!</div>
+      <div style="background:var(--bg2);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:800;margin-bottom:14px;word-break:break-all" id="roomShareUrl"></div>
+      <button class="btn-p" onclick="copyRoomLink()" style="margin-bottom:10px" id="roomCopyBtn">🔗 링크 복사</button>
+      <button class="btn-p" onclick="goToWaitingRoom()" style="margin-bottom:10px" id="roomGoBtn">방 입장하기</button>
+      <div style="font-size:11px;color:var(--muted)" id="roomExpireInfo"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 방 입장 모달 -->
+<div class="ov" id="roomJoinModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="roomJoinTitle">🚪 방 입장하기</span><button class="mclose" onclick="closeModal('roomJoinModal')">✕</button></div>
+    <div class="mbody">
+      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" id="roomJoinNickLbl">닉네임</div>
+      <input id="roomNickInput2" class="num-input" type="text" maxlength="10" placeholder="닉네임 입력" style="margin-bottom:14px;font-family:inherit;font-size:14px;padding:10px 14px;letter-spacing:normal">
+      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" id="roomCodeLbl">방 코드</div>
+      <input id="roomCodeInput" class="num-input" type="text" maxlength="6" placeholder="6자리 코드 입력" style="margin-bottom:14px;font-size:14px;padding:10px 14px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+      <button class="btn-p" onclick="joinRoom()" id="roomJoinConfirmBtn">입장하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 대기실 모달 -->
+<div class="ov" id="roomWaitModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="roomWaitTitle">🏠 대기실</span><button class="mclose" onclick="leaveRoom()">✕</button></div>
+    <div class="mbody">
+      <div style="text-align:center;margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px" id="roomInfoLbl"></div>
+        <div style="font-size:11px;color:var(--muted)" id="roomExpireLabel"></div>
+      </div>
+      <div id="roomParticipantList" style="margin-bottom:14px"></div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:14px" id="roomWaitDesc">모두 준비되면 게임을 시작하세요!</div>
+      <button class="btn-p" onclick="startRoomGame()" id="roomStartBtn" style="margin-bottom:10px">⚾ 게임 시작</button>
+      <button class="btn-p" onclick="copyRoomLink()" style="background:var(--bg2);border-color:var(--border);color:var(--text)" id="roomShareAgainBtn">🔗 링크 다시 공유</button>
+    </div>
+  </div>
+</div>
+
+<!-- 같이하기 게임 화면 모달 -->
+<div class="ov" id="roomGameModal">
+  <div class="mbox" style="max-width:480px">
+    <div class="mhdr">
+      <span class="mtitle" id="roomGameTitle">🆚 같이하기</span>
+      <div style="font-size:12px;font-weight:800;color:var(--muted)" id="roomProgressLabel"></div>
+      <button class="mclose" onclick="forfeitRoomGame()">✕</button>
+    </div>
+    <div class="mbody" style="padding:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:12px;color:var(--muted)" id="roomTimerLabel">⏱️ 00:00</div>
+        <div style="font-size:12px;font-weight:800;color:var(--primary)" id="roomDoneCount"></div>
+      </div>
+      <input class="num-input" type="text" inputmode="numeric" id="roomNumberInput" placeholder="..." autocomplete="off" style="margin-bottom:8px">
+      <div id="roomInputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:6px;opacity:0;transition:opacity .2s"></div>
+      <button class="btn-p" onclick="handleRoomGuess()" id="roomConfirmBtn" style="margin-bottom:10px">확인</button>
+      <button class="btn-p" onclick="forfeitRoomGame()" style="background:var(--lose);border-color:var(--lose)" id="roomForfeitBtn">포기하기</button>
+      <div id="roomLogContainer" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 같이하기 결과 대기 모달 -->
+<div class="ov" id="roomWaitResultModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="roomWaitResultTitle">⏳ 결과 대기 중</span><button class="mclose" onclick="leaveRoom()">✕</button></div>
+    <div class="mbody" style="text-align:center">
+      <div style="font-size:40px;margin-bottom:12px" id="roomMyResultIcon"></div>
+      <div style="font-size:15px;font-weight:800;margin-bottom:6px" id="roomMyResultText"></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px" id="roomWaitingText"></div>
+      <div id="roomDoneProgress" style="margin-bottom:16px"></div>
+      <button class="btn-p" onclick="forceShowResult()" id="roomForceResultBtn" style="display:none;background:var(--lose);border-color:var(--lose);margin-bottom:10px">지금 결과 보기</button>
+      <div style="font-size:11px;color:var(--muted)" id="roomForceResultDesc" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 같이하기 최종 결과 모달 -->
+<div class="ov" id="roomResultModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle" id="roomResultTitle">🏆 결과</span><button class="mclose" onclick="closeModal('roomResultModal')">✕</button></div>
+    <div class="mbody">
+      <div id="roomResultAnswer" style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:14px"></div>
+      <div id="roomResultList" style="margin-bottom:14px"></div>
+      <button class="btn-p" onclick="closeModal('roomResultModal')" id="roomResultCloseBtn">확인</button>
     </div>
   </div>
 </div>
@@ -1370,6 +1518,7 @@ async function init(){
   // 어제 랭킹 1위 업적 체크 (다음날 접속 시)
   setTimeout(()=>checkYesterdayRankAchievements(),2000);
   initNotifState();
+  checkRoomUrl();
   // 도메인 이전 공지 (nuball.vercel.app에서만)
   if(location.hostname.includes('vercel.app')&&!localStorage.getItem('nb_migrate_closed')){
     const ko=S.lang==='ko';
@@ -1421,6 +1570,10 @@ function applyLang(){
   if(e('achModalTitle'))e('achModalTitle').textContent=ko?'🏅 나의 업적':'🏅 My Achievements';
   if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
+  if(e('menuLbl8'))e('menuLbl8').textContent=ko?'같이하기':'Play Together';
+  if(e('roomHomeBtnLabel'))e('roomHomeBtnLabel').textContent=ko?'같이하기':'Play Together';
+
+  if(e('roomModalDesc'))e('roomModalDesc').textContent=ko?'친구에게 도전장을 보내보세요!':'Challenge your friends to a puzzle duel!';
   if(e('notifModalTitle'))e('notifModalTitle').textContent=ko?'🔔 알림 설정':'🔔 Notification Settings';
   if(e('notifModalHeading'))e('notifModalHeading').textContent=ko?'매일 아침 누볼 알림을 보내드려요!':'We send NUBALL reminders every morning!';
   if(e('notifModalSub'))e('notifModalSub').textContent=ko?'알림을 허용하면 매일 아침 잊지 않고 플레이할 수 있어요 ⚾':'Allow notifications to never miss your daily NUBALL ⚾';
@@ -1965,6 +2118,502 @@ function renderTeamMenuBadge(){
   const lbl=document.getElementById('menuLbl6');
   if(lbl)lbl.textContent=S.lang==='ko'?'내팀 선택':'My Team';
 }
+
+/* ════════════════════════════════════════
+   같이하기 (ROOM) 시스템
+════════════════════════════════════════ */
+const ROOM_EXPIRE_MS = 6 * 60 * 60 * 1000; // 6시간
+let _roomCode = null;
+let _roomData = null;
+let _roomNick = null;
+let _roomIsHost = false;
+let _roomLevel = null;
+let _roomMode = 'A';
+let _roomAnswer = null;
+let _roomGame = null; // {logs, attempts, startTime}
+let _roomListener = null;
+let _roomTimerInterval = null;
+
+function genRoomCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';
+  for(let i=0;i<6;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+
+function genRoomAnswer(level, seed){
+  const s = fnv1a(seed + '|room');
+  const rng = mulberry32(s);
+  const pool=[1,2,3,4,5,6,7,8,9], res=[];
+  for(let i=0;i<level;i++){const j=Math.floor(rng()*pool.length);res.push(pool.splice(j,1)[0]);}
+  return res;
+}
+
+function openRoomModal(){
+  const ko=S.lang==='ko';
+  const e=id=>document.getElementById(id);
+  if(e('roomModalTitle'))e('roomModalTitle').textContent=ko?'🆚 같이하기':'🆚 Play Together';
+  if(e('roomModalDesc'))e('roomModalDesc').textContent=ko?'친구에게 도전장을 보내보세요!':'Challenge your friends to a puzzle duel!';
+  if(e('roomCreateBtn'))e('roomCreateBtn').textContent=ko?'🏠 방 만들기':'🏠 Create Room';
+  if(e('roomJoinBtn'))e('roomJoinBtn').textContent=ko?'🚪 방 입장하기':'🚪 Join Room';
+  // URL에 room 파라미터 있으면 바로 닉네임 입력 모달
+  const params=new URLSearchParams(location.search);
+  const rc=params.get('room');
+  if(rc){ openJoinRoomWithCode(rc); return; }
+  openModal('roomModal');
+}
+
+function openCreateRoom(){
+  const ko=S.lang==='ko';
+  closeModal('roomModal');
+  _roomMode='A'; _roomLevel=null;
+  // 버튼 초기화
+  ['roomLv3','roomLv4','roomLv5'].forEach(id=>document.getElementById(id)?.classList.remove('on'));
+  ['roomModeA','roomModeB'].forEach(id=>document.getElementById(id)?.classList.remove('on'));
+  document.getElementById('roomModeA')?.classList.add('on');
+  const mdb=document.getElementById('roomModeDescBox');
+  if(mdb)mdb.textContent=(S.lang==='ko'?'🎲 컴퓨터가 랜덤으로 문제를 냅니다. 공평한 조건에서 실력을 겨뤄보세요!':'🎲 Computer generates a random puzzle. Fair and competitive!');
+  const aw=document.getElementById('roomAnswerWrap');
+  if(aw)aw.style.display='none';
+  const e=id=>document.getElementById(id);
+  if(e('roomCreateTitle'))e('roomCreateTitle').textContent=ko?'🏠 방 만들기':'🏠 Create Room';
+  if(e('roomNickLbl1'))e('roomNickLbl1').textContent=ko?'닉네임':'Nickname';
+  if(e('roomNickInput1'))e('roomNickInput1').placeholder=ko?'닉네임 입력':'Enter nickname';
+  if(e('roomLvLbl'))e('roomLvLbl').textContent=ko?'레벨 선택':'Select Level';
+  if(e('roomModeLbl'))e('roomModeLbl').textContent=ko?'출제 방식':'Question Mode';
+  if(e('roomModeA'))e('roomModeA').textContent=ko?'🎲 컴퓨터 출제':'🎲 Random';
+  if(e('roomModeB'))e('roomModeB').textContent=ko?'✏️ 내가 출제':'✏️ I Choose';
+  if(e('roomAnswerLbl'))e('roomAnswerLbl').textContent=ko?'정답 숫자 입력':'Enter Answer';
+  if(e('roomExpireDesc'))e('roomExpireDesc').textContent=ko?'⏰ 방은 생성 후 6시간 동안 유효합니다':'⏰ Room expires in 6 hours';
+  if(e('roomCreateConfirmBtn'))e('roomCreateConfirmBtn').textContent=ko?'방 만들기':'Create Room';
+  openModal('roomCreateModal');
+}
+
+function openJoinRoom(){
+  const ko=S.lang==='ko';
+  closeModal('roomModal');
+  const e=id=>document.getElementById(id);
+  if(e('roomJoinTitle'))e('roomJoinTitle').textContent=ko?'🚪 방 입장하기':'🚪 Join Room';
+  if(e('roomJoinNickLbl'))e('roomJoinNickLbl').textContent=ko?'닉네임':'Nickname';
+  if(e('roomNickInput2'))e('roomNickInput2').placeholder=ko?'닉네임 입력':'Enter nickname';
+  if(e('roomCodeLbl'))e('roomCodeLbl').textContent=ko?'방 코드':'Room Code';
+  if(e('roomCodeInput'))e('roomCodeInput').value='';
+  if(e('roomJoinConfirmBtn'))e('roomJoinConfirmBtn').textContent=ko?'입장하기':'Join';
+  openModal('roomJoinModal');
+}
+
+function openJoinRoomWithCode(code){
+  openJoinRoom();
+  const ci=document.getElementById('roomCodeInput');
+  if(ci)ci.value=code.toUpperCase();
+}
+
+function selectRoomLv(lv){
+  _roomLevel=lv;
+  [3,4,5].forEach(l=>{
+    const btn=document.getElementById('roomLv'+l);
+    if(btn)btn.classList.toggle('on',l===lv);
+  });
+  const aw=document.getElementById('roomAnswerWrap');
+  const ai=document.getElementById('roomAnswerInput');
+  if(aw&&_roomMode==='B'){
+    aw.style.display='block';
+    if(ai){ai.maxLength=lv;ai.placeholder='1~9 숫자 '+lv+'개';}
+    const ad=document.getElementById('roomAnswerDesc');
+    if(ad)ad.textContent=(S.lang==='ko'?`1~9 중복없는 ${lv}자리 숫자를 입력하세요`:`Enter ${lv} unique digits (1-9)`);
+  }
+}
+
+function selectRoomMode(mode){
+  _roomMode=mode;
+  ['A','B'].forEach(m=>{
+    const btn=document.getElementById('roomMode'+m);
+    if(btn)btn.classList.toggle('on',m===mode);
+  });
+  const aw=document.getElementById('roomAnswerWrap');
+  if(aw)aw.style.display=(mode==='B'&&_roomLevel)?'block':'none';
+  const ko=S.lang==='ko';
+  const db=document.getElementById('roomModeDescBox');
+  if(db)db.textContent=mode==='A'
+    ?(ko?'🎲 컴퓨터가 랜덤으로 문제를 냅니다. 공평한 조건에서 실력을 겨뤄보세요!':'🎲 Computer generates a random puzzle. Fair and competitive!')
+    :(ko?'✏️ 내가 직접 정답 숫자를 정해서 친구에게 풀게 합니다.':'✏️ You choose the answer and challenge your friends!');
+}
+
+async function createRoom(){
+  const ko=S.lang==='ko';
+  const nick=document.getElementById('roomNickInput1')?.value.trim();
+  if(!nick){alert(ko?'닉네임을 입력해주세요':'Please enter a nickname');return;}
+  if(!_roomLevel){alert(ko?'레벨을 선택해주세요':'Please select a level');return;}
+  let answer=null;
+  if(_roomMode==='B'){
+    const ai=document.getElementById('roomAnswerInput');
+    const val=(ai?.value||'').trim();
+    const digits=val.split('').map(Number);
+    if(digits.length!==_roomLevel||new Set(digits).size!==_roomLevel||digits.some(d=>d<1||d>9)){
+      alert(ko?`1~9 중복없는 ${_roomLevel}자리 숫자를 입력해주세요`:`Enter ${_roomLevel} unique digits (1-9)`);
+      return;
+    }
+    answer=digits;
+  }else{
+    answer=genRoomAnswer(_roomLevel, genRoomCode()+Date.now());
+  }
+  const code=genRoomCode();
+  _roomCode=code;
+  _roomNick=nick;
+  _roomIsHost=true;
+  _roomAnswer=answer;
+  const now=Date.now();
+  const roomData={
+    code,level:_roomLevel,mode:_roomMode,
+    answer:answer.join(''),
+    hostUid:S.uid,
+    createdAt:now,
+    expiresAt:now+ROOM_EXPIRE_MS,
+    status:'waiting',
+    participants:{}
+  };
+  roomData.participants[S.uid]={nick,status:'waiting',joinedAt:now};
+  if(window._fbReady){
+    try{
+      await window._fbSet(window._fbRef(window._fbDb,'rooms/'+code),roomData);
+    }catch(e){alert(ko?'방 생성에 실패했어요':'Failed to create room');return;}
+  }
+  _roomData=roomData;
+  closeModal('roomCreateModal');
+  showRoomShare(code);
+}
+
+function showRoomShare(code){
+  const ko=S.lang==='ko';
+  const url=`${location.origin}${location.pathname}?room=${code}`;
+  const e=id=>document.getElementById(id);
+  if(e('roomShareUrl'))e('roomShareUrl').textContent=url;
+  if(e('roomShareTitle'))e('roomShareTitle').textContent=ko?'🔗 방 링크 공유':'🔗 Share Room Link';
+  if(e('roomShareDesc'))e('roomShareDesc').textContent=ko?'친구에게 링크를 공유하세요!':'Share this link with your friends!';
+  if(e('roomCopyBtn'))e('roomCopyBtn').textContent=ko?'🔗 링크 복사':'🔗 Copy Link';
+  if(e('roomGoBtn'))e('roomGoBtn').textContent=ko?'대기실로 이동':'Go to Waiting Room';
+  if(e('roomExpireInfo'))e('roomExpireInfo').textContent=ko?'⏰ 6시간 동안 유효':'⏰ Valid for 6 hours';
+  openModal('roomShareModal');
+}
+
+function copyRoomLink(){
+  const ko=S.lang==='ko';
+  const url=`${location.origin}${location.pathname}?room=${_roomCode}`;
+  if(navigator.share){
+    navigator.share({title:'NUBALL 🆚 같이하기',text:ko?'누볼 같이하기 초대':'Join me on NUBALL!',url});
+  }else{
+    navigator.clipboard?.writeText(url).then(()=>alert(ko?'링크가 복사됐어요!':'Link copied!'));
+  }
+}
+
+async function goToWaitingRoom(){
+  closeModal('roomShareModal');
+  await enterWaitingRoom(_roomCode);
+}
+
+async function joinRoom(){
+  const ko=S.lang==='ko';
+  const nick=document.getElementById('roomNickInput2')?.value.trim();
+  const code=(document.getElementById('roomCodeInput')?.value||'').trim().toUpperCase();
+  if(!nick){alert(ko?'닉네임을 입력해주세요':'Please enter a nickname');return;}
+  if(code.length!==6){alert(ko?'6자리 코드를 입력해주세요':'Please enter a 6-digit code');return;}
+  if(!window._fbReady){alert(ko?'서버에 연결 중입니다. 잠시 후 다시 시도해주세요':'Connecting to server...');return;}
+  try{
+    const snap=await window._fbGet(window._fbRef(window._fbDb,'rooms/'+code));
+    if(!snap.exists()){alert(ko?'존재하지 않는 방이에요':'Room not found');return;}
+    const data=snap.val();
+    if(data.expiresAt<Date.now()){alert(ko?'만료된 방이에요':'Room has expired');return;}
+    if(data.status==='finished'){alert(ko?'이미 종료된 방이에요':'Room already finished');return;}
+    const parts=data.participants||{};
+    if(Object.keys(parts).length>=8){alert(ko?'방이 가득 찼어요 (최대 8명)':'Room is full (max 8)');return;}
+    _roomCode=code;_roomNick=nick;_roomIsHost=(data.hostUid===S.uid);
+    _roomAnswer=data.answer.split('').map(Number);
+    _roomLevel=data.level;_roomData=data;
+    await window._fbSet(window._fbRef(window._fbDb,'rooms/'+code+'/participants/'+S.uid),{nick,status:'waiting',joinedAt:Date.now()});
+    closeModal('roomJoinModal');
+    await enterWaitingRoom(code);
+  }catch(e){alert(ko?'방 입장에 실패했어요':'Failed to join room');}
+}
+
+async function enterWaitingRoom(code){
+  const ko=S.lang==='ko';
+  _roomCode=code;
+  // 기존 리스너 제거
+  if(_roomListener){_roomListener();_roomListener=null;}
+  // 실시간 리스너
+  const roomRef=window._fbRef(window._fbDb,'rooms/'+code);
+  _roomListener=window._fbOnValue(roomRef,snap=>{
+    if(!snap.exists())return;
+    _roomData=snap.val();
+    _roomIsHost=(_roomData.hostUid===S.uid);
+    _roomAnswer=_roomData.answer.split('').map(Number);
+    _roomLevel=_roomData.level;
+    // 결과 화면으로 전환
+    if(_roomData.status==='finished'){
+      showRoomResult();
+      return;
+    }
+    if(_roomData.status==='playing'&&document.getElementById('roomWaitModal')?.classList.contains('open')){
+      closeModal('roomWaitModal');
+      beginRoomGame();
+      return;
+    }
+    updateWaitingRoom();
+  });
+  openModal('roomWaitModal');
+}
+
+function updateWaitingRoom(){
+  const ko=S.lang==='ko';
+  const data=_roomData;
+  if(!data)return;
+  const e=id=>document.getElementById(id);
+  const lvLabel={3:'LV.1 3자리',4:'LV.2 4자리',5:'LV.3 5자리'};
+  const modeLabel=data.mode==='B'?(ko?'내가 출제':'Host chose'):(ko?'컴퓨터 출제':'Random');
+  if(e('roomInfoLbl'))e('roomInfoLbl').textContent=`${lvLabel[data.level]||''} · ${modeLabel}`;
+  const remain=Math.max(0,Math.ceil((data.expiresAt-Date.now())/60000));
+  if(e('roomExpireLabel'))e('roomExpireLabel').textContent=ko?`⏰ ${remain}분 후 만료`:`⏰ Expires in ${remain}min`;
+  if(e('roomWaitTitle'))e('roomWaitTitle').textContent=ko?`🏠 대기실 [${_roomCode}]`:`🏠 Waiting [${_roomCode}]`;
+  // 참가자 목록
+  const parts=data.participants||{};
+  const list=document.getElementById('roomParticipantList');
+  if(list){
+    list.innerHTML=Object.entries(parts).map(([uid,p])=>{
+      const isMe=uid===S.uid;
+      const isHost=uid===data.hostUid;
+      const badge=isHost?(ko?'방장':'Host'):'';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg2);border-radius:8px;margin-bottom:6px">
+        <span style="font-size:16px">${isMe?'👤':'👥'}</span>
+        <span style="font-weight:800;flex:1">${p.nick}${isMe?(ko?' (나)':' (me)'):''}</span>
+        ${badge?`<span style="font-size:10px;background:var(--primary);color:#fff;padding:2px 6px;border-radius:4px;font-weight:800">${badge}</span>`:''}
+      </div>`;
+    }).join('');
+  }
+  if(e('roomStartBtn'))e('roomStartBtn').textContent=ko?'⚾ 게임 시작':'⚾ Start Game';
+  if(e('roomShareAgainBtn'))e('roomShareAgainBtn').textContent=ko?'🔗 링크 다시 공유':'🔗 Share Again';
+  if(e('roomWaitDesc'))e('roomWaitDesc').textContent=ko?'모두 준비되면 게임을 시작하세요!':'Start when everyone is ready!';
+}
+
+async function startRoomGame(){
+  const ko=S.lang==='ko';
+  if(!_roomIsHost){alert(ko?'방장만 시작할 수 있어요':'Only the host can start');return;}
+  const parts=_roomData?.participants||{};
+  if(Object.keys(parts).length<2){alert(ko?'최소 2명이 필요해요':'Need at least 2 players');return;}
+  await window._fbSet(window._fbRef(window._fbDb,'rooms/'+_roomCode+'/status'),'playing');
+  closeModal('roomWaitModal');
+  beginRoomGame();
+}
+
+function beginRoomGame(){
+  const ko=S.lang==='ko';
+  _roomGame={logs:[],attempts:0,startTime:Date.now(),done:false};
+  // 내 상태 업데이트
+  window._fbSet(window._fbRef(window._fbDb,'rooms/'+_roomCode+'/participants/'+S.uid+'/status'),'playing');
+  window._fbSet(window._fbRef(window._fbDb,'rooms/'+_roomCode+'/participants/'+S.uid+'/startedAt'),Date.now());
+  // 리스너: 모든 참가자 완료 시 결과 표시
+  const e=id=>document.getElementById(id);
+  if(e('roomGameTitle'))e('roomGameTitle').textContent=ko?'🆚 같이하기':'🆚 Play Together';
+  if(e('roomConfirmBtn'))e('roomConfirmBtn').textContent=ko?'확인':'Confirm';
+  if(e('roomForfeitBtn'))e('roomForfeitBtn').textContent=ko?'포기하기':'Forfeit';
+  if(e('roomNumberInput'))e('roomNumberInput').value='';
+  if(e('roomLogContainer'))e('roomLogContainer').innerHTML='';
+  updateRoomDoneCount();
+  startRoomTimer();
+  openModal('roomGameModal');
+  setTimeout(()=>document.getElementById('roomNumberInput')?.focus(),300);
+}
+
+function startRoomTimer(){
+  if(_roomTimerInterval)clearInterval(_roomTimerInterval);
+  _roomTimerInterval=setInterval(()=>{
+    if(!_roomGame)return;
+    const sec=Math.floor((Date.now()-_roomGame.startTime)/1000);
+    const m=String(Math.floor(sec/60)).padStart(2,'0');
+    const s=String(sec%60).padStart(2,'0');
+    const tl=document.getElementById('roomTimerLabel');
+    if(tl)tl.textContent=`⏱️ ${m}:${s}`;
+    updateRoomDoneCount();
+  },1000);
+}
+
+function updateRoomDoneCount(){
+  const parts=_roomData?.participants||{};
+  const total=Object.keys(parts).length;
+  const done=Object.values(parts).filter(p=>p.status==='done'||p.status==='forfeit').length;
+  const ko=S.lang==='ko';
+  const dc=document.getElementById('roomDoneCount');
+  if(dc)dc.textContent=ko?`완료 ${done}/${total}명`:`${done}/${total} done`;
+}
+
+function handleRoomGuess(){
+  const ko=S.lang==='ko';
+  if(!_roomGame||_roomGame.done)return;
+  const input=document.getElementById('roomNumberInput');
+  const alert2=document.getElementById('roomInputAlert');
+  const val=(input?.value||'').trim();
+  const level=_roomLevel;
+  const digits=val.split('').map(Number);
+  if(digits.length!==level||new Set(digits).size!==level||digits.some(d=>d<1||d>9)){
+    if(alert2){alert2.textContent=ko?`${level}자리 중복없는 숫자(1-9)를 입력해주세요`:`Enter ${level} unique digits (1-9)`;alert2.style.opacity='1';setTimeout(()=>alert2.style.opacity='0',1500);}
+    return;
+  }
+  const target=_roomAnswer;
+  let s=0,b=0;
+  digits.forEach((d,i)=>{if(d===target[i])s++;else if(target.includes(d))b++;});
+  _roomGame.attempts++;
+  const logEntry={guess:digits,s,b};
+  _roomGame.logs.unshift(logEntry);
+  renderRoomLog();
+  if(input)input.value='';
+  if(s===level){
+    // 정답!
+    _roomGame.done=true;
+    const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
+    clearInterval(_roomTimerInterval);
+    closeModal('roomGameModal');
+    saveRoomResult('done',elapsed);
+  }
+}
+
+function renderRoomLog(){
+  const container=document.getElementById('roomLogContainer');
+  if(!container||!_roomGame)return;
+  const level=_roomLevel;
+  container.innerHTML=_roomGame.logs.map((log,i)=>{
+    const digits=log.guess;
+    const isLatest=i===0;
+    const sColor='var(--strike)';const bColor='var(--ball)';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);${isLatest?'animation:achSlide .3s ease':''}">
+      <div style="display:flex;gap:4px">
+        ${digits.map((d,j)=>{
+          const isS=d===_roomAnswer[j];
+          const isB=!isS&&_roomAnswer.includes(d);
+          const col=isS?sColor:isB?bColor:'var(--subtle)';
+          const bg=isS?'var(--strike-bg)':isB?'var(--ball-bg)':'var(--bg2)';
+          return `<div style="width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;background:${bg};color:${col};border:1.5px solid ${col}">${d}</div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:4px">
+        <span class="badge b-s">S ${log.s}</span>
+        <span class="badge b-b">B ${log.b}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function saveRoomResult(status, elapsed){
+  const ko=S.lang==='ko';
+  const attempts=_roomGame?.attempts||0;
+  await window._fbSet(window._fbRef(window._fbDb,'rooms/'+_roomCode+'/participants/'+S.uid),{
+    ...((_roomData?.participants||{})[S.uid]||{}),
+    status, attempts, time:elapsed||0,
+    finishedAt:Date.now()
+  });
+  // 결과 대기 모달
+  const e=id=>document.getElementById(id);
+  const isDone=status==='done';
+  if(e('roomMyResultIcon'))e('roomMyResultIcon').textContent=isDone?'🎉':'😢';
+  if(e('roomMyResultText'))e('roomMyResultText').textContent=isDone
+    ?(ko?`${attempts}번 만에 클리어!`:`Solved in ${attempts} tries!`)
+    :(ko?'포기했어요':'You forfeited');
+  if(e('roomWaitResultTitle'))e('roomWaitResultTitle').textContent=ko?'⏳ 결과 대기 중':'⏳ Waiting for results';
+  if(e('roomWaitingText'))e('roomWaitingText').textContent=ko?'친구들이 풀 때까지 기다려주세요...':'Waiting for friends to finish...';
+  // 방장만 강제 결과 보기
+  if(_roomIsHost){
+    if(e('roomForceResultBtn')){e('roomForceResultBtn').style.display='block';e('roomForceResultBtn').textContent=ko?'지금 결과 보기':'Show Results Now';}
+    if(e('roomForceResultDesc')){e('roomForceResultDesc').style.display='block';e('roomForceResultDesc').textContent=ko?'미완료 참가자는 포기 처리됩니다.':'Unfinished players will be marked as forfeit.';}
+  }
+  openModal('roomWaitResultModal');
+}
+
+async function forfeitRoomGame(){
+  const ko=S.lang==='ko';
+  if(!confirm(ko?'정말 포기하시겠어요?':'Are you sure you want to forfeit?'))return;
+  if(_roomTimerInterval)clearInterval(_roomTimerInterval);
+  _roomGame={..._roomGame,done:true};
+  closeModal('roomGameModal');
+  await saveRoomResult('forfeit',0);
+}
+
+async function forceShowResult(){
+  const ko=S.lang==='ko';
+  if(!confirm(ko?'미완료 참가자는 포기 처리됩니다. 결과를 보시겠어요?':'Unfinished players will be forfeited. Show results?'))return;
+  // 미완료 참가자 포기 처리
+  const parts=_roomData?.participants||{};
+  for(const [uid,p] of Object.entries(parts)){
+    if(p.status==='waiting'||p.status==='playing'){
+      await window._fbSet(window._fbRef(window._fbDb,'rooms/'+_roomCode+'/participants/'+uid+'/status'),'forfeit');
+    }
+  }
+  await window._fbSet(window._fbRef(window._fbDb,'rooms/'+_roomCode+'/status'),'finished');
+}
+
+function showRoomResult(){
+  const ko=S.lang==='ko';
+  closeModal('roomWaitResultModal');
+  if(_roomListener){_roomListener();_roomListener=null;}
+  const data=_roomData;
+  const answer=_roomAnswer;
+  const parts=data?.participants||{};
+  const e=id=>document.getElementById(id);
+  if(e('roomResultTitle'))e('roomResultTitle').textContent=ko?'🏆 결과':'🏆 Results';
+  if(e('roomResultAnswer'))e('roomResultAnswer').textContent=ko?`정답: ${answer?.join(', ')}`:`Answer: ${answer?.join(', ')}`;
+  // 정렬: done이 먼저, attempts 오름차순, time 오름차순
+  const sorted=Object.entries(parts).sort((a,b)=>{
+    const [,pa]=[a[0],a[1]]; const [,pb]=[b[0],b[1]];
+    if(pa.status==='done'&&pb.status!=='done')return -1;
+    if(pa.status!=='done'&&pb.status==='done')return 1;
+    if(pa.status==='done'&&pb.status==='done'){
+      if(pa.attempts!==pb.attempts)return pa.attempts-pb.attempts;
+      return (pa.time||0)-(pb.time||0);
+    }
+    return 0;
+  });
+  const medals=['🥇','🥈','🥉'];
+  let doneIdx=0;
+  if(e('roomResultList')){
+    e('roomResultList').innerHTML=sorted.map(([uid,p],i)=>{
+      const isMe=uid===S.uid;
+      const isDone=p.status==='done';
+      const medal=isDone?(medals[doneIdx++]||''):'';
+      const timeStr=isDone?`${Math.floor((p.time||0)/60)}분 ${(p.time||0)%60}초`:(ko?'포기':'Forfeit');
+      const attStr=isDone?(ko?`${p.attempts}번`:`${p.attempts} tries`):(ko?'포기':'Forfeit');
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${isMe?'var(--primary-light)':'var(--bg2)'};border-radius:10px;margin-bottom:8px;border:${isMe?'1.5px solid var(--primary)':'none'}">
+        <span style="font-size:20px;min-width:24px">${medal||'💨'}</span>
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:14px">${p.nick}${isMe?(ko?' (나)':' (me)'):''}</div>
+          <div style="font-size:11px;color:var(--muted)">${attStr} · ${timeStr}</div>
+        </div>
+        ${isDone?`<span style="font-size:12px;font-weight:800;color:var(--primary)">✅</span>`:`<span style="font-size:12px;font-weight:800;color:var(--muted)">DNF</span>`}
+      </div>`;
+    }).join('');
+  }
+  if(e('roomResultCloseBtn'))e('roomResultCloseBtn').textContent=ko?'확인':'OK';
+  openModal('roomResultModal');
+  // URL 정리
+  const url=new URL(location.href);
+  url.searchParams.delete('room');
+  history.replaceState({},'',url);
+}
+
+function leaveRoom(){
+  if(_roomListener){_roomListener();_roomListener=null;}
+  if(_roomTimerInterval){clearInterval(_roomTimerInterval);_roomTimerInterval=null;}
+  _roomCode=null;_roomData=null;_roomGame=null;
+  ['roomWaitModal','roomGameModal','roomWaitResultModal','roomResultModal'].forEach(id=>closeModal(id));
+  const url=new URL(location.href);
+  url.searchParams.delete('room');
+  history.replaceState({},'',url);
+}
+
+// URL에 room 파라미터 있을 때 자동 처리
+function checkRoomUrl(){
+  const params=new URLSearchParams(location.search);
+  const rc=params.get('room');
+  if(rc){ setTimeout(()=>openJoinRoomWithCode(rc),1000); }
+}
+
+
 function registerAchievement(id){
   if(!S.achievements[id]){S.achievements[id]=S.today;saveExtra();}
 }
