@@ -914,10 +914,13 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <div class="mbox">
     <div class="mhdr"><span class="mtitle" id="roomJoinTitle">🚪 방 입장하기</span><button class="mclose" onclick="closeModal('roomJoinModal')">✕</button></div>
     <div class="mbody">
+      <div id="roomJoinCodeInfo" style="display:none;text-align:center;background:var(--bg2);border-radius:8px;padding:10px;margin-bottom:14px;font-size:13px;font-weight:800;color:var(--primary)"></div>
       <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" id="roomJoinNickLbl">닉네임</div>
       <input id="roomNickInput2" class="num-input" type="text" maxlength="10" placeholder="닉네임 입력" style="margin-bottom:14px;font-family:inherit;font-size:14px;padding:10px 14px;letter-spacing:normal">
-      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" id="roomCodeLbl">방 코드</div>
-      <input id="roomCodeInput" class="num-input" type="text" maxlength="6" placeholder="6자리 코드 입력" style="margin-bottom:14px;font-size:14px;padding:10px 14px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+      <div id="roomCodeWrap">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" id="roomCodeLbl">방 코드</div>
+        <input id="roomCodeInput" class="num-input" type="text" maxlength="6" placeholder="6자리 코드 입력" style="margin-bottom:14px;font-size:14px;padding:10px 14px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+      </div>
       <button class="btn-p" onclick="joinRoom()" id="roomJoinConfirmBtn">입장하기</button>
     </div>
   </div>
@@ -2199,13 +2202,26 @@ function openJoinRoom(){
   if(e('roomCodeLbl'))e('roomCodeLbl').textContent=ko?'방 코드':'Room Code';
   if(e('roomCodeInput'))e('roomCodeInput').value='';
   if(e('roomJoinConfirmBtn'))e('roomJoinConfirmBtn').textContent=ko?'입장하기':'Join';
+  // 수동 진입: 코드칸 보이게, 안내 숨기기
+  const _cw=e('roomCodeWrap');
+  if(_cw)_cw.style.display='block';
+  const _ci=e('roomJoinCodeInfo');
+  if(_ci){_ci.style.display='none';_ci.textContent='';}
   openModal('roomJoinModal');
 }
 
 function openJoinRoomWithCode(code){
+  const ko=S.lang==='ko';
   openJoinRoom();
   const ci=document.getElementById('roomCodeInput');
   if(ci)ci.value=code.toUpperCase();
+  // 링크 진입: 코드칸 숨기고 안내 표시
+  const cw=document.getElementById('roomCodeWrap');
+  if(cw)cw.style.display='none';
+  const info=document.getElementById('roomJoinCodeInfo');
+  if(info){info.style.display='block';info.textContent=ko?`🆚 방 코드: ${code.toUpperCase()}`:`🆚 Room: ${code.toUpperCase()}`;}
+  const title=document.getElementById('roomJoinTitle');
+  if(title)title.textContent=ko?'🚪 방 입장하기':'🚪 Join Room';
 }
 
 function selectRoomLv(lv){
@@ -2231,7 +2247,11 @@ function selectRoomMode(mode){
     if(btn)btn.classList.toggle('on',m===mode);
   });
   const aw=document.getElementById('roomAnswerWrap');
-  if(aw)aw.style.display=(mode==='B'&&_roomLevel)?'block':'none';
+  if(aw){
+    if(mode==='B'&&_roomLevel)aw.style.display='block';
+    else if(mode==='A')aw.style.display='none';
+    // mode=B but no level yet: keep current state
+  }
   const ko=S.lang==='ko';
   const db=document.getElementById('roomModeDescBox');
   if(db)db.textContent=mode==='A'
@@ -2348,6 +2368,7 @@ async function enterWaitingRoom(code){
     _roomIsHost=(_roomData.hostUid===S.uid);
     _roomAnswer=_roomData.answer.split('').map(Number);
     _roomLevel=_roomData.level;
+    _roomMode=_roomData.mode||'A';
     // 결과 화면으로 전환
     if(_roomData.status==='finished'){
       showRoomResult();
@@ -2400,8 +2421,7 @@ async function startRoomGame(){
   const parts=_roomData?.participants||{};
   if(Object.keys(parts).length<2){alert(ko?'최소 2명이 필요해요':'Need at least 2 players');return;}
   await window._fbSet(window._fbRef(window._fbDb,'rooms/'+_roomCode+'/status'),'playing');
-  closeModal('roomWaitModal');
-  beginRoomGame();
+  // 리스너가 status=playing 감지해서 beginRoomGame 실행함 (방장 포함)
 }
 
 function beginRoomGame(){
