@@ -844,14 +844,14 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <!-- 도메인 이전 공지 모달 -->
 <div class="ov" id="migrateModal" style="z-index:9999">
   <div class="mbox" style="max-width:340px">
-    <div class="mbody" style="text-align:center;padding:28px 20px">
+    <div class="mhdr"><span class="mtitle"></span><button class="mclose" onclick="closeModal('migrateModal')">✕</button></div>
+    <div class="mbody" style="text-align:center;padding:8px 20px 28px">
       <div style="font-size:28px;margin-bottom:12px">🎉</div>
       <div style="font-size:16px;font-weight:900;margin-bottom:8px" id="migrateTitle">누볼이 새 주소로 이전했어요!</div>
       <div style="font-size:22px;font-weight:900;color:var(--primary);margin-bottom:12px">nuball.app</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:12px" id="migrateDesc">더 나은 서비스를 위해 주소가 변경되었습니다.<br>북마크나 홈화면에 추가하신 분들은 새 주소로 다시 저장해주세요.</div>
       <div style="font-size:12px;font-weight:800;color:var(--lose);margin-bottom:20px" id="migrateWarn">⚠️ 기존 주소는 3월 31일까지만 운영됩니다.</div>
-      <button class="btn-p" onclick="location.href='https://nuball.app'" style="margin-bottom:10px" id="migrateMoveBtn">nuball.app으로 이동하기</button>
-      <button class="btn-cancel" onclick="closeMigrateModal()" id="migrateLaterBtn">나중에</button>
+      <button class="btn-p" onclick="location.href='https://nuball.app'" id="migrateMoveBtn">nuball.app으로 이동하기</button>
     </div>
   </div>
 </div>
