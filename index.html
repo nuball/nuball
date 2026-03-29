@@ -142,8 +142,8 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .btn-o{background:transparent;border:1.5px solid var(--primary);color:var(--primary)}.btn-o:hover{background:var(--primary-light)}
 
 /* ── GAME ── */
-#gameScreen{visibility:hidden;position:absolute;width:100%;height:0;overflow:hidden;opacity:0;pointer-events:none;-webkit-overflow-scrolling:touch}
-#gameScreen.active{visibility:visible;position:static;height:auto;overflow:visible;opacity:1;pointer-events:auto}
+#gameScreen{display:none}
+#gameScreen.active{display:block}
 .game-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .back-btn{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--lose);background:none;border:1.5px solid var(--lose);cursor:pointer;padding:8px 14px;border-radius:8px;transition:all .15s;font-family:inherit}
 .back-btn:hover{background:color-mix(in srgb,var(--lose) 8%,transparent)}
@@ -286,7 +286,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-spacing:.5px}
 .reset-btn{font-size:11px;background:none;border:1px solid var(--border);color:var(--subtle);border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit;vertical-align:middle;margin-left:8px}
 .reset-btn:hover{border-color:var(--primary);color:var(--primary)}
-.hidden{visibility:hidden!important;position:absolute!important;pointer-events:none!important;overflow:hidden!important;width:100%!important;height:0!important;opacity:0!important}
+.hidden{display:none!important}
 @keyframes slideIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 @media(min-width:640px){
   .game-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
@@ -1417,6 +1417,10 @@ async function init(){
   // 어제 랭킹 1위 업적 체크 (다음날 접속 시)
   setTimeout(()=>checkYesterdayRankAchievements(),2000);
   initNotifState();
+  // 방법B: room 파라미터 있으면 homeScreen 완전히 숨기고 바로 게임 진입
+  if(new URLSearchParams(location.search).get('room')){
+    document.getElementById('homeScreen').classList.add('hidden');
+  }
   checkRoomUrl();
   // 도메인 이전 공지 (nuball.vercel.app에서만)
   if(location.hostname.includes('vercel.app')&&!localStorage.getItem('nb_migrate_closed')){
@@ -1557,6 +1561,7 @@ function cancelLevel(){
   localStorage.removeItem('nb_inprog');
   saveDaily();
   document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('gameScreen').style.display='none';
   document.getElementById('homeScreen').classList.remove('hidden');
   renderHome();
 }
@@ -1592,7 +1597,7 @@ function startGame(level){
   S.vrUsedThisGame=false; // 게임별 VR 사용 여부 초기화
   saveProgress();
   document.getElementById('homeScreen').classList.add('hidden');
-  const gs=document.getElementById('gameScreen');gs.classList.add('active');
+  const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
   renderGame();
   setTimeout(()=>document.getElementById('numberInput').focus(),150);
 }
@@ -1764,6 +1769,7 @@ function showResult(won,score,ans,att){
 function onResultClose(){
   document.getElementById('resultModal').classList.remove('open');
   document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('gameScreen').style.display='none';
   document.getElementById('homeScreen').classList.remove('hidden');
   S.game=null;renderHome();
   if(S.consumed>=1){setTimeout(()=>openModal('statsModal'),300);}
@@ -2222,7 +2228,7 @@ function beginRoomGame(){
   // 화면 전환 (기존 startGame 방식과 동일)
   document.getElementById('homeScreen').classList.add('hidden');
   const gs=document.getElementById('gameScreen');
-  gs.classList.add('active');
+  gs.style.display='';gs.classList.add('active');
   window.scrollTo(0,0);
   // 포커스
   setTimeout(()=>{if(ni)ni.focus();},150);
@@ -2324,6 +2330,7 @@ function showRoomResult(elapsed){
   if(_bb)_bb.style.display='';
   if(_vb)_vb.style.display='';
   document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('gameScreen').style.display='none';
   openModal('roomResultModal');
 }
 
@@ -2331,24 +2338,18 @@ function closeRoomResult(){
   closeModal('roomResultModal');
   if(_roomTimerInterval){clearInterval(_roomTimerInterval);_roomTimerInterval=null;}
   // 포기/VR 버튼 복구
-  const _bb=document.getElementById('backBtn');
-  const _vb=document.getElementById('vrBtn');
-  if(_bb)_bb.style.display='';
-  if(_vb)_vb.style.display='';
+  const _bb=document.getElementById('backBtn');const _vb=document.getElementById('vrBtn');
+  if(_bb)_bb.style.display='';if(_vb)_vb.style.display='';
   // score-prev 복구
   const _spBox=document.querySelector('.score-prev');
   if(_spBox)_spBox.style.display='';
-  // gameScreen 숨기기
-  const _gs=document.getElementById('gameScreen');
-  _gs.classList.remove('active');
-  // 홈화면 복구
-  const _hs=document.getElementById('homeScreen');
-  _hs.classList.remove('hidden');
-  _hs.style.display='';
-  _hs.style.removeProperty('display');
   // 상태 초기화
   _roomCode=null;_roomLevel=null;_roomMode='A';_roomAnswer=null;_roomGame=null;_roomStarting=false;
   S.game=null;
+  // onResultClose와 동일한 방식으로 홈 복귀
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('gameScreen').style.display='none';
+  document.getElementById('homeScreen').classList.remove('hidden');
   renderHome();
 }
 function copyRoomResult(){
@@ -2950,6 +2951,7 @@ function devReset(){
   ['nb_consumed','nb_scores','nb_total','nb_reg','nb_inprog','nb_date','nb_vr'].forEach(k=>localStorage.removeItem(k));
   S.consumed=0;S.scores=[];S.totalScore=0;S.registered=false;S.game=null;S.vrUsed=false;S.vrUsedThisGame=false;
   document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('gameScreen').style.display='none';
   document.getElementById('homeScreen').classList.remove('hidden');
   renderHome();
 }
