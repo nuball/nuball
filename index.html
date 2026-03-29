@@ -2241,17 +2241,16 @@ function beginRoomGame(){
   if(e('roomAttemptsEl'))e('roomAttemptsEl').textContent='0';
   startRoomTimer();
   // 홈화면 숨기고 룸게임 화면 표시
-  document.getElementById('homeScreen').classList.add('hidden');
+  const _hs=document.getElementById('homeScreen');
+  _hs.classList.add('hidden');
+  _hs.style.display='none';
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('gameScreen').style.display='none';
   document.getElementById('roomGameScreen').style.display='block';
   const _inp=document.getElementById('roomNumberInput');
   if(_inp){
-    setTimeout(()=>{
-      _inp.focus();
-      // 모바일 인앱브라우저 대비 추가 시도
-      _inp.click();
-    },400);
+    setTimeout(()=>{ _inp.focus(); },100);
+    setTimeout(()=>{ _inp.focus(); },600);
   }
 }
 
@@ -2351,11 +2350,15 @@ function showRoomResult(elapsed){
 
 function closeRoomResult(){
   closeModal('roomResultModal');
-  // 룸게임 상태 초기화 후 홈으로
-  _roomCode=null;_roomLevel=null;_roomMode='A';_roomAnswer=null;_roomGame=null;_roomStarting=false;
   if(_roomTimerInterval){clearInterval(_roomTimerInterval);_roomTimerInterval=null;}
+  // 룸게임 화면 숨기기
   document.getElementById('roomGameScreen').style.display='none';
-  document.getElementById('homeScreen').classList.remove('hidden');
+  // 홈화면 복구
+  const hs=document.getElementById('homeScreen');
+  hs.classList.remove('hidden');
+  hs.style.display='';
+  // 상태 초기화
+  _roomCode=null;_roomLevel=null;_roomMode='A';_roomAnswer=null;_roomGame=null;_roomStarting=false;
   renderHome();
 }
 function copyRoomResult(){
