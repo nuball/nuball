@@ -613,6 +613,36 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       </div>
     </div>
   </div>
+  <div id="roomGameScreen" style="display:none">
+    <div class="game-hdr">
+      <div class="game-hdr-btns" style="display:flex;align-items:center;gap:8px;flex:1;margin-right:12px">
+        <div style="font-size:12px;color:var(--muted);font-weight:700" id="roomGameInfo"></div>
+        <div style="font-size:13px;font-weight:800;color:var(--primary)" id="roomTimerLabel">⏱️ 00:00</div>
+      </div>
+      <div class="game-meta" style="flex-shrink:0">
+        <div class="game-lvl-tag" id="roomGameTitle"></div>
+      </div>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="score-prev">
+          <div class="score-prev-lbl">시도 횟수</div>
+          <div class="score-prev-val" id="roomAttemptsEl">0</div>
+        </div>
+        <input class="num-input" type="text" inputmode="numeric" id="roomNumberInput" placeholder="..." autocomplete="off">
+        <div id="roomInputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:4px;opacity:0;transition:opacity .2s"></div>
+        <div class="act-btns" style="grid-template-columns:1fr">
+          <button class="btn-p" onclick="handleRoomGuess()" id="roomConfirmBtn">확인</button>
+        </div>
+      </div>
+      <div>
+        <div class="hist-hdr">
+          <span class="hist-title">기록</span>
+        </div>
+        <div id="roomLogContainer"></div>
+      </div>
+    </div>
+  </div>
 </main>
 
 <footer>
@@ -883,37 +913,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 </div>
 
 <!-- 같이하기 게임 화면 모달 -->
-<div id="roomGameScreen" style="display:none">
-  <div class="game-hdr">
-    <div class="game-hdr-btns" style="display:flex;align-items:center;gap:8px;flex:1;margin-right:12px">
-      <div style="font-size:12px;color:var(--muted);font-weight:700" id="roomGameInfo"></div>
-      <div style="font-size:13px;font-weight:800;color:var(--primary)" id="roomTimerLabel">⏱️ 00:00</div>
-    </div>
-    <div class="game-meta" style="flex-shrink:0">
-      <div class="game-lvl-tag" id="roomGameTitle"></div>
-    </div>
-  </div>
-  <div class="game-layout">
-    <div>
-      <div class="score-prev">
-        <div class="score-prev-lbl">시도 횟수</div>
-        <div class="score-prev-val" id="roomAttemptsEl">0</div>
-      </div>
-      <input class="num-input" type="text" inputmode="numeric" id="roomNumberInput" placeholder="..." autocomplete="off">
-      <div id="roomInputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:4px;opacity:0;transition:opacity .2s"></div>
-      <div class="act-btns" style="grid-template-columns:1fr">
-        <button class="btn-p" onclick="handleRoomGuess()" id="roomConfirmBtn">확인</button>
-      </div>
-    </div>
-    <div>
-      <div class="hist-hdr">
-        <span class="hist-title">기록</span>
-      </div>
-      <div id="roomLogContainer"></div>
-    </div>
-  </div>
-</div>
-
 <!-- 같이하기 결과 모달 -->
 <div class="ov" id="roomResultModal">
   <div class="mbox">
@@ -2176,7 +2175,7 @@ async function generateAndCopyRoom(){
     }catch(err){alert(ko?'링크 생성에 실패했어요':'Failed to create link');return;}
   }
   const url=`${location.origin}${location.pathname}?room=${code}`;
-  const shareText=`${ko?'누볼 한판 어때? 🤝':'NUBALL - Play Together 🤝'}\n${url}`;
+  const shareText=url;
   // 클립보드 복사
   try{
     await navigator.clipboard.writeText(shareText);
