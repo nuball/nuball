@@ -143,6 +143,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 
 /* ── GAME ── */
 #gameScreen{display:none}
+.kakao-banner{position:fixed;top:0;left:0;right:0;z-index:9998;background:#FEE500;color:#000;padding:12px 16px;font-size:13px;font-weight:800;text-align:center;line-height:1.5;box-shadow:0 2px 8px rgba(0,0,0,.15)}.kakao-banner-close{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;padding:4px;color:#000}
 #gameScreen.active{display:block;animation:_gpufix .01s forwards}
 @keyframes _gpufix{0%{opacity:.999}100%{opacity:1}}
 .game-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
@@ -374,6 +375,11 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <meta name="google-site-verification" content="m95igLZdGdyJCJQwOamMESIsd5bahFFuWcjO1KhW1uM" />
 </head>
 <body>
+<!-- 카카오 인앱 브라우저 안내 배너 -->
+<div id="kakaoBanner" class="kakao-banner" style="display:none">
+  <span id="kakaoBannerText">오른쪽 아래 ⋯ 메뉴 → 다른 브라우저로 열기를 눌러주세요!</span>
+  <button class="kakao-banner-close" onclick="document.getElementById('kakaoBanner').style.display='none'">✕</button>
+</div>
 <div id="app">
 
 <!-- HEADER -->
@@ -1418,11 +1424,21 @@ async function init(){
   // 어제 랭킹 1위 업적 체크 (다음날 접속 시)
   setTimeout(()=>checkYesterdayRankAchievements(),2000);
   initNotifState();
-  // room 파라미터 있으면 homeScreen 완전히 숨기고 바로 게임 진입
+  // room 파라미터 있으면 homeScreen 숨기고 바로 게임 진입
   if(new URLSearchParams(location.search).get('room')){
     const _hss=document.getElementById('homeScreen');
     _hss.style.display='none';
     _hss.classList.add('hidden');
+    // 카카오 인앱 브라우저 감지 → 외부 브라우저 유도 배너
+    if(/KAKAOTALK/i.test(navigator.userAgent)){
+      const ko=S.lang==='ko';
+      const banner=document.getElementById('kakaoBanner');
+      const bannerText=document.getElementById('kakaoBannerText');
+      if(banner)banner.style.display='block';
+      if(bannerText)bannerText.textContent=ko
+        ?'오른쪽 아래 ⋯ 메뉴 → 다른 브라우저로 열기를 눌러주세요!'
+        :'Tap ⋯ at bottom right → Open in browser';
+    }
   }
   checkRoomUrl();
   // 도메인 이전 공지 (nuball.vercel.app에서만)
