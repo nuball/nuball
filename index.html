@@ -597,7 +597,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <input class="num-input" type="text" inputmode="numeric" id="numberInput" placeholder="..." autocomplete="off">
         <div id="inputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:4px;opacity:0;transition:opacity .2s"></div>
         <div class="act-btns" style="grid-template-columns:1fr">
-          <button class="btn-p" onclick="handleGuess()" data-i18n="confirm">확인</button>
+          <button class="btn-p" onclick="_roomGame?handleRoomGuess():handleGuess()" data-i18n="confirm">확인</button>
         </div>
       </div>
       <div>
@@ -868,7 +868,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <input id="roomAnswerInput" class="num-input" type="text" inputmode="numeric" maxlength="5" style="font-family:inherit;letter-spacing:normal;font-size:14px;padding:10px 14px">
         <div style="font-size:11px;color:var(--muted);margin-top:4px" id="roomAnswerDesc">1~9 중복없는 숫자를 입력하세요</div>
       </div>
-      <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:14px" id="roomExpireDesc">⏰ 링크는 생성 후 6시간 동안 유효합니다</div>
       <!-- 문제 주소 복사 버튼 -->
       <button class="btn-p" onclick="generateAndCopyRoom()" id="roomCopyLinkBtn">📋 문제 주소 복사</button>
       <div id="roomCopyFeedback" style="display:none;text-align:center;font-size:12px;font-weight:800;color:var(--primary);margin-top:10px;word-break:break-all"></div>
@@ -2214,7 +2213,7 @@ function beginRoomGame(){
   if(sh)sh.textContent='';
   // 입력칸, 기록 초기화
   const ni=document.getElementById('numberInput');
-  if(ni){ni.value='';ni.placeholder=ko?`숫자 ${_roomLevel}개 입력`:'...';}
+  if(ni){ni.value='';ni.placeholder='...';}
   document.getElementById('logContainer').innerHTML='<div class="empty-st"><span class="empty-ico">⚾</span></div>';
   startRoomTimer();
   // 화면 전환 (기존 startGame 방식과 동일)
@@ -2858,12 +2857,12 @@ document.getElementById('numberInput').addEventListener('input',e=>{
     if(clean.includes(c)){hadDup=true;continue;}
     clean+=c;
   }
-  const max=S.game?S.game.level:5;
+  const max=S.game?S.game.level:(_roomLevel||5);
   e.target.value=clean.slice(0,max);
   if(hadZero)showInputMsg(t('zeroAlert'));
   else if(hadDup)showInputMsg(t('dupInputAlert'));
 });
-document.getElementById('numberInput').addEventListener('keypress',e=>{if(e.key==='Enter')handleGuess()});
+document.getElementById('numberInput').addEventListener('keypress',e=>{if(e.key==='Enter'){if(_roomGame)handleRoomGuess();else handleGuess();}});
 
 // 모바일: 키보드 올라올 때 마지막 시도 포함해서 보이게
 document.getElementById('numberInput').addEventListener('focus',()=>{
