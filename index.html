@@ -2176,7 +2176,12 @@ async function startRoomFromUrl(code){
     const snap=await window._fbGet(window._fbRef(window._fbDb,'rooms/'+code));
     if(!snap.exists()){alert(ko?'존재하지 않는 방이에요':'Room not found');return;}
     const data=snap.val();
-    if(data.expiresAt<Date.now()){alert(ko?'만료된 링크예요':'Link has expired');return;}
+    if(data.expiresAt<Date.now()){
+      // 만료된 방 자동 삭제
+      try{await window._fbSet(window._fbRef(window._fbDb,'rooms/'+code),null);}catch(e){}
+      alert(ko?'만료된 링크예요':'Link has expired');
+      return;
+    }
     _roomCode=code;
     _roomLevel=data.level;
     _roomMode=data.mode||'A';
@@ -2206,9 +2211,9 @@ function beginRoomGame(){
   if(ltag)ltag.textContent=`🆚 ${lvLabel[_roomLevel]||''}`;
   const attEl=document.getElementById('gameAttEl');
   if(attEl)attEl.textContent='0회';
-  // 점수 영역에 안내 표시
-  const sp=document.getElementById('scorePrevEl');
-  if(sp)sp.textContent='—';
+  // 점수 영역 숨기기 (룸 게임에서는 불필요)
+  const spBox=document.querySelector('.score-prev');
+  if(spBox)spBox.style.display='none';
   const sh=document.getElementById('scoreHintEl');
   if(sh)sh.textContent='';
   // 입력칸, 기록 초기화
@@ -2332,11 +2337,18 @@ function closeRoomResult(){
   const _vb=document.getElementById('vrBtn');
   if(_bb)_bb.style.display='';
   if(_vb)_vb.style.display='';
-  // gameScreen 숨기기 (혹시 남아있을 경우)
-  document.getElementById('gameScreen').classList.remove('active');
-  document.getElementById('gameScreen').style.display='none';
-  // 홈화면 복구 (onResultClose 방식과 동일)
-  document.getElementById('homeScreen').classList.remove('hidden');
+  // score-prev 복구
+  const _spBox=document.querySelector('.score-prev');
+  if(_spBox)_spBox.style.display='';
+  // gameScreen 숨기기
+  const _gs=document.getElementById('gameScreen');
+  _gs.classList.remove('active');
+  _gs.style.display='none';
+  // 홈화면 복구
+  const _hs=document.getElementById('homeScreen');
+  _hs.classList.remove('hidden');
+  _hs.style.display='';
+  _hs.style.removeProperty('display');
   // 상태 초기화
   _roomCode=null;_roomLevel=null;_roomMode='A';_roomAnswer=null;_roomGame=null;_roomStarting=false;
   S.game=null;

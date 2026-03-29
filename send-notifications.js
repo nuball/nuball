@@ -7,10 +7,34 @@ admin.initializeApp({
   databaseURL: 'https://nuball-default-rtdb.firebaseio.com'
 });
 
+async function cleanExpiredRooms(db) {
+  try {
+    const snap = await db.ref('rooms').once('value');
+    if (!snap.exists()) { console.log('No rooms to clean'); return; }
+    const now = Date.now();
+    let deleted = 0;
+    const promises = [];
+    snap.forEach(child => {
+      const data = child.val();
+      if (data && data.expiresAt && data.expiresAt < now) {
+        promises.push(db.ref('rooms/' + child.key).remove());
+        deleted++;
+      }
+    });
+    await Promise.all(promises);
+    console.log(`Cleaned ${deleted} expired rooms`);
+  } catch (e) {
+    console.error('Room cleanup failed:', e);
+  }
+}
+
 async function sendDailyNotifications() {
   const db = admin.database();
-  const snapshot = await db.ref('fcm_tokens').once('value');
 
+  // 만료된 방 정리
+  await cleanExpiredRooms(db);
+
+  const snapshot = await db.ref('fcm_tokens').once('value');
   if (!snapshot.exists()) {
     console.log('No FCM tokens found');
     return;
@@ -56,20 +80,13 @@ async function sendDailyNotifications() {
         data: {
           title,
           body,
-          icon: 'https://nuball.vercel.app/og-image.PNG',
-          url: 'https://nuball.vercel.app'
+          icon: 'https://nuball.app/og-image.PNG',
+          url: 'https://nuball.app'
         },
-        android: {
-          priority: 'high'
-        },
+        android: { priority: 'high' },
         webpush: {
-          headers: {
-            Urgency: 'high',
-            TTL: '86400'
-          },
-          fcmOptions: {
-            link: 'https://nuball.vercel.app'
-          }
+          headers: { Urgency: 'high', TTL: '86400' },
+          fcmOptions: { link: 'https://nuball.app' }
         },
         tokens: batch
       };
@@ -82,7 +99,6 @@ async function sendDailyNotifications() {
           if (!resp.success) {
             const failedToken = batch[idx];
             console.log(`Failed token: ${failedToken.substring(0, 20)}... Error: ${resp.error?.code}`);
-            // 유효하지 않은 토큰 삭제
             if (
               resp.error?.code === 'messaging/invalid-registration-token' ||
               resp.error?.code === 'messaging/registration-token-not-registered'
