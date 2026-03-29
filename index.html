@@ -2065,6 +2065,7 @@ let _roomMode = 'A';
 let _roomAnswer = null;
 let _roomGame = null; // {logs, attempts, startTime}
 let _roomTimerInterval = null;
+let _roomStarting = false; // 중복 실행 방지
 
 function genRoomCode(){
   const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -2194,6 +2195,7 @@ async function generateAndCopyRoom(){
 
 async function startRoomFromUrl(code){
   const ko=S.lang==='ko';
+  if(_roomStarting)return; // 중복 실행 방지
   if(!window._fbReady){
     setTimeout(()=>startRoomFromUrl(code),500);
     return;
@@ -2219,11 +2221,8 @@ async function startRoomFromUrl(code){
     _roomLevel=data.level;
     _roomMode=data.mode||'A';
     _roomAnswer=data.answer.split('').map(Number);
-    // URL 파라미터 제거
-    const url=new URL(location.href);
-    url.searchParams.delete('room');
-    history.replaceState({},'',url);
     // 게임 시작
+    _roomStarting=true;
     beginRoomGame();
   }catch(err){alert(ko?'방 정보를 불러오지 못했어요':'Failed to load room');}
 }
@@ -2346,7 +2345,7 @@ function showRoomResult(elapsed){
 function closeRoomResult(){
   closeModal('roomResultModal');
   // 룸게임 상태 초기화 후 홈으로
-  _roomCode=null;_roomLevel=null;_roomMode='A';_roomAnswer=null;_roomGame=null;
+  _roomCode=null;_roomLevel=null;_roomMode='A';_roomAnswer=null;_roomGame=null;_roomStarting=false;
   if(_roomTimerInterval){clearInterval(_roomTimerInterval);_roomTimerInterval=null;}
   document.getElementById('roomGameScreen').style.display='none';
   document.getElementById('homeScreen').classList.remove('hidden');
@@ -2377,7 +2376,7 @@ function copyRoomResult(){
 function checkRoomUrl(){
   const params=new URLSearchParams(location.search);
   const rc=params.get('room');
-  if(rc){ setTimeout(()=>startRoomFromUrl(rc),1000); }
+  if(rc){ startRoomFromUrl(rc); }
 }
 
 
