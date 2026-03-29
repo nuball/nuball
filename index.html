@@ -883,21 +883,27 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 </div>
 
 <!-- 같이하기 게임 화면 모달 -->
-<div class="ov" id="roomGameModal">
-  <div class="mbox" style="max-width:480px">
-    <div class="mhdr">
-      <span class="mtitle" id="roomGameTitle">🆚 같이하기</span>
-      <button class="mclose" onclick="closeModal('roomGameModal')">✕</button>
+<div id="roomGameScreen" style="display:none">
+  <div class="game-hdr">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;margin-right:12px">
+      <div style="font-size:13px;color:var(--muted)" id="roomTimerLabel">⏱️ 00:00</div>
     </div>
-    <div class="mbody" style="padding:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div style="font-size:12px;color:var(--muted)" id="roomTimerLabel">⏱️ 00:00</div>
-        <div style="font-size:12px;font-weight:800;color:var(--muted)" id="roomGameInfo"></div>
+    <div class="game-meta">
+      <div class="game-lvl-tag" id="roomGameTitle"></div>
+      <div style="font-size:11px;color:var(--muted);font-weight:700" id="roomGameInfo"></div>
+    </div>
+  </div>
+  <div class="game-layout">
+    <div>
+      <input class="num-input" type="text" inputmode="numeric" id="roomNumberInput" placeholder="..." autocomplete="off">
+      <div id="roomInputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:4px;opacity:0;transition:opacity .2s"></div>
+      <div class="act-btns" style="grid-template-columns:1fr">
+        <button class="btn-p" onclick="handleRoomGuess()" id="roomConfirmBtn">확인</button>
       </div>
-      <input class="num-input" type="text" inputmode="numeric" id="roomNumberInput" placeholder="..." autocomplete="off" style="margin-bottom:8px">
-      <div id="roomInputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:6px;opacity:0;transition:opacity .2s"></div>
-      <button class="btn-p" onclick="handleRoomGuess()" id="roomConfirmBtn" style="margin-bottom:10px">확인</button>
-      <div id="roomLogContainer" style="margin-top:12px"></div>
+    </div>
+    <div>
+      <div class="hist-hdr"><span class="hist-title">기록</span></div>
+      <div id="roomLogContainer"></div>
     </div>
   </div>
 </div>
@@ -909,7 +915,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="mbody" style="text-align:center">
       <div id="roomResultBody" style="margin-bottom:18px"></div>
       <button class="btn-p" onclick="copyRoomResult()" id="roomResultCopyBtn" style="margin-bottom:10px">📋 결과 복사</button>
-      <button class="btn-p" onclick="closeModal('roomResultModal')" style="background:var(--bg2);border-color:var(--border);color:var(--text)" id="roomResultCloseBtn">닫기</button>
+      <button class="btn-p" onclick="closeRoomResult()" style="background:var(--bg2);border-color:var(--border);color:var(--text)" id="roomResultCloseBtn">닫기</button>
     </div>
   </div>
 </div>
@@ -2164,13 +2170,13 @@ async function generateAndCopyRoom(){
     }catch(err){alert(ko?'링크 생성에 실패했어요':'Failed to create link');return;}
   }
   const url=`${location.origin}${location.pathname}?room=${code}`;
+  const shareText=`${ko?'누볼 한판 어때? 🤝':'NUBALL - Play Together 🤝'}\n${url}`;
   // 클립보드 복사
   try{
-    await navigator.clipboard.writeText(url);
+    await navigator.clipboard.writeText(shareText);
   }catch(err){
-    // fallback
     const ta=document.createElement('textarea');
-    ta.value=url;ta.style.position='fixed';ta.style.opacity='0';
+    ta.value=shareText;ta.style.position='fixed';ta.style.opacity='0';
     document.body.appendChild(ta);ta.select();document.execCommand('copy');
     document.body.removeChild(ta);
   }
@@ -2186,6 +2192,18 @@ async function startRoomFromUrl(code){
   if(!window._fbReady){
     setTimeout(()=>startRoomFromUrl(code),500);
     return;
+  }
+  // 진행 중 게임 확인
+  if(S.game&&S.game.attempts>0){
+    const ok=confirm(ko
+      ?'진행 중인 게임이 있어요.\n같이하기를 시작하면 현재 게임은 포기 처리됩니다.\n계속할까요?'
+      :'You have a game in progress.\nIt will be forfeited if you start Play Together.\nContinue?');
+    if(!ok)return;
+    // 포기 처리
+    S.game=null;
+    document.getElementById('gameScreen').classList.remove('active');
+    document.getElementById('gameScreen').style.display='none';
+    document.getElementById('homeScreen').classList.remove('hidden');
   }
   try{
     const snap=await window._fbGet(window._fbRef(window._fbDb,'rooms/'+code));
@@ -2217,7 +2235,11 @@ function beginRoomGame(){
   if(e('roomLogContainer'))e('roomLogContainer').innerHTML='';
   if(e('roomInputAlert'))e('roomInputAlert').style.opacity='0';
   startRoomTimer();
-  openModal('roomGameModal');
+  // 홈화면 숨기고 룸게임 화면 표시
+  document.getElementById('homeScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('gameScreen').style.display='none';
+  document.getElementById('roomGameScreen').style.display='block';
   setTimeout(()=>document.getElementById('roomNumberInput')?.focus(),300);
 }
 
@@ -2317,10 +2339,19 @@ function showRoomResult(elapsed){
   `;
   if(e('roomResultCopyBtn'))e('roomResultCopyBtn').textContent=ko?'📋 결과 복사':'📋 Copy Result';
   if(e('roomResultCloseBtn'))e('roomResultCloseBtn').textContent=ko?'닫기':'Close';
-  closeModal('roomGameModal');
+  document.getElementById('roomGameScreen').style.display='none';
   openModal('roomResultModal');
 }
 
+function closeRoomResult(){
+  closeModal('roomResultModal');
+  // 룸게임 상태 초기화 후 홈으로
+  _roomCode=null;_roomLevel=null;_roomMode='A';_roomAnswer=null;_roomGame=null;
+  if(_roomTimerInterval){clearInterval(_roomTimerInterval);_roomTimerInterval=null;}
+  document.getElementById('roomGameScreen').style.display='none';
+  document.getElementById('homeScreen').classList.remove('hidden');
+  renderHome();
+}
 function copyRoomResult(){
   const ko=S.lang==='ko';
   const attempts=_roomGame?.attempts||0;
