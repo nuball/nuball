@@ -617,7 +617,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="game-hdr">
       <div class="game-hdr-btns" style="display:flex;align-items:center;gap:8px;flex:1;margin-right:12px">
         <div style="font-size:12px;color:var(--muted);font-weight:700" id="roomGameInfo"></div>
-        <div style="font-size:13px;font-weight:800;color:var(--primary)" id="roomTimerLabel">⏱️ 00:00</div>
+        <div style="font-size:13px;font-weight:800;color:var(--primary)" id="roomTimerLabel">⏱️ <span id="roomTimerVal">00:00</span></div>
       </div>
       <div class="game-meta" style="flex-shrink:0">
         <div class="game-lvl-tag" id="roomGameTitle"></div>
@@ -2256,8 +2256,8 @@ function startRoomTimer(){
     const sec=Math.floor((Date.now()-_roomGame.startTime)/1000);
     const m=String(Math.floor(sec/60)).padStart(2,'0');
     const s=String(sec%60).padStart(2,'0');
-    const tl=document.getElementById('roomTimerLabel');
-    if(tl)tl.textContent=`⏱️ ${m}:${s}`;
+    const tv=document.getElementById('roomTimerVal');
+    if(tv)tv.textContent=`${m}:${s}`;
   },1000);
 }
 
@@ -2873,6 +2873,7 @@ document.getElementById('numberInput').addEventListener('input',e=>{
   else if(hadDup)showInputMsg(t('dupInputAlert'));
 });
 document.getElementById('numberInput').addEventListener('keypress',e=>{if(e.key==='Enter')handleGuess()});
+document.getElementById('roomNumberInput').addEventListener('keypress',e=>{if(e.key==='Enter')handleRoomGuess()});
 // 모바일: 키보드 올라올 때 마지막 시도 포함해서 보이게
 document.getElementById('numberInput').addEventListener('focus',()=>{
   setTimeout(()=>{
