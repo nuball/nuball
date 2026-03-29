@@ -864,9 +864,9 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <!-- 레벨 선택 -->
       <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px" id="roomLvLbl">레벨 선택</div>
       <div style="display:flex;gap:8px;margin-bottom:14px">
-        <button class="vm-btn room-lv-btn" id="roomLv3" onclick="selectRoomLv(3)">3자리</button>
-        <button class="vm-btn room-lv-btn" id="roomLv4" onclick="selectRoomLv(4)">4자리</button>
-        <button class="vm-btn room-lv-btn" id="roomLv5" onclick="selectRoomLv(5)">5자리</button>
+        <button class="vm-btn room-lv-btn" id="roomLv3" onclick="selectRoomLv(3)" style="flex:1">3자리</button>
+        <button class="vm-btn room-lv-btn" id="roomLv4" onclick="selectRoomLv(4)" style="flex:1">4자리</button>
+        <button class="vm-btn room-lv-btn" id="roomLv5" onclick="selectRoomLv(5)" style="flex:1">5자리</button>
       </div>
       <!-- 출제 방식 -->
       <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px" id="roomModeLbl">출제 방식</div>
@@ -2107,6 +2107,9 @@ function openRoomModal(){
   const e=id=>document.getElementById(id);
   if(e('roomCreateTitle'))e('roomCreateTitle').textContent=ko?'같이하기':'Play Together';
   if(e('roomLvLbl'))e('roomLvLbl').textContent=ko?'레벨 선택':'Select Level';
+  if(e('roomLv3'))e('roomLv3').textContent=ko?'3자리':'3-Digit';
+  if(e('roomLv4'))e('roomLv4').textContent=ko?'4자리':'4-Digit';
+  if(e('roomLv5'))e('roomLv5').textContent=ko?'5자리':'5-Digit';
   if(e('roomModeLbl'))e('roomModeLbl').textContent=ko?'출제 방식':'Mode';
   if(e('roomModeA'))e('roomModeA').textContent=ko?'🎲 같이 풀기':'🎲 Play Together';
   if(e('roomModeB'))e('roomModeB').textContent=ko?'✏️ 문제 내기':'✏️ Set Puzzle';
@@ -2262,7 +2265,7 @@ function beginRoomGame(){
   if(sh)sh.textContent='';
   // 입력칸, 기록 초기화
   const ni=document.getElementById('numberInput');
-  if(ni){ni.value='';ni.placeholder='...';}
+  if(ni){ni.value='';ni.placeholder='•'.repeat(_roomLevel||3);}
   document.getElementById('logContainer').innerHTML='<div class="empty-st"><span class="empty-ico">⚾</span></div>';
   startRoomTimer();
   // 화면 전환 (기존 startGame 방식과 동일)
