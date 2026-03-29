@@ -367,8 +367,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 .tut-win-anim{animation:winPop .45s ease forwards}
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
-<meta name="naver-site-verification" content="942ff074c8b8bfce4bbab3e081528991c2d46d2b" />
-<meta name="google-site-verification" content="GnIvLt84FLqstL22ZQhhqL0GUqEUfaTrakogzbjKzg4" />
+<meta name="naver-site-verification" content="e2b352f537c368f6ad65a517362b1f7cd7060b9c" />
+<meta name="google-site-verification" content="m95igLZdGdyJCJQwOamMESIsd5bahFFuWcjO1KhW1uM" />
 </head>
 <body>
 <div id="app">
@@ -863,8 +863,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div style="font-size:28px;margin-bottom:12px">🔕</div>
       <div style="font-size:15px;font-weight:900;margin-bottom:10px" id="notifOffTitle">알림을 끄시겠어요?</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:20px" id="notifOffDesc">알림을 끄면 매일 아침 누볼 알림을 받을 수 없어요.</div>
-      <button class="btn-p" style="background:var(--lose);border-color:var(--lose);margin-bottom:10px" onclick="confirmNotifOff()" id="notifOffConfirmBtn">알림 끄기</button>
-      <button class="btn-cancel" onclick="closeModal('notifOffModal')" id="notifOffCancelBtn">유지하기</button>
+      <button class="btn-p" style="background:var(--lose);border-color:var(--lose);margin-bottom:10px;width:100%" onclick="confirmNotifOff()" id="notifOffConfirmBtn">알림 끄기</button>
+      <button class="btn-p" style="margin-bottom:0;width:100%" onclick="closeModal('notifOffModal')" id="notifOffCancelBtn">유지하기</button>
     </div>
   </div>
 </div>
@@ -2154,12 +2154,12 @@ async function registerFromStats(){
           statsMbody.innerHTML=origContent;
           renderHome();
           renderStats();
-          setTimeout(()=>checkRankingAchievements(),500);
+          // 랭킹 1위 업적은 다음날 접속 시 확인
         },1500);
       }else{
         renderHome();renderStats();
         closeModal('statsModal');
-        setTimeout(()=>checkRankingAchievements(),500);
+        // 랭킹 1위 업적은 다음날 접속 시 checkYesterdayRankAchievements에서 확인
       }
     }catch(e){
       console.warn('Firebase write failed',e);
