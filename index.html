@@ -142,7 +142,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .btn-o{background:transparent;border:1.5px solid var(--primary);color:var(--primary)}.btn-o:hover{background:var(--primary-light)}
 
 /* ── GAME ── */
-#gameScreen{display:none}
+#gameScreen{display:none;-webkit-overflow-scrolling:touch}
 #gameScreen.active{display:block}
 .game-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .back-btn{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:700;color:var(--lose);background:none;border:1.5px solid var(--lose);cursor:pointer;padding:8px 14px;border-radius:8px;transition:all .15s;font-family:inherit}
@@ -2225,6 +2225,15 @@ function beginRoomGame(){
   document.getElementById('homeScreen').classList.add('hidden');
   const gs=document.getElementById('gameScreen');
   gs.style.display='';gs.classList.add('active');
+  // WebView 강제 리페인트 (카카오 인앱브라우저 렌더링 버그 대응)
+  void gs.offsetHeight;
+  requestAnimationFrame(()=>{
+    gs.style.transform='translateZ(0)';
+    requestAnimationFrame(()=>{
+      gs.style.transform='';
+      window.scrollTo(0,0);
+    });
+  });
   // 포커스
   setTimeout(()=>{if(ni)ni.focus();},150);
 }
