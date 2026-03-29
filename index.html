@@ -613,7 +613,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       </div>
     </div>
   </div>
-  <div id="roomGameScreen" style="display:none">
+  <div id="roomGameScreen" style="display:none;background:var(--bg,#fff)">
     <div class="game-hdr">
       <div class="game-hdr-btns" style="display:flex;align-items:center;gap:8px;flex:1;margin-right:12px">
         <div style="font-size:12px;color:var(--muted);font-weight:700" id="roomGameInfo"></div>
@@ -629,7 +629,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <div class="score-prev-lbl">시도 횟수</div>
           <div class="score-prev-val" id="roomAttemptsEl">0</div>
         </div>
-        <input class="num-input" type="text" inputmode="numeric" id="roomNumberInput" placeholder="..." autocomplete="off">
+        <input class="num-input" type="text" inputmode="numeric" id="roomNumberInput" placeholder="..." autocomplete="off" style="color:var(--text,#111);-webkit-text-fill-color:var(--text,#111)">
         <div id="roomInputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:4px;opacity:0;transition:opacity .2s"></div>
         <div class="act-btns" style="grid-template-columns:1fr">
           <button class="btn-p" onclick="handleRoomGuess()" id="roomConfirmBtn">확인</button>
@@ -2245,7 +2245,14 @@ function beginRoomGame(){
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('gameScreen').style.display='none';
   document.getElementById('roomGameScreen').style.display='block';
-  setTimeout(()=>document.getElementById('roomNumberInput')?.focus(),300);
+  const _inp=document.getElementById('roomNumberInput');
+  if(_inp){
+    setTimeout(()=>{
+      _inp.focus();
+      // 모바일 인앱브라우저 대비 추가 시도
+      _inp.click();
+    },400);
+  }
 }
 
 function startRoomTimer(){
@@ -2872,6 +2879,17 @@ document.getElementById('numberInput').addEventListener('input',e=>{
   else if(hadDup)showInputMsg(t('dupInputAlert'));
 });
 document.getElementById('numberInput').addEventListener('keypress',e=>{if(e.key==='Enter')handleGuess()});
+document.getElementById('roomNumberInput').addEventListener('input',e=>{
+  const raw=e.target.value;
+  let clean='';
+  for(let i=0;i<raw.length;i++){
+    const c=raw[i];
+    if(!/[1-9]/.test(c))continue;
+    if(clean.includes(c))continue;
+    clean+=c;
+  }
+  e.target.value=clean.slice(0,_roomLevel||5);
+});
 document.getElementById('roomNumberInput').addEventListener('keypress',e=>{if(e.key==='Enter')handleRoomGuess()});
 // 모바일: 키보드 올라올 때 마지막 시도 포함해서 보이게
 document.getElementById('numberInput').addEventListener('focus',()=>{
