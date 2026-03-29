@@ -1442,9 +1442,8 @@ async function init(){
       const b=document.getElementById('kakaoGuideBtn');
       if(t)t.textContent=ko?'외부 브라우저로 열어주세요':'Open in External Browser';
       if(d)d.innerHTML=ko
-        ?'카카오톡에서는 게임이 불안정해요<br><br>지금 바로, 화면 오른쪽 아래 <span style="display:inline-flex;align-items:center;justify-content:center;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;padding:1px 9px;font-weight:900;font-size:16px;color:var(--text);margin:0 3px;vertical-align:middle">⋮</span> 버튼을 누르고<br><strong style="color:var(--primary)">다른 브라우저로 열기</strong>를 선택해주세요'
-        :'The game may be unstable in KakaoTalk.<br><br>Tap <strong>⋮</strong> at the bottom right<br>and select <strong>Open in browser</strong>.';
-      if(b)b.textContent=ko?'확인했습니다':'Got it';
+        ?'카카오톡에서는 게임이 불안정해요<br><br>지금 바로<br>화면 오른쪽 아래 → <span style="display:inline-flex;align-items:center;justify-content:center;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;padding:1px 9px;font-weight:900;font-size:16px;color:var(--text);margin:0 4px;vertical-align:middle">⋮</span> 버튼을 누르고<br><strong style="color:var(--primary)">다른 브라우저로 열기</strong>를 선택해주세요'
+        :'The game may be unstable in KakaoTalk.<br><br>Tap ⋮ at the bottom right<br>and select <strong style="color:var(--primary)">Open in browser</strong>.';
       setTimeout(()=>{
         const m=document.getElementById('kakaoGuideModal');
         if(m)m.style.display='flex';
