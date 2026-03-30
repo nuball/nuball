@@ -1069,23 +1069,25 @@ async function mkUid(){
   const uid=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,16);
   localStorage.setItem(k,uid);return uid;
 }
-function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
-function getDayId(){return todayStr()}
+// KST 기준 날짜 헬퍼 (UTC+9 고정)
+function nowKST(){return new Date(Date.now()+9*3600000);}
+function todayStr(){const d=nowKST();return d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate();}
+function getDayId(){return todayStr();}
 function getWeekId(){
-  const d=new Date();
-  const day=d.getDay()||7; // 일=7
-  d.setDate(d.getDate()-day+1); // 이번주 월요일
-  return 'W'+d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+  const d=nowKST();
+  const day=d.getUTCDay()||7; // 일=7
+  d.setUTCDate(d.getUTCDate()-day+1); // 이번주 월요일(KST)
+  return 'W'+d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate();
 }
 function getMonthId(){
-  const d=new Date();
-  return 'M'+d.getFullYear()+'-'+(d.getMonth()+1);
+  const d=nowKST();
+  return 'M'+d.getUTCFullYear()+'-'+(d.getUTCMonth()+1);
 }
 function getNextMonday(){
-  const d=new Date();
-  const day=d.getDay()||7;
-  d.setDate(d.getDate()+(8-day));
-  d.setHours(0,0,0,0);
+  const d=nowKST();
+  const day=d.getUTCDay()||7;
+  d.setUTCDate(d.getUTCDate()+(8-day));
+  d.setUTCHours(0,0,0,0); // KST 자정 = UTC 전날 15시
   return d;
 }
 function timeUntilNextMonday(){
@@ -1095,16 +1097,20 @@ function timeUntilNextMonday(){
   return h+'h '+m+'m';
 }
 function timeUntilNextMonth(){
-  const d=new Date();
-  const next=new Date(d.getFullYear(),d.getMonth()+1,1);
-  const diff=next-d;
+  const d=nowKST();
+  const next=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1)-9*3600000);
+  const diff=next-new Date();
   const days=Math.floor(diff/86400000);
   const h=Math.floor((diff%86400000)/3600000);
   return days+'d '+h+'h';
 }
 function timeUntilMidnight(){
-  const now=new Date(),nm=new Date(now);nm.setHours(24,0,0,0);
-  const diff=nm-now,h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+  // KST 자정까지 남은 시간
+  const now=Date.now();
+  const kstNow=now+9*3600000;
+  const kstMidnight=Math.ceil(kstNow/86400000)*86400000;
+  const diff=kstMidnight-kstNow;
+  const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
   return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
 }
 function genTarget(uid,dateStr,level,idx){
@@ -2683,8 +2689,8 @@ async function renderRankList(){
   if(ydEl)ydEl.style.display=(_rankPeriod==='daily'&&ydEl.innerHTML)?'block':'none';
 
   // 어제 1등 조회 (일간 탭에서만)
-  const ydObj=new Date();ydObj.setDate(ydObj.getDate()-1);
-  const ydStr=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
+  const ydObj=nowKST();ydObj.setUTCDate(ydObj.getUTCDate()-1);
+  const ydStr=ydObj.getUTCFullYear()+'-'+(ydObj.getUTCMonth()+1)+'-'+ydObj.getUTCDate();
   if(ydEl&&window._fbReady&&_rankPeriod==='daily'){
     try{
       const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(10));
