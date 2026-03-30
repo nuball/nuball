@@ -1981,9 +1981,9 @@ async function checkYesterdayRankAchievements(){
   // 오늘 이미 체크했으면 스킵
   const checkedKey='nb_rank_ach_checked';
   if(localStorage.getItem(checkedKey)===S.today)return;
-  // 어제 날짜 계산
-  const yd=new Date();yd.setDate(yd.getDate()-1);
-  const ydStr=yd.getFullYear()+'-'+(yd.getMonth()+1)+'-'+yd.getDate();
+  // 어제 날짜 계산 (KST 기준)
+  const yd=nowKST();yd.setUTCDate(yd.getUTCDate()-1);
+  const ydStr=yd.getUTCFullYear()+'-'+(yd.getUTCMonth()+1)+'-'+yd.getUTCDate();
   try{
     const dayRef=window._fbRef(window._fbDb,'rankings/'+ydStr);
     const snap=await window._fbGet(dayRef);
@@ -2223,6 +2223,8 @@ async function startRoomFromUrl(code){
     if(!ok)return;
     // 포기 처리
     S.game=null;
+    localStorage.removeItem('nb_inprog');
+    saveDaily();
   }
   try{
     const snap=await window._fbGet(window._fbRef(window._fbDb,'rooms/'+code));
@@ -2546,9 +2548,7 @@ async function registerFromStats(){
   }
   localStorage.setItem('nb_nick',nick);
   const country=document.getElementById('statsCountrySelect').value;
-  // 메인 nickInput과 countrySelect 동기화 (regCard 제거로 불필요)
   // 등록 진행
-  const origBtn=document.getElementById('regBtn');
   statsBtn.disabled=true;
   statsBtn.textContent=ko?'등록 중...':'Saving...';
   const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
@@ -2616,7 +2616,9 @@ async function registerFromStats(){
     }catch(e){
       console.warn('Firebase write failed',e);
       alert(ko?'랭킹에 등록됐지만 서버 동기화에 실패했어요.\n잠시 후 다시 시도해 주세요.':'Registered locally, but server sync failed.');
-      S.registered=false;saveDaily();
+      S.registered=false;
+      S.rankings=S.rankings.filter(r=>r.id!==S.uid);
+      saveDaily();saveRankings();
       statsBtn.disabled=false;statsBtn.textContent=ko?'랭킹 등록하기':'Register Ranking';
       statsBtn.onclick=registerFromStats;
     }
@@ -2633,14 +2635,18 @@ async function registerFromStats(){
           if(statsMbody2){statsMbody2.innerHTML='<div style="text-align:center;padding:40px 20px;font-size:18px;font-weight:800">✅ '+(ko3?'랭킹 등록 완료!':'Ranking Registered!')+'</div>';setTimeout(()=>{closeModal('statsModal');renderHome();renderStats();},1500);}else{renderHome();renderStats();closeModal('statsModal');}
         }catch(e){
           alert(ko?'서버 연결에 실패했습니다.':'Server connection failed.');
-          S.registered=false;saveDaily();
+          S.registered=false;
+          S.rankings=S.rankings.filter(r=>r.id!==S.uid);
+          saveDaily();saveRankings();
           statsBtn.disabled=false;statsBtn.textContent=ko?'랭킹 등록하기':'Register Ranking';
           statsBtn.onclick=registerFromStats;
         }
       }else if(waited>=5000){
         clearInterval(retry);
         alert(ko?'서버에 연결할 수 없어요.':'Cannot connect to server.');
-        S.registered=false;saveDaily();
+        S.registered=false;
+        S.rankings=S.rankings.filter(r=>r.id!==S.uid);
+        saveDaily();saveRankings();
         statsBtn.disabled=false;statsBtn.textContent=ko?'랭킹 등록하기':'Register Ranking';
         statsBtn.onclick=registerFromStats;
       }
@@ -2731,14 +2737,14 @@ async function renderRankList(){
   if(window._fbReady){
     try{
       if(_rankPeriod==='weekly'){
-        // 이번주 월~오늘 날짜 목록 생성
-        const today=new Date();
-        const dow=today.getDay()||7;
+        // 이번주 월~오늘 날짜 목록 생성 (KST 기준)
+        const today=nowKST();
+        const dow=today.getUTCDay()||7;
         const dateStrs=[];
         for(let i=1;i<=dow;i++){
-          const d=new Date(today);
-          d.setDate(today.getDate()-(dow-i));
-          dateStrs.push(d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate());
+          const d=nowKST();
+          d.setUTCDate(today.getUTCDate()-(dow-i));
+          dateStrs.push(d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate());
         }
         // 모든 날짜 병렬 조회
         const snaps=await Promise.all(
