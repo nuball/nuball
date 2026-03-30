@@ -1446,26 +1446,25 @@ async function init(){
   // 어제 랭킹 1위 업적 체크 (다음날 접속 시)
   setTimeout(()=>checkYesterdayRankAchievements(),2000);
   initNotifState();
+  // 카카오 인앱 브라우저 감지 → 외부 브라우저 유도 모달 (room 파라미터 무관하게 항상)
+  if(/KAKAOTALK/i.test(navigator.userAgent)){
+    const ko=S.lang==='ko';
+    const t=document.getElementById('kakaoGuideTitle');
+    const d=document.getElementById('kakaoGuideDesc');
+    if(t)t.textContent=ko?'외부 브라우저로 열어주세요':'Open in External Browser';
+    if(d)d.innerHTML=ko
+      ?'카카오톡에서는 게임이 불안정해요<br><br>화면 오른쪽 아래 → <span style="display:inline-flex;align-items:center;justify-content:center;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;padding:1px 9px;font-weight:900;font-size:16px;color:var(--text);margin:0 4px;vertical-align:middle">⋮</span> 버튼을 누르고<br><strong style="color:var(--primary)">다른 브라우저로 열기</strong>를 선택해주세요'
+      :'The game may be unstable in KakaoTalk.<br><br>Tap ⋮ at the bottom right<br>and select <strong style="color:var(--primary)">Open in browser</strong>.';
+    setTimeout(()=>{
+      const m=document.getElementById('kakaoGuideModal');
+      if(m)m.style.display='flex';
+    },500);
+  }
   // room 파라미터 있으면 homeScreen 숨기고 바로 게임 진입
   if(new URLSearchParams(location.search).get('room')){
     const _hss=document.getElementById('homeScreen');
     _hss.style.display='none';
     _hss.classList.add('hidden');
-    // 카카오 인앱 브라우저 감지 → 외부 브라우저 유도 모달
-    if(/KAKAOTALK/i.test(navigator.userAgent)){
-      const ko=S.lang==='ko';
-      const t=document.getElementById('kakaoGuideTitle');
-      const d=document.getElementById('kakaoGuideDesc');
-      const b=document.getElementById('kakaoGuideBtn');
-      if(t)t.textContent=ko?'외부 브라우저로 열어주세요':'Open in External Browser';
-      if(d)d.innerHTML=ko
-        ?'카카오톡에서는 게임이 불안정해요<br><br>화면 오른쪽 아래 → <span style="display:inline-flex;align-items:center;justify-content:center;background:var(--bg2);border:1.5px solid var(--border);border-radius:6px;padding:1px 9px;font-weight:900;font-size:16px;color:var(--text);margin:0 4px;vertical-align:middle">⋮</span> 버튼을 누르고<br><strong style="color:var(--primary)">다른 브라우저로 열기</strong>를 선택해주세요'
-        :'The game may be unstable in KakaoTalk.<br><br>Tap ⋮ at the bottom right<br>and select <strong style="color:var(--primary)">Open in browser</strong>.';
-      setTimeout(()=>{
-        const m=document.getElementById('kakaoGuideModal');
-        if(m)m.style.display='flex';
-      },500);
-    }
   }
   checkRoomUrl();
   // 도메인 이전 공지 (nuball.vercel.app에서만)
