@@ -526,7 +526,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
             <div class="tut-step-title" id="tut3Title">보내기 힌트 — Strike / Ball</div>
             <div class="tut-step-desc" id="tut3Desc" style="margin-bottom:8px">투구된 숫자가 정답과 얼마나 맞는지 알려줍니다</div>
             <div class="tut-example-row">
-              <div class="tut-ex-label">정답</div>
+              <div id="tut3ExAnswer" class="tut-ex-label">정답</div>
               <div class="tut-digits-wrap">
                 <div class="tut-digit tut-answer">3</div>
                 <div class="tut-digit tut-answer">8</div>
@@ -534,7 +534,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
               </div>
             </div>
             <div class="tut-example-row">
-              <div class="tut-ex-label">투구</div>
+              <div id="tut3ExPitch" class="tut-ex-label">투구</div>
               <div class="tut-digits-wrap">
                 <div class="tut-digit tut-out">1</div>
                 <div class="tut-digit tut-strike">8</div>
@@ -774,7 +774,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <!-- 8. 통계 모달 -->
 <div class="ov" id="statsModal">
   <div class="mbox">
-    <div class="mhdr"><span class="mtitle" data-i18n="statsTitle">통계</span><button class="mclose" onclick="closeModal('statsModal')">✕</button></div>
+    <div class="mhdr"><span class="mtitle" data-i18n="statsTitle">통계·공유</span><button class="mclose" onclick="closeModal('statsModal')">✕</button></div>
     <div class="mbody">
 
       <!-- 개인 최고 기록 -->
@@ -823,7 +823,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <p style="font-size:14px;color:var(--muted);margin-bottom:14px" data-i18n="supportDesc">누볼을 즐기고 계신가요? 개발자에게 커피 한 잔 보내주세요!</p>
       <!-- 광고보기 -->
       <button style="width:100%;padding:14px;background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text);margin-bottom:4px" onclick="watchAd()" data-i18n="watchAd">📺 광고 보기</button>
-      <p style="font-size:11px;color:var(--subtle);text-align:center;margin-bottom:12px" data-i18n="adNote">광고 시청 시 하루 1회 기회 초기화 가능</p>
+      <p style="font-size:11px;color:var(--subtle);text-align:center;margin-bottom:12px" data-i18n="adNote">광고 시청 시 비디오판독 1회 추가 (하루 1회)</p>
       <!-- 카카오페이 QR -->
       <button class="pay-btn kakao-btn" onclick="openKakaoQR()" data-i18n="kakaoQrBtn">💳 카카오페이 [QR코드]</button>
       <!-- 카카오페이 모바일 (PC에서는 경고) -->
@@ -2119,11 +2119,14 @@ function renderHome(){
   // 투구 1회 이상이면 레벨 변경 불가
   const gameInProgress = S.game && (_hPitchCount > 0);
   document.getElementById('lvlCards').innerHTML=lvls.map(lv=>{
-    const disabled = S.consumed>=3 || gameInProgress;
-    // 게임 진행 중일 때 현재 레벨 하이라이트
+    const isLocked = lv.n > 3; // LV2, LV3 잠금
+    const disabled = S.consumed>=3 || gameInProgress || isLocked;
     const isCurrent = S.game && S.game.level===lv.n;
-    return '<button class="lvl-card'+(isCurrent?' lvl-current':'')+'" onclick="selectLevel('+lv.n+')"'+(disabled&&!isCurrent?' disabled':'')+'>'+
-      '<div><div class="lvl-tag">'+lv.tag+'</div><div class="lvl-title">'+t(lv.tKey)+'</div>'+
+    const lockedBadge = isLocked
+      ? '<span style="font-size:9px;font-weight:800;color:var(--muted);background:var(--border);border-radius:4px;padding:2px 7px;margin-left:6px">'+(ko?'준비 중':'Coming Soon')+'</span>'
+      : '';
+    return '<button class="lvl-card'+(isCurrent?' lvl-current':'')+'" onclick="'+(isLocked?'void(0)':'selectLevel('+lv.n+')')+'"'+(disabled?' disabled':'')+' style="'+(isLocked?'opacity:0.45;cursor:not-allowed':'')+'" >'+
+      '<div><div class="lvl-tag">'+lv.tag+lockedBadge+'</div><div class="lvl-title">'+t(lv.tKey)+'</div>'+
       '<div style="font-size:11px;color:var(--muted);margin-top:3px;font-weight:600">'+lv.tagline+'</div></div>'+
       '<div class="lvl-pts"><div style="font-size:11px;font-weight:700;letter-spacing:.5px">'+maxLbl+'</div><span class="lvl-pts-num">'+lv.pts+'<span style="font-family:inherit;font-size:15px;font-weight:900;letter-spacing:0">'+t('ptsUnit')+'</span></span></div>'+
       '</button>';
@@ -3528,38 +3531,39 @@ function applyTutorialLang(){
   const ko=S.lang==='ko';
   const el=id=>document.getElementById(id);
   if(!el('tutTitle'))return;
-  el('tutTitle').textContent=ko?'⚾ 처음이세요? 이렇게 하면 돼요!':'⚾ First time? Here\'s how it works!';
+  el('tutTitle').textContent=ko?'⚾ 처음이세요? 이렇게 플레이해요!':'⚾ First time? Here\'s how to play!';
   const set=(id,v)=>{const e=el(id);if(e)e.textContent=v;};
-  set('tut1Title',ko?'오늘의 숫자를 맞추는 야구 히팅 게임':'Baseball hitting: guess today\'s number');
-  set('tut1Desc',ko?'1~9 사이 중복 없는 숫자 (레벨에 따라 3·4·5자리)':'Unique digits 1–9, 3/4/5 digits by level');
+  set('tut1Title',ko?'숨겨진 숫자를 맞혀요':'Guess the hidden number');
+  set('tut1Desc',ko?'1~9 중복 없는 숫자. 매일 새로운 문제!':'No repeats, digits 1–9. New puzzle every day!');
   set('tut1ArrowLbl',ko?'← 오늘의 정답':'← Today\'s answer');
+  set('tut2Title',ko?'보내기 or 스윙':'Take or Swing');
+  set('tut2Desc',ko?'투구마다 둘 중 하나를 선택해요':'Choose one action every pitch');
   set('tut2TakeLabel',ko?'보내기':'Take');
   const si=(id,v)=>{const e=el(id);if(e)e.innerHTML=v;};
-  si('tut2TakeDesc',ko?'투구를 흘려보내며<br>S/B 힌트를 받습니다':'Watch the pitch<br>to get S/B hints');
+  si('tut2TakeDesc',ko?'공을 흘려보내고<br>힌트를 받아요':'Watch the pitch<br>and get hints');
   set('tut2SwingLabel',ko?'스윙':'Swing');
-  si('tut2SwingDesc',ko?'숫자를 직접 입력해<br>정답을 맞춥니다':'Enter the number<br>to guess the answer');
-  set('tut2Title',ko?'매 투구마다 선택하세요':'Choose every pitch');
-  set('tut2Desc',ko?'보내기로 힌트를 모으고, 확신이 생기면 스윙!':'Collect hints by taking pitches, then swing when ready!');
-  set('tut3Title',ko?'보내기 힌트 — Strike / Ball':'Pitch hints — Strike / Ball');
-  set('tut3Desc',ko?'투구된 숫자가 정답과 얼마나 맞는지 알려줍니다':'Shows how close the pitch is to the answer');
-  set('tut4Title',ko?'카운트 누적 — 삼진 or 볼넷':'Count — Strikeout or Walk');
-  set('tut4Desc',ko?'보내기 결과로 카운트가 쌓입니다':'Counts accumulate from taking pitches');
-  set('tut5Title',ko?'스윙 — 정답 입력':'Swing — Enter your guess');
-  set('tut5Desc',ko?'힌트를 바탕으로 정답 숫자를 직접 입력합니다':'Enter the answer directly based on hints');
-  // 하드코딩 hint 요소들
-  set('tut2Hint',ko?'💡 보내기는 점수 차감 없음! S/B 힌트를 충분히 모은 뒤 스윙하세요.':'💡 Taking costs no score! Collect enough S/B hints before swinging.');
+  si('tut2SwingDesc',ko?'숫자를 직접 입력해<br>정답을 맞춰요':'Enter a number<br>to guess the answer');
+  set('tut2Hint',ko?'💡 보내기는 점수 차감 없어요. 힌트를 모은 뒤 스윙하세요!':'💡 Taking is free. Collect hints, then swing!');
+  set('tut3Title',ko?'힌트: Strike / Ball':'Hints: Strike / Ball');
+  set('tut3Desc',ko?'투구가 정답과 얼마나 가까운지 알려줘요':'Shows how close the pitch is to the answer');
   const s3=(id,v)=>{const e=el(id);if(e)e.innerHTML=v;};
-  s3('tut3HintS',ko?'⬤ Strike: 숫자와 자리가 모두 정확 (8이 2번째에 그대로 → 1S)':'⬤ Strike: correct number AND position (8 in 2nd slot → 1S)');
-  set('tut3HintB',ko?'⬤ Ball: 정답에 있지만 자리가 다름':'⬤ Ball: correct number, wrong position');
-  set('tut4StrikeDesc',ko?'삼진 아웃 → 실패':'Strikeout → Fail');
-  set('tut4BallDesc',ko?'볼넷 → 기회 소모 없음!':'Walk → No chance used!');
-  set('tut5WinLabel',ko?'✅ 정답 맞춤':'✅ Correct!');
-  set('tut5WinDesc',ko?'홈런 / 안타!':'Home Run / Hit!');
+  s3('tut3HintS',ko?'⬤ Strike: 숫자·자리 모두 일치 (8이 2번째 → 1S)':'⬤ Strike: right number AND position (8 in slot 2 → 1S)');
+  set('tut3ExAnswer',ko?'정답':'Answer');
+  set('tut3ExPitch',ko?'투구':'Pitch');
+  set('tut3HintB',ko?'⬤ Ball: 숫자는 있지만 자리가 달라요':'⬤ Ball: right number, wrong position');
+  set('tut4Title',ko?'볼카운트 — 삼진 or 볼넷':'Count — Strikeout or Walk');
+  set('tut4Desc',ko?'보내기 결과로 S·B 카운트가 쌓여요':'Taking pitches builds up your S·B count');
+  set('tut4StrikeDesc',ko?'스트라이크 3개 → 아웃':'3 Strikes → Out');
+  set('tut4BallDesc',ko?'볼 4개 → 기회 소모 없이 통과!':'4 Balls → Pass, no chance lost!');
+  set('tut5Title',ko?'스윙 결과':'Swing Results');
+  set('tut5Desc',ko?'스윙하면 이 중 하나가 나와요':'One of these happens when you swing');
+  set('tut5WinLabel',ko?'✅ 정답!':'✅ Correct!');
+  set('tut5WinDesc',ko?'홈런 / 안타':'Home Run / Hit');
   set('tut5LoseLabel',ko?'❌ 오답':'❌ Wrong');
   set('tut5LoseDesc',ko?'헛스윙 / 파울 / 범타':'Miss / Foul / Flyout');
   set('tut6Title',ko?'점수 & 랭킹':'Score & Ranking');
-  s3('tut6Hint1',ko?'시작 점수 1,000점 — 보내기는 점수 차감 없음<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패!':'Start: 1,000 pts — Takes cost no score<br>HR/Hit/Walk = Win, Strikeout/Flyout = Fail!');
-  set('tut6Hint2',ko?'LV1(3자리) · LV2(4자리) · LV3(5자리) — 3게임 합산 점수로 일간 랭킹 도전!':'LV1 (3-digit) · LV2 (4-digit) · LV3 (5-digit) — Total score from 3 games ranks daily!');
+  s3('tut6Hint1',ko?'시작 점수 1,000점 — 보내기는 공짜!<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패':'Start at 1,000 pts — Takes are free!<br>HR / Hit / Walk = Win · Strikeout / Flyout = Fail');
+  set('tut6Hint2',ko?'하루 3게임, 게임별 점수로 일간 랭킹 도전!':'3 games per day — each game score enters the daily ranking!');
 }
 
 function buildHelpModal(ko){
@@ -3939,5 +3943,10 @@ async function registerHittingRanking(nick,country){
 
 init();
 </script>
+<!-- 푸터 저작권 -->
+<div style="text-align:center;padding:20px 16px 32px;font-size:11px;color:var(--subtle);font-weight:600;border-top:1px solid var(--border);margin-top:12px">
+  © 2025 NUBALL · nuball.app · All rights reserved
+</div>
+
 </body>
 </html>
