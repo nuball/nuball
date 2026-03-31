@@ -111,9 +111,10 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .slot{border:1.5px solid var(--border);border-radius:var(--r);padding:14px 8px;text-align:center;transition:all .2s;background:var(--card)}
 .slot-lbl{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--subtle);margin-bottom:6px}
 .slot-val{font-size:18px;font-weight:900;color:var(--subtle);font-family:'DM Mono',monospace}
-.slot.win{border-color:var(--win);background:var(--primary-light)}.slot.win .slot-val{color:var(--win)}
-.slot.lose{border-color:var(--lose);background:color-mix(in srgb,var(--lose) 6%,var(--card))}.slot.lose .slot-val{color:var(--lose)}
+.slot.win{border-color:var(--primary);background:var(--primary-light)}.slot.win .slot-val{color:var(--primary)}
+.slot.lose{border-color:var(--primary);background:var(--primary-light)}.slot.lose .slot-val{color:var(--primary)}
 .slot.next{border-color:var(--primary);background:var(--primary-light)}.slot.next .slot-val{color:var(--primary)}
+.slot.inactive{opacity:0.32;filter:grayscale(0.2)}
 
 /* ── LEVEL CARDS ── */
 .lvl-cards{display:flex;flex-direction:column;gap:8px}
@@ -140,6 +141,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .btn-p{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:background .15s,transform .1s;margin-top:4px}
 .btn-p:hover{background:var(--primary-h)}.btn-p:active{transform:scale(.99)}.btn-p:disabled{opacity:.5;cursor:not-allowed}
 .btn-o{background:transparent;border:1.5px solid var(--primary);color:var(--primary)}.btn-o:hover{background:var(--primary-light)}
+@media(hover:none){.btn-o:hover{background:transparent}}
 
 /* ── GAME ── */
 #gameScreen{display:none}
@@ -217,7 +219,8 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 
 /* ── RESULT ── */
 .result-full{position:fixed;inset:0;background:var(--primary);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;opacity:0;pointer-events:none;transition:opacity .3s}
-.result-full.open{opacity:1;pointer-events:all}.result-full.lose-r{background:var(--lose)}
+.result-full.open{opacity:1;pointer-events:all}.result-full.lose-r{background:var(--lose)}.result-full.win-r{background:var(--win)}
+.lose-r .btn-white{color:var(--lose)}.win-r .btn-white{color:var(--win)}
 .r-icon{font-size:54px;margin-bottom:14px;display:block}
 .r-ans-lbl{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:6px}
 .r-ans{font-size:52px;font-weight:900;color:#fff;letter-spacing:.2em;margin-bottom:12px;font-family:'DM Mono',monospace}
@@ -225,7 +228,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .r-score{font-size:36px;font-weight:900;color:#fff;margin-bottom:6px;font-family:'DM Mono',monospace}
 .r-att{font-size:13px;color:rgba(255,255,255,.65);font-weight:600;margin-bottom:32px}
 .btn-white{width:100%;max-width:260px;padding:14px;background:#fff;color:var(--primary);border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .1s}
-.btn-white:active{transform:scale(.99)}.lose-r .btn-white{color:var(--lose)}
+.btn-white:active{transform:scale(.99)}
 
 /* ── FORFEIT ── */
 .fconfirm p{font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.7}
@@ -369,9 +372,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 .tut-divider{height:1px;background:var(--border);margin:16px 0}
 @keyframes winPop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
 @keyframes achSlide{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-@keyframes ballFly{0%{transform:translateX(-140%);opacity:1}75%{opacity:1}100%{transform:translateX(140%);opacity:0}}
-#ballAnim{visibility:hidden}
-#ballAnim.ball-flying{visibility:visible;animation:ballFly .7s ease-out forwards}
+
 .tut-win-anim{animation:winPop .45s ease forwards}
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
@@ -471,36 +472,55 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <span class="tut-arrow" id="tutArrow">▾</span>
       </div>
       <div class="tut-body" id="tutBody">
-        <!-- 누볼 이름 설명 -->
-        <div id="tutNameDesc" style="background:var(--primary-light);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.6;color:var(--text)">
-        </div>
+        <div id="tutNameDesc" style="background:var(--primary-light);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.6;color:var(--text)"></div>
 
-        <!-- STEP 1 -->
+        <!-- STEP 1: 목표 -->
         <div class="tut-step">
           <div class="tut-step-num">1</div>
           <div class="tut-step-content">
-            <div class="tut-step-title" id="tut1Title">중복 없는 숫자를 입력하세요</div>
-            <div class="tut-step-desc" id="tut1Desc">1~9 사이 숫자, 0은 없어요</div>
-            <div class="tut-digits-wrap">
-              <div class="tut-digit tut-input">4</div>
-              <div class="tut-digit tut-input">7</div>
-              <div class="tut-digit tut-input">2</div>
-              <div class="tut-arrow-right">→</div>
-              <div class="tut-badge-confirm" id="tutConfirmBtn">확인</div>
+            <div class="tut-step-title" id="tut1Title">오늘의 숫자를 맞추는 야구 히팅 게임</div>
+            <div class="tut-step-desc" id="tut1Desc">1~9 사이 중복 없는 숫자 (레벨에 따라 3·4·5자리). 매일 초기화!</div>
+            <div class="tut-digits-wrap" style="margin-top:6px">
+              <div class="tut-digit tut-answer">?</div>
+              <div class="tut-digit tut-answer">?</div>
+              <div class="tut-digit tut-answer">?</div>
+              <div style="font-size:11px;color:var(--muted);font-weight:700;margin-left:6px">← 오늘의 정답</div>
             </div>
           </div>
         </div>
 
         <div class="tut-divider"></div>
 
-        <!-- STEP 2 — Strike -->
+        <!-- STEP 2: 보내기 vs 스윙 -->
         <div class="tut-step">
           <div class="tut-step-num">2</div>
           <div class="tut-step-content">
-            <div class="tut-step-title" style="color:var(--strike)" id="tut2Title">⬤ Strike — 숫자도, 자리도 정확!</div>
-            <div class="tut-step-desc" id="tut2Desc">숫자와 위치가 모두 맞으면 Strike</div>
+            <div class="tut-step-title" id="tut2Title">매 투구마다 선택하세요</div>
+            <div class="tut-step-desc" id="tut2Desc" style="margin-bottom:8px">보내기로 힌트를 모으고, 확신이 생기면 스윙!</div>
+            <div style="display:flex;gap:8px;margin-bottom:6px">
+              <div style="flex:1;background:var(--bg2);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.6;border:1.5px solid var(--border)">
+                <div style="color:var(--ball);margin-bottom:2px">👁 보내기</div>
+                <div style="color:var(--muted);font-weight:600">투구를 흘려보내며<br>S/B 힌트를 받습니다</div>
+              </div>
+              <div style="flex:1;background:var(--bg2);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.6;border:1.5px solid var(--primary)">
+                <div style="color:var(--primary);margin-bottom:2px">🏏 스윙</div>
+                <div style="color:var(--muted);font-weight:600">숫자를 직접 입력해<br>정답을 맞춥니다</div>
+              </div>
+            </div>
+            <div class="tut-hint">💡 보내기를 많이 할수록 점수가 깎입니다. 최대한 빠르게 맞추세요!</div>
+          </div>
+        </div>
+
+        <div class="tut-divider"></div>
+
+        <!-- STEP 3: S/B 힌트 -->
+        <div class="tut-step">
+          <div class="tut-step-num">3</div>
+          <div class="tut-step-content">
+            <div class="tut-step-title" id="tut3Title">보내기 힌트 — Strike / Ball</div>
+            <div class="tut-step-desc" id="tut3Desc" style="margin-bottom:8px">투구된 숫자가 정답과 얼마나 맞는지 알려줍니다</div>
             <div class="tut-example-row">
-              <div class="tut-ex-label" id="tutAnswerLabel">정답</div>
+              <div class="tut-ex-label">정답</div>
               <div class="tut-digits-wrap">
                 <div class="tut-digit tut-answer">3</div>
                 <div class="tut-digit tut-answer">8</div>
@@ -508,7 +528,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
               </div>
             </div>
             <div class="tut-example-row">
-              <div class="tut-ex-label" id="tutGuessLabel">입력</div>
+              <div class="tut-ex-label">투구</div>
               <div class="tut-digits-wrap">
                 <div class="tut-digit tut-out">1</div>
                 <div class="tut-digit tut-strike">8</div>
@@ -519,69 +539,62 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
                 <span class="badge b-b">B 0</span>
               </div>
             </div>
-            <div class="tut-hint" id="tut2Hint">8이 두 번째 자리에 그대로 → 1 Strike!</div>
+            <div class="tut-hint" style="color:var(--strike)">⬤ Strike: 숫자와 자리가 모두 정확 (8이 2번째에 그대로 → 1S)</div>
+            <div class="tut-hint" style="margin-top:6px;color:var(--ball)">⬤ Ball: 정답에 있지만 자리가 다름</div>
           </div>
         </div>
 
         <div class="tut-divider"></div>
 
-        <!-- STEP 3 — Ball -->
+        <!-- STEP 4: 카운트 -->
         <div class="tut-step">
-          <div class="tut-step-num">3</div>
+          <div class="tut-step-num">4</div>
           <div class="tut-step-content">
-            <div class="tut-step-title" style="color:var(--ball)" id="tut3Title">⬤ Ball — 숫자는 맞는데, 자리가 달라요</div>
-            <div class="tut-step-desc" id="tut3Desc">숫자는 정답에 있지만 위치가 다르면 Ball</div>
-            <div class="tut-example-row">
-              <div class="tut-ex-label" id="tutAnswerLabel2">정답</div>
-              <div class="tut-digits-wrap">
-                <div class="tut-digit tut-answer">3</div>
-                <div class="tut-digit tut-answer">8</div>
-                <div class="tut-digit tut-answer">5</div>
+            <div class="tut-step-title" id="tut4Title">카운트 누적 — 삼진 or 볼넷</div>
+            <div class="tut-step-desc" id="tut4Desc" style="margin-bottom:8px">보내기 결과로 카운트가 쌓입니다</div>
+            <div style="display:flex;gap:8px;margin-bottom:6px">
+              <div style="flex:1;background:var(--strike-bg);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.7;text-align:center">
+                <div style="color:var(--strike)">⚡ 3 Strike</div>
+                <div style="color:var(--muted);font-weight:600">삼진 아웃 → 실패</div>
+              </div>
+              <div style="flex:1;background:var(--ball-bg);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.7;text-align:center">
+                <div style="color:var(--ball)">🎯 4 Ball</div>
+                <div style="color:var(--muted);font-weight:600">볼넷 → 성공 + 보너스!</div>
               </div>
             </div>
-            <div class="tut-example-row">
-              <div class="tut-ex-label" id="tutGuessLabel2">입력</div>
-              <div class="tut-digits-wrap">
-                <div class="tut-digit tut-ball">5</div>
-                <div class="tut-digit tut-out">2</div>
-                <div class="tut-digit tut-ball">3</div>
-              </div>
-              <div class="tut-result">
-                <span class="badge b-s">S 0</span>
-                <span class="badge b-b">B 2</span>
-              </div>
-            </div>
-            <div class="tut-hint" id="tut3Hint">5와 3이 정답에 있지만 자리가 달라 → 2 Ball!</div>
           </div>
         </div>
 
         <div class="tut-divider"></div>
 
-        <!-- STEP 4 — Win -->
+        <!-- STEP 5: 스윙 결과 -->
         <div class="tut-step">
-          <div class="tut-step-num">🎯</div>
+          <div class="tut-step-num">5</div>
           <div class="tut-step-content">
-            <div class="tut-step-title" style="color:var(--primary)" id="tut4Title">3 Strike = 정답!</div>
-            <div class="tut-step-desc" id="tut4Desc">모든 자리가 맞으면 클리어</div>
-            <div class="tut-example-row">
-              <div class="tut-ex-label" id="tutAnswerLabel3">정답</div>
-              <div class="tut-digits-wrap">
-                <div class="tut-digit tut-answer">3</div>
-                <div class="tut-digit tut-answer">8</div>
-                <div class="tut-digit tut-answer">5</div>
+            <div class="tut-step-title" id="tut5Title">스윙 — 정답 입력</div>
+            <div class="tut-step-desc" id="tut5Desc" style="margin-bottom:8px">힌트를 바탕으로 정답 숫자를 직접 입력합니다</div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;background:color-mix(in srgb,var(--win) 10%,var(--card));border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.7;text-align:center;border:1.5px solid var(--win)">
+                <div style="color:var(--win)">✅ 정답 맞춤</div>
+                <div style="color:var(--muted);font-weight:600">홈런 / 안타!</div>
+              </div>
+              <div style="flex:1;background:color-mix(in srgb,var(--lose) 8%,var(--card));border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.7;text-align:center;border:1.5px solid var(--lose)">
+                <div style="color:var(--lose)">❌ 오답</div>
+                <div style="color:var(--muted);font-weight:600">헛스윙 (카운트 유지)</div>
               </div>
             </div>
-            <div class="tut-example-row">
-              <div class="tut-ex-label" id="tutGuessLabel3">입력</div>
-              <div class="tut-digits-wrap">
-                <div class="tut-digit tut-strike tut-win-anim">3</div>
-                <div class="tut-digit tut-strike tut-win-anim" style="animation-delay:.1s">8</div>
-                <div class="tut-digit tut-strike tut-win-anim" style="animation-delay:.2s">5</div>
-              </div>
-              <div class="tut-result">
-                <span class="badge b-s">S 3</span>
-              </div>
-            </div>
+          </div>
+        </div>
+
+        <div class="tut-divider"></div>
+
+        <!-- STEP 6: 점수 -->
+        <div class="tut-step">
+          <div class="tut-step-num">🏆</div>
+          <div class="tut-step-content">
+            <div class="tut-step-title" style="color:var(--primary)">점수 & 랭킹</div>
+            <div class="tut-hint" style="margin-bottom:6px">시작 점수 1,000점 → 보내기마다 점수 차감<br>빠르게 맞출수록 높은 점수!</div>
+            <div class="tut-hint">LV1(3자리) · LV2(4자리) · LV3(5자리) — 3게임 합산 점수로 일간 랭킹 도전!</div>
           </div>
         </div>
 
@@ -611,9 +624,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <div class="score-prev-val" id="scorePrevEl">—</div>
         </div>
         <!-- 투수 → 야구공 애니메이션 -->
-        <div id="pitcherArea" style="border-radius:12px;margin-bottom:10px;background:#111;position:relative;height:70px;display:flex;align-items:center;justify-content:center;overflow:hidden">
-          <span id="ballAnim" style="font-size:30px;display:inline-block;will-change:transform">⚾</span>
-        </div>
+
         <!-- 숫자 입력 (스윙 시에만) -->
         <div id="swingInputArea" style="max-height:0;overflow:hidden;transition:max-height .25s ease">
           <input class="num-input" type="text" inputmode="numeric" id="numberInput" placeholder="..." autocomplete="off">
@@ -884,20 +895,30 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
   <div class="mbox">
     <div class="mhdr"><span class="mtitle" data-i18n="helpTitle">게임 방법</span><button class="mclose" onclick="closeModal('helpModal')">✕</button></div>
     <div class="mbody">
-      <div class="rule"><span class="rule-ico" style="color:var(--strike)">⬤</span><span data-i18n="rule2">Strike: 숫자와 자리가 모두 일치</span></div>
-      <div class="rule"><span class="rule-ico" style="color:var(--ball)">⬤</span><span data-i18n="rule3">Ball: 숫자는 있지만 자리가 다름</span></div>
-      <div class="rule"><span class="rule-ico" style="color:var(--primary)">✓</span><span data-i18n="rule1">1~9 사이의 중복 없는 숫자를 맞추세요 (0 제외)</span></div>
-      <div class="rule"><span class="rule-ico" style="color:var(--primary)">📅</span><span data-i18n="rule4">하루 3번의 기회 — 시작하면 즉시 소진</span></div>
-      <div class="rule"><span class="rule-ico" style="color:var(--primary)">🏆</span><span data-i18n="rule5">3게임 합산 점수로 일간 랭킹 도전!</span></div>
-      <div class="rule"><span class="rule-ico" style="color:var(--ball)">📹</span><span data-i18n="ruleVR">비디오판독: 3판 중 1회 사용 가능한 힌트 — 이전에 시도한 숫자를 선택하면 각 자리가 Strike/Ball/Out으로 표시됩니다</span></div>
-      <div class="div"></div>
-      <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px" data-i18n="scoreGuide">점수 기준</div>
-      <table class="score-guide">
-        <thead><tr><th data-i18n="level">레벨</th><th data-i18n="maxPt">최고점</th><th data-i18n="minPt">최저점</th><th data-i18n="minAt">최저 기준</th></tr></thead>
+      <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">기본 규칙</div>
+      <div class="rule"><span class="rule-ico">🎯</span><span>오늘의 숫자 (1~9, 중복 없음) 를 맞추는 야구 히팅 게임</span></div>
+      <div class="rule"><span class="rule-ico">👁</span><span><b>보내기</b> — 투구를 보내며 S/B 힌트 수집. 보낼수록 점수 차감</span></div>
+      <div class="rule"><span class="rule-ico">🏏</span><span><b>스윙</b> — 직접 숫자를 입력해 정답을 맞춥니다</span></div>
+      <div style="height:1px;background:var(--border);margin:10px 0"></div>
+      <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">힌트 (S / B)</div>
+      <div class="rule"><span class="rule-ico" style="color:var(--strike)">⬤</span><span><b>Strike</b> — 숫자와 자리가 모두 일치</span></div>
+      <div class="rule"><span class="rule-ico" style="color:var(--ball)">⬤</span><span><b>Ball</b> — 정답에 있지만 자리가 다름</span></div>
+      <div style="height:1px;background:var(--border);margin:10px 0"></div>
+      <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">결과</div>
+      <div class="rule"><span class="rule-ico" style="color:var(--win)">✅</span><span><b>홈런 / 안타</b> — 스윙으로 정답을 맞췄을 때</span></div>
+      <div class="rule"><span class="rule-ico" style="color:var(--win)">🎯</span><span><b>볼넷</b> — 4 Ball 누적 → 자동 성공 + 보너스 점수</span></div>
+      <div class="rule"><span class="rule-ico" style="color:var(--lose)">⚡</span><span><b>삼진 아웃</b> — 3 Strike 누적 → 실패</span></div>
+      <div class="rule"><span class="rule-ico" style="color:var(--lose)">❌</span><span><b>범타</b> — 스윙 오답 후 아웃 처리</span></div>
+      <div style="height:1px;background:var(--border);margin:10px 0"></div>
+      <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">점수 기준</div>
+      <div class="rule"><span class="rule-ico">📅</span><span>하루 3번 기회 — LV1(3자리) · LV2(4자리) · LV3(5자리)</span></div>
+      <div class="rule"><span class="rule-ico">📹</span><span><b>비디오판독</b> — 하루 1회. 이전 보내기 중 하나를 선택하면 각 자리의 S/B/Out 표시</span></div>
+      <table class="score-guide" style="margin-top:8px">
+        <thead><tr><th>레벨</th><th>최고점</th><th>최저점</th><th>최저 기준</th></tr></thead>
         <tbody>
-          <tr><td>LV.1 · 3자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th1">9회~</td></tr>
-          <tr><td>LV.2 · 4자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th2">13회~</td></tr>
-          <tr><td>LV.3 · 5자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th3">18회~</td></tr>
+          <tr><td>LV.1 · 3자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td>9구~</td></tr>
+          <tr><td>LV.2 · 4자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td>13구~</td></tr>
+          <tr><td>LV.3 · 5자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td>18구~</td></tr>
         </tbody>
       </table>
     </div>
@@ -1165,15 +1186,8 @@ function timeUntilMidnight(){
   return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
 }
 /* ── 투수 → 야구공 애니메이션 ── */
-function showPitcherReady(){ /* no-op */ }
-function showPitcherThrow(){
-  const b=document.getElementById('ballAnim');
-  if(!b)return;
-  b.classList.remove('ball-flying');
-  void b.offsetWidth;
-  b.classList.add('ball-flying');
-  setTimeout(()=>{ b.classList.remove('ball-flying'); },720);
-}
+function showPitcherReady(){}
+function showPitcherThrow(){}
 
 /* ── 아웃 카운트 렌더링 ── */
 function renderOutDots(){
@@ -1224,7 +1238,7 @@ function recentNums(n){
 }
 
 function genNextPitch(target){
-  const bias=_hStrikes*0.12-_hBalls*0.10;
+  const bias=_hStrikes*(-0.15)+_hBalls*0.10;
   const pS=Math.max(.20,Math.min(.80,.50+bias));
   const isStrike=()=>Math.random()<pS;
 
@@ -1443,8 +1457,8 @@ function handleTake(){
   showPitchResult(pitch,type);
   renderHCount();renderOutDots();renderGame();renderHitLog();saveProgress();
   // 삼진/볼넷
-  if(_hStrikes>=3){setTimeout(()=>finishHitGame(false,'삼진 아웃 💨','strikeout'),700);return;}
-  if(_hBalls>=4){const fs=_hScore+calcHitSBBonus(S.game.level);setTimeout(()=>finishHitGame(true,'볼넷! 🟡','walk',fs),700);return;}
+  if(_hStrikes>=3){setTimeout(()=>finishHitGame(false,'삼진 아웃','strikeout'),700);return;}
+  if(_hBalls>=4){const fs=_hScore+calcHitSBBonus(S.game.level);setTimeout(()=>finishHitGame(true,'볼넷','walk',fs),700);return;}
   // 포기 버튼 활성화 (첫 보내기 후)
   if(_hPitchCount===1){
     const bb=document.getElementById('backBtn');
@@ -1484,7 +1498,7 @@ function handleSwing(){
     const sbBonus=calcHitSBBonus(level);
     const fs=_hScore+bonus+sbBonus;
     showSwingResultUI(arr,s,b,result);
-    setTimeout(()=>finishHitGame(true,result==='hr'?'홈런! 🚀':'안타! ⚾',result,fs),700);
+    setTimeout(()=>finishHitGame(true,result==='hr'?'홈런':'안타',result,fs),700);
     return;
   }
   if(result==='foul'){
@@ -1499,13 +1513,13 @@ function handleSwing(){
     _hStrikes++;
     showSwingResultUI(arr,s,b,result);
     renderHCount();renderOutDots();renderGame();renderHitLog();saveProgress();
-    if(_hStrikes>=3){setTimeout(()=>finishHitGame(false,'삼진 아웃 💨','strikeout'),700);}
+    if(_hStrikes>=3){setTimeout(()=>finishHitGame(false,'삼진 아웃','strikeout'),700);}
     return;
   }
   if(result==='beomta'){
     showSwingResultUI(arr,s,b,result);
     renderHitLog();
-    setTimeout(()=>finishHitGame(false,'범타 아웃 🧤','beomta'),700);
+    setTimeout(()=>finishHitGame(false,'범타 아웃','beomta'),700);
     return;
   }
 }
@@ -2004,7 +2018,7 @@ function renderHome(){
   // 점수 슬롯 — 3. 레벨명 포함 표기
   const sl=document.getElementById('slotsEl');sl.innerHTML='';
   const lvName={3:'LV.1',4:'LV.2',5:'LV.3'};
-  const typeLabel={hr:'홈런 🚀',hit:'안타 ⚾',walk:'볼넷 🟡',strikeout:'삼진 💨',beomta:'범타 🧤',forfeit:'포기 🏳'};
+  const typeLabel={hr:'홈런',hit:'안타',walk:'볼넷',strikeout:'삼진',beomta:'범타',forfeit:'포기'};
   for(let i=0;i<3;i++){
     const g=S.scores[i];let cls='slot',lbl='GAME '+(i+1),val='—';
     if(g){
@@ -2012,6 +2026,7 @@ function renderHome(){
       if(g.won){cls+=' win';lbl=ln+' '+(typeLabel[g.type]||t('slotWin'));val='+'+g.score.toLocaleString()}
       else{cls+=' lose';lbl=ln+' '+(typeLabel[g.type]||t('slotLose'));val='0'}
     }else if(i===S.consumed&&S.consumed<3){cls+=' next';val='?'}
+    else{cls+=' inactive'}
     const vrBadge=(g&&g.vr)?'<div class="slot-vr">📹</div>':'';
     sl.innerHTML+='<div class="'+cls+'"><div class="slot-lbl">'+lbl+'</div><div class="slot-val">'+val+'</div>'+vrBadge+'</div>';
   }
@@ -2182,7 +2197,7 @@ function cancelHoldForfeit(){
 function confirmForfeit(){openModal('forfeitModal')}
 function executeForfeit(){
   closeModal('forfeitModal');
-  finishHitGame(false,'포기 🏳','forfeit',0);
+  finishHitGame(false,'포기','forfeit',0);
 }
 
 /* ── FINISH HIT GAME ── */
@@ -2218,7 +2233,8 @@ function finishHitGame(won,label,type,finalScore){
   document.getElementById('rTries').textContent=label;
   document.getElementById('rTriesLbl').textContent='';
   const rm=document.getElementById('resultModal');
-  rm.className='result-full'+(won?'':' lose-r');
+  const isGreenWin=['hr','hit','walk'].includes(type);
+  rm.className='result-full'+(isGreenWin?' win-r':!won?' lose-r':'');
   rm.classList.add('open');
 }
 
@@ -3425,23 +3441,17 @@ function applyTutorialLang(){
   const el=id=>document.getElementById(id);
   if(!el('tutTitle'))return;
   el('tutTitle').textContent=ko?'⚾ 처음이세요? 이렇게 하면 돼요!':'⚾ First time? Here\'s how it works!';
-  el('tut1Title').textContent=ko?'중복 없는 숫자를 입력하세요':'Enter unique digits';
-  el('tut1Desc').textContent=ko?'1~9 사이 숫자, 0은 없어요':'Numbers 1–9 only, no 0, no repeats';
-  el('tutConfirmBtn').textContent=ko?'확인':'OK';
-  el('tut2Title').textContent=ko?'⬤ Strike — 숫자도, 자리도 정확!':'⬤ Strike — Right number, right position!';
-  el('tut2Desc').textContent=ko?'숫자와 위치가 모두 맞으면 Strike':'Correct number AND correct position = Strike';
-  el('tut3Title').textContent=ko?'⬤ Ball — 숫자는 맞는데, 자리가 달라요':'⬤ Ball — Right number, wrong position!';
-  el('tut3Desc').textContent=ko?'숫자는 정답에 있지만 위치가 다르면 Ball':'Number exists in answer but in wrong position = Ball';
-  el('tut4Title').textContent=ko?'3 Strike = 정답!':'3 Strikes = You win!';
-  el('tut4Desc').textContent=ko?'모든 자리가 맞으면 클리어':'Match all digits in correct positions to clear!';
-  el('tut2Hint').textContent=ko?'8이 두 번째 자리에 그대로 → 1 Strike!':'8 is in the same position → 1 Strike!';
-  el('tut3Hint').textContent=ko?'5와 3이 정답에 있지만 자리가 달라 → 2 Ball!':'5 and 3 exist in answer but wrong spots → 2 Ball!';
-  ['tutAnswerLabel','tutAnswerLabel2','tutAnswerLabel3'].forEach(id=>{
-    if(el(id))el(id).textContent=ko?'정답':'ANS';
-  });
-  ['tutGuessLabel','tutGuessLabel2','tutGuessLabel3'].forEach(id=>{
-    if(el(id))el(id).textContent=ko?'입력':'TRY';
-  });
+  const set=(id,v)=>{const e=el(id);if(e)e.textContent=v;};
+  set('tut1Title',ko?'오늘의 숫자를 맞추는 야구 히팅 게임':'Baseball hitting: guess today\'s number');
+  set('tut1Desc',ko?'1~9 사이 중복 없는 숫자 (레벨에 따라 3·4·5자리)':'Unique digits 1–9, 3/4/5 digits by level');
+  set('tut2Title',ko?'매 투구마다 선택하세요':'Choose every pitch');
+  set('tut2Desc',ko?'보내기로 힌트를 모으고, 확신이 생기면 스윙!':'Collect hints by taking pitches, then swing when ready!');
+  set('tut3Title',ko?'보내기 힌트 — Strike / Ball':'Pitch hints — Strike / Ball');
+  set('tut3Desc',ko?'투구된 숫자가 정답과 얼마나 맞는지 알려줍니다':'Shows how close the pitch is to the answer');
+  set('tut4Title',ko?'카운트 누적 — 삼진 or 볼넷':'Count — Strikeout or Walk');
+  set('tut4Desc',ko?'보내기 결과로 카운트가 쌓입니다':'Counts accumulate from taking pitches');
+  set('tut5Title',ko?'스윙 — 정답 입력':'Swing — Enter your guess');
+  set('tut5Desc',ko?'힌트를 바탕으로 정답 숫자를 직접 입력합니다':'Enter the answer directly based on hints');
 }
 
 function devReset(){
