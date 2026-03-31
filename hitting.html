@@ -4,14 +4,14 @@
   <link rel="manifest" href="/manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NUBALL ⚾ - 머리 쓰는 숫자야구</title>
-<meta property="og:title" content="NUBALL ⚾ - 머리 쓰는 숫자야구">
-<meta property="og:description" content="누볼 한판 어때? 🤝">
+<title>NUBALL HITTING 🏏 - 투수와 숨 막히는 수싸움</title>
+<meta property="og:title" content="NUBALL HITTING 🏏 - 투수와 숨 막히는 수싸움">
+<meta property="og:description" content="홈런이냐 삼진아웃이냐">
 <meta property="og:url" content="https://nuball.app">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="NUBALL ⚾ - 머리 쓰는 숫자야구">
-<meta name="twitter:description" content="누볼 한판 어때? 🤝">
+<meta name="twitter:title" content="NUBALL HITTING 🏏 - 투수와 숨 막히는 수싸움">
+<meta name="twitter:description" content="홈런이냐 삼진아웃이냐">
 <script type="module">
   import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import{getDatabase,ref,set,get,query,orderByChild,limitToLast,onValue,remove}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
@@ -140,8 +140,9 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .fselect{appearance:none;cursor:pointer;padding-right:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 .btn-p{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:background .15s,transform .1s;margin-top:4px}
 .btn-p:hover{background:var(--primary-h)}.btn-p:active{transform:scale(.99)}.btn-p:disabled{opacity:.5;cursor:not-allowed}
-.btn-o{background:transparent;border:1.5px solid var(--primary);color:var(--primary)}.btn-o:hover{background:var(--primary-light)}
-@media(hover:none){.btn-o:hover{background:transparent}}
+.btn-o{background:transparent;border:1.5px solid var(--primary);color:var(--primary);-webkit-tap-highlight-color:transparent}
+.btn-o:hover{background:var(--primary-light)}
+@media(hover:none){.btn-o:hover,.btn-o:focus{background:transparent;outline:none}}
 
 /* ── GAME ── */
 #gameScreen{display:none}
@@ -174,6 +175,10 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .vm-btn{padding:5px 10px;font-size:11px;font-weight:700;border:1.5px solid var(--border);border-radius:6px;background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .15s}
 .vm-btn.on{background:var(--primary);border-color:var(--primary);color:#fff}
 .log-list{display:flex;flex-direction:column;gap:6px}
+.gl-right .log-digit{width:22px;height:26px;font-size:12px;border-radius:5px}
+.gl-right .log-item{gap:3px;padding:5px 7px}
+.gl-right .log-n{width:14px;font-size:9px}
+.gl-right .log-list{gap:4px}
 .log-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;animation:slideIn .15s ease-out}
 .log-n{font-size:10px;font-weight:700;color:var(--subtle);width:20px;text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}
 .log-digits{display:flex;gap:4px;flex-shrink:0}
@@ -219,15 +224,16 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 
 /* ── RESULT ── */
 .result-full{position:fixed;inset:0;background:var(--primary);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;opacity:0;pointer-events:none;transition:opacity .3s}
-.result-full.open{opacity:1;pointer-events:all}.result-full.lose-r{background:var(--lose)}.result-full.win-r{background:var(--win)}
-.lose-r .btn-white{color:var(--lose)}.win-r .btn-white{color:var(--win)}
+.result-full.open{opacity:1;pointer-events:all}.result-full.lose-r{background:#dc2626}.result-full.win-r{background:var(--win)}.result-full.hr-r{background:#f59e0b}.result-full.walk-r{background:#6b7280}
+.lose-r .btn-white{color:#dc2626}.win-r .btn-white{color:var(--win)}.hr-r .btn-white{color:#b45309}.walk-r .btn-white{color:#4b5563}
 .r-icon{font-size:54px;margin-bottom:14px;display:block}
 .r-ans-lbl{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:6px}
 .r-ans{font-size:52px;font-weight:900;color:#fff;letter-spacing:.2em;margin-bottom:12px;font-family:'DM Mono',monospace}
 .r-score-lbl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.65)}
 .r-score{font-size:36px;font-weight:900;color:#fff;margin-bottom:6px;font-family:'DM Mono',monospace}
+.r-score.text-style{font-size:20px;font-family:'Plus Jakarta Sans','Noto Sans KR',sans-serif;letter-spacing:0;font-weight:800;opacity:.9}
 .r-att{font-size:13px;color:rgba(255,255,255,.65);font-weight:600;margin-bottom:32px}
-.btn-white{width:100%;max-width:260px;padding:14px;background:#fff;color:var(--primary);border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .1s}
+.btn-white{width:100%;max-width:260px;padding:14px;background:#fff;color:var(--primary);border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:'Plus Jakarta Sans','Noto Sans KR',sans-serif;transition:transform .1s}
 .btn-white:active{transform:scale(.99)}
 
 /* ── FORFEIT ── */
@@ -332,7 +338,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 .share-btn:hover{background:var(--border)}
 
 /* ── 4. 결과창 시도횟수 ── */
-.r-tries{font-size:28px;font-weight:900;color:rgba(255,255,255,.9);font-family:'DM Mono',monospace;margin-bottom:4px}
+.r-tries{font-size:28px;font-weight:900;color:rgba(255,255,255,.9);font-family:'Plus Jakarta Sans','Noto Sans KR',sans-serif;margin-bottom:4px;letter-spacing:0}
 .r-tries-lbl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:20px}
 
 /* ── HDR MENU ── */
@@ -424,7 +430,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 
     <!-- 중앙: 로고 -->
     <h1 class="hdr-logo">
-      <span class="logo-text" id="logoText"><span style="font-weight:900">누볼</span> <span style="color:var(--primary)">히팅</span></span>
+      <span class="logo-text" id="logoText" style="display:flex;flex-direction:column;align-items:center;line-height:1.1"><span style="font-weight:900;font-size:26px">누볼</span><span style="color:var(--primary);font-size:10px;font-weight:800;letter-spacing:1px">[히팅]</span></span>
     </h1>
 
     <!-- 우측: KO/EN + 다크 -->
@@ -458,7 +464,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <a href="https://nuball.app" target="_blank" style="text-decoration:none;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 10px;display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:13px;font-weight:900;color:var(--text)">⚾ 누볼</span>
-        <span style="font-size:10px;font-weight:800;color:var(--primary);background:var(--primary-light);border-radius:4px;padding:2px 6px">원작</span>
+        <span style="font-size:10px;font-weight:800;color:#16a34a;background:#dcfce7;border-radius:4px;padding:2px 6px">이동</span>
       </a>
       <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 10px;display:flex;align-items:center;justify-content:space-between;opacity:0.5;cursor:not-allowed;user-select:none">
         <span style="font-size:13px;font-weight:900;color:var(--muted)">🔒 누볼 피칭</span>
@@ -507,7 +513,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
                 <div style="color:var(--muted);font-weight:600">숫자를 직접 입력해<br>정답을 맞춥니다</div>
               </div>
             </div>
-            <div class="tut-hint">💡 보내기를 많이 할수록 점수가 깎입니다. 최대한 빠르게 맞추세요!</div>
+            <div class="tut-hint">💡 보내기는 점수 차감 없음! S/B 힌트를 충분히 모은 뒤 스윙하세요.</div>
           </div>
         </div>
 
@@ -558,8 +564,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
                 <div style="color:var(--muted);font-weight:600">삼진 아웃 → 실패</div>
               </div>
               <div style="flex:1;background:var(--ball-bg);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.7;text-align:center">
-                <div style="color:var(--ball)">🎯 4 Ball</div>
-                <div style="color:var(--muted);font-weight:600">볼넷 → 성공 + 보너스!</div>
+                <div style="color:var(--ball)">4️⃣ 4 Ball</div>
+                <div style="color:var(--muted);font-weight:600">볼넷 → 기회 소모 없음!</div>
               </div>
             </div>
           </div>
@@ -580,7 +586,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
               </div>
               <div style="flex:1;background:color-mix(in srgb,var(--lose) 8%,var(--card));border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.7;text-align:center;border:1.5px solid var(--lose)">
                 <div style="color:var(--lose)">❌ 오답</div>
-                <div style="color:var(--muted);font-weight:600">헛스윙 (카운트 유지)</div>
+                <div style="color:var(--muted);font-weight:600">헛스윙 / 파울 / 범타</div>
               </div>
             </div>
           </div>
@@ -593,7 +599,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <div class="tut-step-num">🏆</div>
           <div class="tut-step-content">
             <div class="tut-step-title" style="color:var(--primary)">점수 & 랭킹</div>
-            <div class="tut-hint" style="margin-bottom:6px">시작 점수 1,000점 → 보내기마다 점수 차감<br>빠르게 맞출수록 높은 점수!</div>
+            <div class="tut-hint" style="margin-bottom:6px">시작 점수 1,000점 — 보내기는 점수 차감 없음<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패!</div>
             <div class="tut-hint">LV1(3자리) · LV2(4자리) · LV3(5자리) — 3게임 합산 점수로 일간 랭킹 도전!</div>
           </div>
         </div>
@@ -663,7 +669,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <div class="hist-hdr" style="margin-bottom:6px">
           <span class="hist-title">투구 기록</span>
         </div>
-        <div id="logContainer" style="overflow-y:auto;max-height:220px"></div>
+        <div id="logContainer" style="overflow-y:auto;overflow-x:hidden;max-height:220px"></div>
       </div>
     </div>
   </div>
@@ -897,7 +903,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="mbody">
       <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">기본 규칙</div>
       <div class="rule"><span class="rule-ico">🎯</span><span>오늘의 숫자 (1~9, 중복 없음) 를 맞추는 야구 히팅 게임</span></div>
-      <div class="rule"><span class="rule-ico">👁</span><span><b>보내기</b> — 투구를 보내며 S/B 힌트 수집. 보낼수록 점수 차감</span></div>
+      <div class="rule"><span class="rule-ico">👁</span><span><b>보내기</b> — 투구를 보내며 S/B 힌트 수집. 점수 차감 없음</span></div>
       <div class="rule"><span class="rule-ico">🏏</span><span><b>스윙</b> — 직접 숫자를 입력해 정답을 맞춥니다</span></div>
       <div style="height:1px;background:var(--border);margin:10px 0"></div>
       <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">힌트 (S / B)</div>
@@ -906,7 +912,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div style="height:1px;background:var(--border);margin:10px 0"></div>
       <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">결과</div>
       <div class="rule"><span class="rule-ico" style="color:var(--win)">✅</span><span><b>홈런 / 안타</b> — 스윙으로 정답을 맞췄을 때</span></div>
-      <div class="rule"><span class="rule-ico" style="color:var(--win)">🎯</span><span><b>볼넷</b> — 4 Ball 누적 → 자동 성공 + 보너스 점수</span></div>
+      <div class="rule"><span class="rule-ico">4️⃣</span><span><b>볼넷</b> — 4 Ball 누적 → 기회 소모 없이 성공!</span></div>
       <div class="rule"><span class="rule-ico" style="color:var(--lose)">⚡</span><span><b>삼진 아웃</b> — 3 Strike 누적 → 실패</span></div>
       <div class="rule"><span class="rule-ico" style="color:var(--lose)">❌</span><span><b>범타</b> — 스윙 오답 후 아웃 처리</span></div>
       <div style="height:1px;background:var(--border);margin:10px 0"></div>
@@ -1268,15 +1274,17 @@ let _hPitchCount=0; // 보내기 횟수
 
 /* ── 스윙 확률 테이블 ── */
 const SWING_PROBS={
-  '2S1B':{foul:.65,heotswing:.30,beomta:.05},
-  '2S0B':{foul:.50,heotswing:.43,beomta:.07},
-  '1S2B':{foul:.60,heotswing:.33,beomta:.07},
-  '1S1B':{foul:.30,heotswing:.58,beomta:.12},
-  '1S0B':{foul:.20,heotswing:.65,beomta:.15},
-  '0S3B':{foul:.60,heotswing:.33,beomta:.07},
-  '0S2B':{foul:.30,heotswing:.55,beomta:.15},
-  '0S1B':{foul:.15,heotswing:.68,beomta:.17},
-  '0S0B':{foul:.05,heotswing:.90,beomta:.05},
+  '2S3B':{foul:.82,heotswing:.17,beomta:.01},
+  '2S2B':{foul:.80,heotswing:.18,beomta:.02},
+  '2S1B':{foul:.78,heotswing:.20,beomta:.02},
+  '2S0B':{foul:.75,heotswing:.23,beomta:.02},
+  '1S2B':{foul:.60,heotswing:.37,beomta:.03},
+  '1S1B':{foul:.30,heotswing:.66,beomta:.04},
+  '1S0B':{foul:.20,heotswing:.75,beomta:.05},
+  '0S3B':{foul:.60,heotswing:.37,beomta:.03},
+  '0S2B':{foul:.30,heotswing:.65,beomta:.05},
+  '0S1B':{foul:.15,heotswing:.80,beomta:.05},
+  '0S0B':{foul:.05,heotswing:.93,beomta:.02},
 };
 function getSwingResult(s,b,level){
   if(s===level)return Math.random()<.25?'hr':'hit';
@@ -1336,9 +1344,7 @@ function genPitch1B(target, excluded=new Set()){
 
 /* ── 점수 계산 ── */
 function calcHitDeduct(level){
-  const cfg={3:{max:1000,min:300,th:9},4:{max:1000,min:300,th:13},5:{max:1000,min:300,th:18}};
-  const{max,min,th}=cfg[level];
-  return(max-min)/(th-1);
+  return level===3?15:level===4?10:5;
 }
 function calcHitSBBonus(level){
   const bonusCap={3:30,4:35,5:35};
@@ -1391,14 +1397,14 @@ function renderHitLog(){
     }
 
     // S/B 배지 (보내기 + 스윙 모두)
-    const sbBadge=`<div style="display:flex;gap:4px;flex-shrink:0;margin-left:auto">
-        <span style="font-size:11px;font-weight:900;padding:3px 7px;border-radius:5px;background:var(--strike-bg);color:var(--strike);line-height:1.2">S${l.s}</span>
-        <span style="font-size:11px;font-weight:900;padding:3px 7px;border-radius:5px;background:var(--ball-bg);color:var(--ball);line-height:1.2">B${l.b}</span>
+    const sbBadge=`<div style="display:flex;gap:2px;flex-shrink:0;margin-left:auto">
+        <span style="font-size:10px;font-weight:900;padding:2px 5px;border-radius:4px;background:var(--strike-bg);color:var(--strike);line-height:1.2">S${l.s}</span>
+        <span style="font-size:10px;font-weight:900;padding:2px 5px;border-radius:4px;background:var(--ball-bg);color:var(--ball);line-height:1.2">B${l.b}</span>
       </div>`;
 
-    return`<div class="log-item" style="gap:5px;padding:7px 10px;align-items:center">
-      <span class="log-n">${total-i}</span>
-      <span style="font-size:10px;font-weight:800;min-width:36px;flex-shrink:0;color:var(--text)">${actionTxt}</span>
+    return`<div class="log-item" style="gap:3px;padding:5px 7px;align-items:center">
+      <span class="log-n" style="min-width:14px">${total-i}</span>
+      <span style="font-size:9px;font-weight:800;min-width:28px;flex-shrink:0;color:var(--text)">${actionTxt}</span>
       <div style="display:flex;gap:3px;flex-shrink:0">
         ${l.pitch.map(d=>'<div class="log-digit">'+d+'</div>').join('')}
       </div>
@@ -1416,30 +1422,51 @@ function openHitVRModal(){
     alert(S.lang==='ko'?'진행 중인 게임이 없어요':'No active game');
     return;
   }
-  // 보내기 기록 목록
-  const takes=_hPitchLogs.map((l,i)=>({l,i})).filter(({l})=>l.action==='take');
+  // 모든 투구 기록
+  const takes=[];
+  for(let i=0;i<_hPitchLogs.length;i++){
+    takes.push({l:_hPitchLogs[i],i});
+  }
   if(!takes.length){
-    alert(S.lang==='ko'?'보내기 기록이 없어요. 먼저 공을 보내보세요!':'No takes yet. Let a pitch go first!');
+    alert(S.lang==='ko'?'투구 기록이 없어요. 먼저 공을 보내보세요!':'No pitches yet!');
     return;
   }
-  document.getElementById('vrModalTitle').textContent='📹 비디오판독 — 투구 선택';
-  document.getElementById('vrContent').innerHTML=`
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:600">${S.lang==='ko'?'판독할 투구를 선택하세요 (하루 1회)':'Select a pitch to review (once per day)'}</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${takes.map(({l,i})=>{
-        const pitchNums=l.pitch.map(d=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;border-radius:6px;border:1.5px solid var(--border);font-weight:900;font-family:'DM Mono',monospace;font-size:14px;background:var(--bg2)">${d}</span>`).join('');
-        return`<button onclick="openHitVR(${i})" style="display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;text-align:left;width:100%;transition:border-color .15s" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='var(--border)'">
-          <span style="font-size:11px;font-weight:700;color:var(--muted);min-width:14px">${i+1}</span>
-          <div style="display:flex;gap:4px">${pitchNums}</div>
-          <span style="font-size:10px;font-weight:700;color:var(--muted);margin-left:auto">S${l.s} B${l.b}</span>
-        </button>`;
-      }).join('')}
-    </div>`;
+  // 최신 순(인덱스 작은 것 = 최신) → 최신이 위로
+  takes.sort((a,b)=>a.i-b.i);
+  const total=takes.length;
+  document.getElementById('vrModalTitle').textContent='📹 비디오판독';
+  let html=`<p style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:10px">판독할 번호를 선택하세요</p>`;
+  html+=`<div style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto;margin-bottom:12px">`;
+  takes.forEach(({l,i},n)=>{
+    const isTake=l.action==='take';
+    const pitchNums=l.pitch.map(d=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;border-radius:6px;border:1.5px solid var(--border);font-weight:900;font-family:'DM Mono',monospace;font-size:14px;background:var(--bg2)">${d}</span>`).join('');
+    const actionBadge=isTake
+      ?`<span style="font-size:9px;font-weight:800;color:var(--ball);background:var(--ball-bg);border-radius:4px;padding:2px 5px">보내기</span>`
+      :`<span style="font-size:9px;font-weight:800;color:var(--primary);background:var(--primary-light);border-radius:4px;padding:2px 5px">스윙</span>`;
+    html+=`<button id="vrItem_${i}" onclick="selectVRPitch(${i},this)" style="display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;text-align:left;width:100%;font-family:inherit;transition:all .15s"><span style="font-size:11px;font-weight:700;color:var(--muted);min-width:24px;flex-shrink:0">${total-n}구</span><div style="display:flex;gap:4px">${pitchNums}</div>${actionBadge}<span style="font-size:10px;font-weight:700;color:var(--muted);margin-left:auto">S${l.s} B${l.b}</span></button>`;
+  });
+  html+=`</div><button id="vrConfirmBtn" onclick="confirmHitVR()" disabled style="width:100%;padding:13px;background:var(--border);color:var(--subtle);border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:not-allowed;font-family:inherit;transition:all .2s">이 번호로 판독 확정</button>`;
+  document.getElementById('vrContent').innerHTML=html;
+  window._vrSelectedIdx=null;
   openModal('vrModal');
 }
 
 /* ── 보내기 ── */
+/* ── 포기 버튼 활성화 (첫 액션 후 레벨 변경 → 포기로 전환) ── */
+function activateForfeitBtn(){
+  const bb=document.getElementById('backBtn');
+  if(!bb||bb.dataset.forfeitActive==='1')return;
+  bb.dataset.forfeitActive='1';
+  bb.innerHTML='&#127987; <span>'+(S.lang==='ko'?'포기':'Forfeit')+'</span><div class="btn-forfeit-bar" id="forfeitBar"></div>';
+  bb.style.color='var(--lose)';bb.style.borderColor='var(--lose)';
+  bb.onclick=null;
+  bb.onmousedown=function(e){startHoldForfeit(e);};bb.onmouseup=function(){cancelHoldForfeit();};
+  bb.onmouseleave=function(){cancelHoldForfeit();};
+  bb.ontouchstart=function(e){startHoldForfeit(e);};bb.ontouchend=function(){cancelHoldForfeit();};
+}
+
 function handleTake(){
+  const tb=document.getElementById('takeBtn');if(tb)tb.blur();
   if(!S.game)return;
   const pitch=genNextPitch(S.game.target);
   if(!pitch){console.warn('pitch gen failed');return;}
@@ -1448,8 +1475,6 @@ function handleTake(){
   const type=s===1?'1S':'1B';
   _hPitchLogs.unshift({pitch,type,s,b,action:'take'});
   // 점수 차감
-  const deduct=calcHitDeduct(S.game.level);
-  _hScore=Math.max(300,Math.round(_hScore-deduct));
   _hPitchCount++;
   // 카운트 업데이트
   if(s===1)_hStrikes++;else _hBalls++;
@@ -1458,19 +1483,33 @@ function handleTake(){
   renderHCount();renderOutDots();renderGame();renderHitLog();saveProgress();
   // 삼진/볼넷
   if(_hStrikes>=3){setTimeout(()=>finishHitGame(false,'삼진 아웃','strikeout'),700);return;}
-  if(_hBalls>=4){const fs=_hScore+calcHitSBBonus(S.game.level);setTimeout(()=>finishHitGame(true,'볼넷','walk',fs),700);return;}
-  // 포기 버튼 활성화 (첫 보내기 후)
-  if(_hPitchCount===1){
-    const bb=document.getElementById('backBtn');
-    if(bb){
-      bb.innerHTML='&#127987; <span>'+(S.lang==='ko'?'포기':'Forfeit')+'</span><div class="btn-forfeit-bar" id="forfeitBar"></div>';
-      bb.style.color='var(--lose)';bb.style.borderColor='var(--lose)';
-      bb.onclick=null;
-      bb.onmousedown=function(e){startHoldForfeit(e);};bb.onmouseup=function(){cancelHoldForfeit();};
-      bb.onmouseleave=function(){cancelHoldForfeit();};
-      bb.ontouchstart=function(e){startHoldForfeit(e);};bb.ontouchend=function(){cancelHoldForfeit();};
-    }
+  if(_hBalls>=4){
+    // 볼넷: 기회 소모 안함 → consumed 되돌리기
+    const walkTarget=S.game.target.slice();
+    setTimeout(()=>{
+      S.consumed=Math.max(0,S.consumed-1);
+      S.game=null;
+      localStorage.removeItem('nb_hit_inprog');
+      saveDaily();
+      const rm=document.getElementById('resultModal');
+      document.getElementById('rIcon').innerHTML='4️⃣';
+      document.getElementById('rAns').textContent=walkTarget.join('');
+      const rs=document.getElementById('rScore');
+      rs.textContent='기회 소모 없음';
+      rs.className='r-score text-style';
+      const rt=document.getElementById('rTries');
+      rt.textContent='볼넷';
+      rt.style.fontFamily="'Plus Jakarta Sans','Noto Sans KR',sans-serif";
+      rt.style.fontSize='32px';
+      rt.style.letterSpacing='0';
+      document.getElementById('rTriesLbl').textContent='';
+      rm.className='result-full walk-r';
+      rm.classList.add('open');
+    },700);
+    return;
   }
+  // 포기 버튼 활성화 (첫 보내기 후)
+  activateForfeitBtn();
 }
 
 /* ── 스윙 ── */
@@ -1489,6 +1528,7 @@ function handleSwing(){
   closeSwingInput();showPitcherThrow();
   S.game.attempts++;
   _hPitchCount++; // 스윙도 구수에 포함
+  activateForfeitBtn(); // 첫 스윙 시 레벨 변경 → 포기 버튼 전환
   const result=getSwingResult(s,b,level);
   // 스윙 로그 기록
   _hPitchLogs.unshift({pitch:arr,type:'swing',s,b,action:'swing',hitResult:result});
@@ -1496,7 +1536,7 @@ function handleSwing(){
   if(result==='hr'||result==='hit'){
     const bonus=result==='hr'?50:0;
     const sbBonus=calcHitSBBonus(level);
-    const fs=_hScore+bonus+sbBonus;
+    const fs=Math.min(1000,_hScore+bonus+sbBonus);
     showSwingResultUI(arr,s,b,result);
     setTimeout(()=>finishHitGame(true,result==='hr'?'홈런':'안타',result,fs),700);
     return;
@@ -1526,6 +1566,25 @@ function handleSwing(){
 function openHintH(){showHInputAlert(S.lang==='ko'?'투구 기록의 📹 버튼을 눌러 힌트를 사용하세요':'Tap 📹 on a pitch to use hint');}
 
 /* ── 히팅 VR 힌트 (하루 1회) ── */
+function selectVRPitch(logIdx, btn){
+  // 이전 선택 해제
+  document.querySelectorAll('[id^="vrItem_"]').forEach(b=>{
+    b.style.borderColor='var(--border)';b.style.background='var(--card)';
+  });
+  // 현재 선택 표시
+  btn.style.borderColor='#3b82f6';btn.style.background='rgba(59,130,246,.08)';
+  window._vrSelectedIdx=logIdx;
+  // 확정 버튼 활성화
+  const cb=document.getElementById('vrConfirmBtn');
+  if(cb){cb.disabled=false;cb.style.background='var(--primary)';cb.style.color='#fff';cb.style.cursor='pointer';}
+}
+
+function confirmHitVR(){
+  const logIdx=window._vrSelectedIdx;
+  if(logIdx==null)return;
+  openHitVR(logIdx);
+}
+
 function openHitVR(logIdx){
   if(S.hitVrUsedToday===S.today){
     alert(S.lang==='ko'?'📹 오늘은 이미 비디오판독을 사용했어요!':'📹 Video review already used today!');
@@ -1533,13 +1592,14 @@ function openHitVR(logIdx){
   }
   if(!S.game)return;
   const log=_hPitchLogs[logIdx];
-  if(!log||log.action!=='take')return;
+  if(!log)return;
 
   const target=S.game.target;
   const pitch=log.pitch;
   S.hitVrUsedToday=S.today;
   S.scores=S.scores.map((g,i)=>i===S.scores.length-1?{...g,vr:true}:g);
   saveDaily();
+  renderGame(); // vrBtn 즉시 비활성화
 
   // 판독 내용 생성
   const cells=pitch.map((d,i)=>{
@@ -2032,13 +2092,13 @@ function renderHome(){
   }
   // 2. 레벨 카드 — 시도 전이면 레벨 변경 가능, 시도 후/3판 완료면 비활성
   const lvls=[
-    {n:3,tag:'LEVEL 1',tKey:'lv3',pts:'1,000',tagline:S.lang==='ko'?'⚡ 실수하면 점수가 확 깎여요':'⚡ Mistakes cut your score fast'},
-    {n:4,tag:'LEVEL 2',tKey:'lv4',pts:'1,000',tagline:S.lang==='ko'?'⚖ 난이도와 점수의 균형':'⚖ Balanced difficulty & score'},
-    {n:5,tag:'LEVEL 3',tKey:'lv5',pts:'1,000',tagline:S.lang==='ko'?'🛡️ 실수해도 점수가 덜 깎여요':'🛡️ Mistakes cost less score'},
+    {n:3,tag:'LEVEL 1',tKey:'lv3',pts:'1,000',tagline:S.lang==='ko'?'🏏 방망이를 적극적으로 휘두르세요':'🏏 Swing aggressively from the start'},
+    {n:4,tag:'LEVEL 2',tKey:'lv4',pts:'1,000',tagline:S.lang==='ko'?'⚖ 상황에 따라 공격성과 인내심을 조절하세요':'⚖ Balance aggression and patience'},
+    {n:5,tag:'LEVEL 3',tKey:'lv5',pts:'1,000',tagline:S.lang==='ko'?'👁 공을 끝까지 보고 신중하게 스윙하세요':'👁 Watch the pitch carefully before swinging'},
   ];
   const maxLbl=t('maxLabel');
-  // 현재 게임 진행 중(시도 1회 이상)이면 레벨 변경 불가
-  const gameInProgress = S.game && S.game.attempts > 0;
+  // 투구 1회 이상이면 레벨 변경 불가
+  const gameInProgress = S.game && (_hPitchCount > 0);
   document.getElementById('lvlCards').innerHTML=lvls.map(lv=>{
     const disabled = S.consumed>=3 || gameInProgress;
     // 게임 진행 중일 때 현재 레벨 하이라이트
@@ -2108,6 +2168,7 @@ function startGame(level){
   // 초기 상태: 레벨 변경 버튼
   const bb=document.getElementById('backBtn');
   if(bb){
+    bb.dataset.forfeitActive='';
     bb.innerHTML=(S.lang==='ko'?'← 레벨 변경':'← Change Level');
     bb.style.color='var(--muted)';bb.style.borderColor='var(--border)';
     bb.onmousedown=null;bb.onmouseup=null;bb.onmouseleave=null;
@@ -2149,7 +2210,10 @@ function renderGame(){
   if(vb){
     const vrUsed=S.hitVrUsedToday===S.today;
     vb.disabled=vrUsed;
-    vb.style.opacity=vrUsed?'0.45':'1';
+    vb.style.opacity=vrUsed?'0.4':'1';
+    vb.style.borderColor=vrUsed?'var(--border)':'#3b82f6';
+    vb.style.color=vrUsed?'var(--subtle)':'#3b82f6';
+    vb.style.background=vrUsed?'transparent':'rgba(59,130,246,.08)';
     const lbl=document.getElementById('vrBtnLabel');
     if(lbl)lbl.textContent=vrUsed?(S.lang==='ko'?'사용됨':'Used'):(S.lang==='ko'?'비디오판독':'Video Review');
   }
@@ -2202,6 +2266,7 @@ function executeForfeit(){
 
 /* ── FINISH HIT GAME ── */
 function finishHitGame(won,label,type,finalScore){
+  if(!S.game)return; // 볼넷 등으로 이미 게임 종료된 경우 방어
   const score = finalScore !== undefined ? finalScore : (won ? _hScore : 0);
   const{level,attempts,target}=S.game;
   S.scores.push({level,score,attempts,won,vr:false,type});
@@ -2226,15 +2291,19 @@ function finishHitGame(won,label,type,finalScore){
   setTimeout(()=>checkAchievements(won,level,_hPitchCount),400);
   localStorage.removeItem('nb_hit_inprog');saveDaily();
   // 결과 화면
-  const iconMap={hr:'🚀',hit:'⚾',walk:'🟡',strikeout:'💨',beomta:'🧤',forfeit:'🏳'};
-  document.getElementById('rIcon').innerHTML=iconMap[type]||( won?'⚾':'🏳');
-  document.getElementById('rAns').textContent=target.join(' · ');
-  document.getElementById('rScore').textContent=(won&&score>0?'+':'')+score.toLocaleString()+' PTS';
-  document.getElementById('rTries').textContent=label;
+  const iconMap={hr:'🎉',hit:'⚾',walk:'4️⃣',strikeout:'💀',beomta:'💀',forfeit:'🏳'};
+  document.getElementById('rIcon').innerHTML=iconMap[type]||(won?'⚾':'💀');
+  document.getElementById('rAns').textContent=target.join('');
+  const rScoreEl=document.getElementById('rScore');
+  rScoreEl.className='r-score';
+  rScoreEl.textContent=(won&&score>0?'+':'')+score.toLocaleString()+' PTS';
+  const rTriesEl=document.getElementById('rTries');
+  rTriesEl.style.fontFamily='';rTriesEl.style.fontSize='';rTriesEl.style.letterSpacing='';
+  rTriesEl.textContent=label;
   document.getElementById('rTriesLbl').textContent='';
   const rm=document.getElementById('resultModal');
-  const isGreenWin=['hr','hit','walk'].includes(type);
-  rm.className='result-full'+(isGreenWin?' win-r':!won?' lose-r':'');
+  const bgClass=type==='hr'?'hr-r':type==='hit'?'win-r':type==='forfeit'?'lose-r':!won?'lose-r':'';
+  rm.className='result-full'+(bgClass?' '+bgClass:'');
   rm.classList.add('open');
 }
 
