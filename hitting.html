@@ -1577,7 +1577,7 @@ function calcSBBonus(level,logs){
 async function detectCC(){try{const r=await fetch('https://ipapi.co/json/',{signal:AbortSignal.timeout(4000)});const d=await r.json();return d.country_code||'KR'}catch{return'KR'}}
 
 /* ── SAVE ── */
-function saveDaily(){localStorage.setItem('nb_consumed',S.consumed);localStorage.setItem('nb_scores',JSON.stringify(S.scores));localStorage.setItem('nb_total',S.totalScore);localStorage.setItem('nb_reg',S.registered);localStorage.setItem('nb_vr',S.vrUsed?'1':'0');localStorage.setItem('nb_reg_score',S.registeredScore||0);localStorage.setItem('nb_hit_vr',S.hitVrUsedToday||'');}
+function saveDaily(){localStorage.setItem('nb_hit_consumed',S.consumed);localStorage.setItem('nb_scores',JSON.stringify(S.scores));localStorage.setItem('nb_total',S.totalScore);localStorage.setItem('nb_reg',S.registered);localStorage.setItem('nb_vr',S.vrUsed?'1':'0');localStorage.setItem('nb_reg_score',S.registeredScore||0);localStorage.setItem('nb_hit_vr',S.hitVrUsedToday||'');}
 function saveRankings(){localStorage.setItem('nb_rankings',JSON.stringify(S.rankings))}
 function saveStats(){localStorage.setItem('nb_stats',JSON.stringify(S.stats))}
 function saveExtra(){
@@ -1848,20 +1848,20 @@ async function init(){
   S.lang=localStorage.getItem('nb_lang')||'ko';
   S.dark=localStorage.getItem('nb_dark')==='1';
   loadStats();
-  const saved=localStorage.getItem('nb_date');
+  const saved=localStorage.getItem('nb_hit_date');
   if(saved!==S.today){
-    localStorage.setItem('nb_date',S.today);
+    localStorage.setItem('nb_hit_date',S.today);
     S.consumed=0;S.scores=[];S.totalScore=0;S.registered=false;S.vrUsed=false;S.registeredScore=0;
-    localStorage.removeItem('nb_inprog');saveDaily();
+    localStorage.removeItem('nb_hit_inprog');saveDaily();
   }else{
-    S.consumed=parseInt(localStorage.getItem('nb_consumed')||'0');
+    S.consumed=parseInt(localStorage.getItem('nb_hit_consumed')||'0');
     S.scores=JSON.parse(localStorage.getItem('nb_scores')||'[]');
     S.totalScore=parseInt(localStorage.getItem('nb_total')||'0');
     S.registered=localStorage.getItem('nb_reg')==='true';
     S.registeredScore=parseInt(localStorage.getItem('nb_reg_score')||'0');
     S.vrUsed=localStorage.getItem('nb_vr')==='1';
     S.hitVrUsedToday=localStorage.getItem('nb_hit_vr')||'';
-    const ip=localStorage.getItem('nb_inprog');
+    const ip=localStorage.getItem('nb_hit_inprog');
     if(ip&&S.scores.length<S.consumed){
       const g=JSON.parse(ip);
       S.game={level:g.level,target:genTarget(S.uid,S.today,g.level,S.scores.length),logs:g.logs||[],attempts:g.logs?g.logs.length:0};
@@ -2047,7 +2047,7 @@ function cancelLevel(){
   // consumed 되돌리기, inprog 삭제
   S.consumed--;
   S.game=null;
-  localStorage.removeItem('nb_inprog');
+  localStorage.removeItem('nb_hit_inprog');
   saveDaily();
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('gameScreen').style.display='none';
@@ -2110,7 +2110,7 @@ function startGame(level){
 /* ── SAVE PROGRESS (새로고침 복구용) ── */
 function saveProgress(){
   if(!S.game)return;
-  localStorage.setItem('nb_inprog',JSON.stringify({
+  localStorage.setItem('nb_hit_inprog',JSON.stringify({
     level:S.game.level,logs:S.game.logs,
     hBalls:_hBalls,hStrikes:_hStrikes,hScore:_hScore,
     hPitchLogs:_hPitchLogs,hPitchCount:_hPitchCount
@@ -2209,7 +2209,7 @@ function finishHitGame(won,label,type,finalScore){
   }else{S.stats.streak=0;}
   saveStats();saveExtra();
   setTimeout(()=>checkAchievements(won,level,_hPitchCount),400);
-  localStorage.removeItem('nb_inprog');saveDaily();
+  localStorage.removeItem('nb_hit_inprog');saveDaily();
   // 결과 화면
   const iconMap={hr:'🚀',hit:'⚾',walk:'🟡',strikeout:'💨',beomta:'🧤',forfeit:'🏳'};
   document.getElementById('rIcon').innerHTML=iconMap[type]||( won?'⚾':'🏳');
@@ -2248,7 +2248,7 @@ function finishGame(won,score){
   }else{S.stats.streak=0;}
   saveStats();saveExtra();
   setTimeout(()=>checkAchievements(won,level,attempts),400);
-  localStorage.removeItem('nb_inprog');saveDaily();
+  localStorage.removeItem('nb_hit_inprog');saveDaily();
   showResult(won,score,target.join(''),attempts);
 }
 
@@ -3446,7 +3446,7 @@ function applyTutorialLang(){
 
 function devReset(){
   if(!confirm('오늘 게임 기록을 초기화할까요?'))return;
-  ['nb_consumed','nb_scores','nb_total','nb_reg','nb_inprog','nb_date','nb_vr'].forEach(k=>localStorage.removeItem(k));
+  ['nb_hit_consumed','nb_scores','nb_total','nb_reg','nb_hit_inprog','nb_hit_date','nb_vr'].forEach(k=>localStorage.removeItem(k));
   S.consumed=0;S.scores=[];S.totalScore=0;S.registered=false;S.game=null;S.vrUsed=false;S.vrUsedThisGame=false;
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('gameScreen').style.display='none';
@@ -3689,7 +3689,7 @@ function confirmVR(){
 /* ── 테스트용 리셋 ── */
 function debugResetDaily(){
   S.consumed=0;S.scores=[];S.game=null;S.hitVrUsedToday='';
-  localStorage.removeItem('nb_inprog');
+  localStorage.removeItem('nb_hit_inprog');
   saveDaily();renderHome();
   alert('✅ 오늘 3번 기회 + 비디오판독이 초기화됐어요!');
 }
