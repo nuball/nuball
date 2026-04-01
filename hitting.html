@@ -4,14 +4,14 @@
   <link rel="manifest" href="/manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NUBALL HITTING 🏏 - 투수와 숨 막히는 수싸움</title>
-<meta property="og:title" content="NUBALL HITTING 🏏 - 투수와 숨 막히는 수싸움">
-<meta property="og:description" content="홈런이냐 삼진아웃이냐">
+<title>NUBALL HITTING 🏏</title>
+<meta property="og:title" content="NUBALL HITTING 🏏">
+<meta property="og:description" content="투수와 숨 막히는 수싸움">
 <meta property="og:url" content="https://nuball.app">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="NUBALL HITTING 🏏 - 투수와 숨 막히는 수싸움">
-<meta name="twitter:description" content="홈런이냐 삼진아웃이냐">
+<meta name="twitter:title" content="NUBALL HITTING 🏏">
+<meta name="twitter:description" content="투수와 숨 막히는 수싸움">
 <script type="module">
   import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import{getDatabase,ref,set,get,query,orderByChild,limitToLast,onValue,remove}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
@@ -268,7 +268,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 
 /* ── HELP ── */
 .rule{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;color:var(--muted);font-weight:500;align-items:flex-start}
-.rule:last-child{border-bottom:none}.rule-ico{flex-shrink:0;margin-top:1px;font-size:15px;line-height:1.4}
+.rule:last-child{border-bottom:none}.rule-ico{flex-shrink:0;margin-top:1px;font-size:10px;line-height:1.4}
 .score-guide{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
 .score-guide th,.score-guide td{padding:8px 10px;text-align:center;border:1px solid var(--border)}
 .score-guide th{background:var(--bg2);font-weight:700}.score-guide td{font-weight:600;color:var(--muted)}
@@ -402,7 +402,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
           <span id="menuLbl1">나의 랭킹</span>
         </button>
-        <button class="hdr-menu-item" onclick="closeMenu();openAchModal()">
+        <button class="hdr-menu-item" disabled style="opacity:0.4;cursor:not-allowed">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
           <span id="menuLbl5">나의 업적</span>
         </button>
@@ -452,7 +452,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <!-- 연속출석 배지 + 같이하기 버튼 한 행 -->
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
       <div id="menuStreakBadge" style="display:none"><span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800"></span></div>
-      <button id="roomHomeBtn" onclick="openRoomModal()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;border:1.5px solid #000;background:#000;color:#fff;transition:all .2s">🤝 <span id="roomHomeBtnLabel">같이하기</span></button>
+      <button id="roomHomeBtn" disabled style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:not-allowed;font-family:inherit;border:1.5px solid var(--border);background:var(--bg2);color:var(--subtle);transition:all .2s">🤝 <span id="roomHomeBtnLabel">같이하기</span></button>
     </div>
     <!-- 3. 야구공 기회 표시 -->
     <div class="balls-row" id="ballsRow"></div>
@@ -607,10 +607,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       </div>
     </div>
 
-    <!-- 테스트용 리셋 버튼 -->
-    <div style="margin-top:20px;text-align:center">
-      <button onclick="debugResetDaily()" style="background:transparent;border:1.5px dashed var(--border);border-radius:8px;padding:8px 18px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit">🔄 오늘 기회 초기화 (테스트용)</button>
-    </div>
+
 
   </div>
 
@@ -799,7 +796,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </button>
         <button class="share-btn" onclick="shareSite()" style="flex:1;margin-top:0;padding:9px 6px;font-size:12px;border-color:var(--primary);color:var(--primary)">
           <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" fill="none" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          <span id="shareSiteLabel">누볼 공유</span>
+          <span id="shareSiteLabel">히팅 공유</span>
         </button>
       </div>
       <div class="copy-result" id="copyResultMsg"></div>
@@ -990,20 +987,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 </div>
 
 <!-- 도메인 이전 공지 모달 -->
-<div class="ov" id="migrateModal" style="z-index:9999">
-  <div class="mbox" style="max-width:340px">
-    <div class="mhdr"><span class="mtitle"></span><button class="mclose" onclick="closeModal('migrateModal')">✕</button></div>
-    <div class="mbody" style="text-align:center;padding:8px 20px 28px">
-      <div style="font-size:28px;margin-bottom:12px">🎉</div>
-      <div style="font-size:16px;font-weight:900;margin-bottom:8px" id="migrateTitle">누볼이 새 주소로 이전했어요!</div>
-      <div style="font-size:22px;font-weight:900;color:var(--primary);margin-bottom:12px">nuball.app</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px" id="migrateDesc">더 나은 서비스를 위해 주소가 변경되었습니다.<br>북마크나 홈화면에 추가하신 분들은 새 주소로 다시 저장해주세요.</div>
-      <div style="font-size:12px;font-weight:800;color:var(--lose);margin-bottom:20px" id="migrateWarn">⚠️ 기존 주소는 3월 31일까지만 운영됩니다.</div>
-      <button class="btn-p" onclick="location.href='https://nuball.app'" id="migrateMoveBtn">nuball.app으로 이동하기</button>
-    </div>
-  </div>
-</div>
-
 <!-- 알림 끄기 확인 모달 -->
 <div class="ov" id="notifOffModal">
   <div class="mbox" style="max-width:320px">
@@ -1243,26 +1226,140 @@ function recentNums(n){
   return nums;
 }
 
-function genNextPitch(target){
-  const bias=_hStrikes*(-0.15)+_hBalls*0.10;
-  const pS=Math.max(.20,Math.min(.80,.50+bias));
-  const isStrike=()=>Math.random()<pS;
+/* ── 풍부한 힌트 투구 생성 (2S 또는 1S1B) ── */
+/* ── 투구 4종 생성 ── */
+// 1. 1S0B
+function genPitch1S(target, excluded=new Set()){
+  const pool=[1,2,3,4,5,6,7,8,9].filter(n=>!excluded.has(n)||target.includes(n));
+  if(pool.length<target.length)return null;
+  for(let a=0;a<200;a++){
+    const mp=Math.floor(Math.random()*target.length);
+    const pitch=[];let ok=true;
+    for(let i=0;i<target.length;i++){
+      if(i===mp){pitch.push(target[i]);}
+      else{
+        const av=pool.filter(n=>!target.includes(n)&&!pitch.includes(n));
+        if(!av.length){ok=false;break;}
+        pitch.push(av[Math.floor(Math.random()*av.length)]);
+      }
+    }
+    if(!ok)continue;
+    let s=0,b=0;
+    pitch.forEach((n,i)=>{if(n===target[i])s++;else if(target.includes(n))b++;});
+    if(s===1&&b===0)return pitch;
+  }
+  return null;
+}
+// 2. 1S1B
+function genPitch1S1B(target, excluded=new Set()){
+  const pool=[1,2,3,4,5,6,7,8,9].filter(n=>!excluded.has(n)||target.includes(n));
+  if(pool.length<target.length)return null;
+  for(let a=0;a<200;a++){
+    const si=Math.floor(Math.random()*target.length);
+    const ballCands=target.filter((_,i)=>i!==si);
+    const bVal=ballCands[Math.floor(Math.random()*ballCands.length)];
+    const bOrigIdx=target.indexOf(bVal);
+    const bPosCands=[...Array(target.length).keys()].filter(i=>i!==si&&i!==bOrigIdx);
+    if(!bPosCands.length)continue;
+    const bPos=bPosCands[Math.floor(Math.random()*bPosCands.length)];
+    const pitch=new Array(target.length).fill(null);
+    pitch[si]=target[si];pitch[bPos]=bVal;
+    let ok=true;
+    for(let i=0;i<target.length;i++){
+      if(pitch[i]!==null)continue;
+      const av=pool.filter(n=>!target.includes(n)&&!pitch.includes(n));
+      if(!av.length){ok=false;break;}
+      pitch[i]=av[Math.floor(Math.random()*av.length)];
+    }
+    if(!ok)continue;
+    let s=0,b=0;
+    pitch.forEach((n,i)=>{if(n===target[i])s++;else if(target.includes(n))b++;});
+    if(s===1&&b===1)return pitch;
+  }
+  return null;
+}
+// 3. 0S1B
+function genPitch1B(target, excluded=new Set()){
+  const pool=[1,2,3,4,5,6,7,8,9].filter(n=>!excluded.has(n)||target.includes(n));
+  if(pool.length<target.length)return null;
+  for(let a=0;a<200;a++){
+    const si=Math.floor(Math.random()*target.length);
+    const wps=[...Array(target.length).keys()].filter(i=>i!==si);
+    const pp=wps[Math.floor(Math.random()*wps.length)];
+    const pitch=new Array(target.length).fill(null);
+    pitch[pp]=target[si];
+    let ok=true;
+    for(let i=0;i<target.length;i++){
+      if(pitch[i]!==null)continue;
+      const av=pool.filter(n=>!target.includes(n)&&!pitch.includes(n));
+      if(!av.length){ok=false;break;}
+      pitch[i]=av[Math.floor(Math.random()*av.length)];
+    }
+    if(!ok)continue;
+    let s=0,b=0;
+    pitch.forEach((n,i)=>{if(n===target[i])s++;else if(target.includes(n))b++;});
+    if(s===0&&b===1)return pitch;
+  }
+  return null;
+}
+// 4. 0S2B
+function genPitch0S2B(target, excluded=new Set()){
+  const pool=[1,2,3,4,5,6,7,8,9].filter(n=>!excluded.has(n)||target.includes(n));
+  if(pool.length<target.length||target.length<2)return null;
+  for(let a=0;a<200;a++){
+    // 정답에서 2개 숫자를 골라 틀린 자리에 배치
+    const idxs=[...Array(target.length).keys()];
+    const b1Src=idxs[Math.floor(Math.random()*idxs.length)];
+    const rest=idxs.filter(i=>i!==b1Src);
+    const b2Src=rest[Math.floor(Math.random()*rest.length)];
+    // 각각 틀린 자리에 놓기
+    const posCands1=idxs.filter(i=>i!==b1Src);
+    const b1Pos=posCands1[Math.floor(Math.random()*posCands1.length)];
+    const posCands2=idxs.filter(i=>i!==b2Src&&i!==b1Pos);
+    if(!posCands2.length)continue;
+    const b2Pos=posCands2[Math.floor(Math.random()*posCands2.length)];
+    const pitch=new Array(target.length).fill(null);
+    pitch[b1Pos]=target[b1Src];
+    pitch[b2Pos]=target[b2Src];
+    // 나머지 자리 채우기
+    let ok=true;
+    for(let i=0;i<target.length;i++){
+      if(pitch[i]!==null)continue;
+      const av=pool.filter(n=>!target.includes(n)&&!pitch.includes(n));
+      if(!av.length){ok=false;break;}
+      pitch[i]=av[Math.floor(Math.random()*av.length)];
+    }
+    if(!ok)continue;
+    let s=0,b=0;
+    pitch.forEach((n,i)=>{if(n===target[i])s++;else if(target.includes(n))b++;});
+    if(s===0&&b===2)return pitch;
+  }
+  return null;
+}
 
-  // 단계별 시도: 최근 3개 숫자 제외 → 최근 1개 제외 → 제한 없음
+function genNextPitch(target){
+  // 4종 투구 중 랜덤 선택 (각 25%)
+  // S 계열(1S0B, 1S1B)은 스트라이크 카운트, B 계열(0S1B, 0S2B)은 볼 카운트
+  const types=['1S0B','1S1B','0S1B','0S2B'];
+  const shuffled=[...types].sort(()=>Math.random()-.5);
+
   for(const excludeCount of [3,1,0]){
     const excluded=excludeCount>0?recentNums(excludeCount):new Set();
-    for(let i=0;i<30;i++){
-      const pitch=isStrike()?genPitch1S(target,excluded):genPitch1B(target,excluded);
-      if(!pitch)continue;
-      const key=pitchKey(pitch);
-      if(!_usedPitches.includes(key)){
-        _usedPitches.push(key);
-        return pitch;
+    for(const type of shuffled){
+      for(let i=0;i<30;i++){
+        let pitch=null;
+        if(type==='1S0B')pitch=genPitch1S(target,excluded);
+        else if(type==='1S1B')pitch=genPitch1S1B(target,excluded);
+        else if(type==='0S1B')pitch=genPitch1B(target,excluded);
+        else pitch=genPitch0S2B(target,excluded);
+        if(!pitch)break;
+        const key=pitchKey(pitch);
+        if(!_usedPitches.includes(key)){_usedPitches.push(key);return pitch;}
       }
     }
   }
-  // 완전 폴백
-  const fb=isStrike()?genPitch1S(target,new Set()):genPitch1B(target,new Set());
+  // 폴백: 1S0B
+  const fb=genPitch1S(target,new Set());
   if(fb)_usedPitches.push(pitchKey(fb));
   return fb;
 }
@@ -1274,17 +1371,17 @@ let _hPitchCount=0; // 보내기 횟수
 
 /* ── 스윙 확률 테이블 ── */
 const SWING_PROBS={
-  '2S3B':{foul:.82,heotswing:.17,beomta:.01},
-  '2S2B':{foul:.80,heotswing:.18,beomta:.02},
-  '2S1B':{foul:.78,heotswing:.20,beomta:.02},
-  '2S0B':{foul:.75,heotswing:.23,beomta:.02},
-  '1S2B':{foul:.60,heotswing:.37,beomta:.03},
-  '1S1B':{foul:.30,heotswing:.66,beomta:.04},
-  '1S0B':{foul:.20,heotswing:.75,beomta:.05},
-  '0S3B':{foul:.60,heotswing:.37,beomta:.03},
-  '0S2B':{foul:.30,heotswing:.65,beomta:.05},
-  '0S1B':{foul:.15,heotswing:.80,beomta:.05},
-  '0S0B':{foul:.05,heotswing:.93,beomta:.02},
+  '2S3B':{foul:.84,heotswing:.15,beomta:.01},
+  '2S2B':{foul:.82,heotswing:.16,beomta:.02},
+  '2S1B':{foul:.80,heotswing:.18,beomta:.02},
+  '2S0B':{foul:.77,heotswing:.21,beomta:.02},
+  '1S2B':{foul:.65,heotswing:.32,beomta:.03},
+  '1S1B':{foul:.38,heotswing:.58,beomta:.04},
+  '1S0B':{foul:.28,heotswing:.67,beomta:.05},
+  '0S3B':{foul:.65,heotswing:.32,beomta:.03},
+  '0S2B':{foul:.38,heotswing:.57,beomta:.05},
+  '0S1B':{foul:.22,heotswing:.73,beomta:.05},
+  '0S0B':{foul:.10,heotswing:.87,beomta:.03},
 };
 function getSwingResult(s,b,level){
   if(s===level)return Math.random()<.25?'hr':'hit';
@@ -1474,12 +1571,11 @@ function handleTake(){
   if(!pitch){console.warn('pitch gen failed');return;}
   let s=0,b=0;
   pitch.forEach((n,i)=>{if(n===S.game.target[i])s++;else if(S.game.target.includes(n))b++;});
-  const type=s===1?'1S':'1B';
+  const type=s===1&&b===1?'1S1B':s===1?'1S0B':b===2?'0S2B':'0S1B';
   _hPitchLogs.unshift({pitch,type,s,b,action:'take'});
-  // 점수 차감
   _hPitchCount++;
-  // 카운트 업데이트
-  if(s===1)_hStrikes++;else _hBalls++;
+  // 카운트: S 있으면 스트라이크+1, 없으면 볼+1 (1구 = 카운트 1개)
+  if(s>0)_hStrikes++;else _hBalls++;
   showPitcherThrow();
   showPitchResult(pitch,type);
   renderHCount();renderOutDots();renderGame();renderHitLog();saveProgress();
@@ -1654,22 +1750,22 @@ function calcSBBonus(level,logs){
 async function detectCC(){try{const r=await fetch('https://ipapi.co/json/',{signal:AbortSignal.timeout(4000)});const d=await r.json();return d.country_code||'KR'}catch{return'KR'}}
 
 /* ── SAVE ── */
-function saveDaily(){localStorage.setItem('nb_hit_consumed',S.consumed);localStorage.setItem('nb_scores',JSON.stringify(S.scores));localStorage.setItem('nb_total',S.totalScore);localStorage.setItem('nb_reg',S.registered);localStorage.setItem('nb_vr',S.vrUsed?'1':'0');localStorage.setItem('nb_reg_score',S.registeredScore||0);localStorage.setItem('nb_hit_vr',S.hitVrUsedToday||'');}
-function saveRankings(){localStorage.setItem('nb_rankings',JSON.stringify(S.rankings))}
-function saveStats(){localStorage.setItem('nb_stats',JSON.stringify(S.stats))}
+function saveDaily(){localStorage.setItem('nb_hit_consumed',S.consumed);localStorage.setItem('nbh_scores',JSON.stringify(S.scores));localStorage.setItem('nbh_total',S.totalScore);localStorage.setItem('nbh_reg',S.registered);localStorage.setItem('nbh_vr',S.vrUsed?'1':'0');localStorage.setItem('nbh_reg_score',S.registeredScore||0);localStorage.setItem('nb_hit_vr',S.hitVrUsedToday||'');}
+function saveRankings(){localStorage.setItem('nbh_rankings',JSON.stringify(S.rankings))}
+function saveStats(){localStorage.setItem('nbh_stats',JSON.stringify(S.stats))}
 function saveExtra(){
-  localStorage.setItem('nb_streak',S.streak);
-  localStorage.setItem('nb_best',JSON.stringify(S.personalBest));
-  localStorage.setItem('nb_ach',JSON.stringify(S.achievements));
-  localStorage.setItem('nb_noforfeit_days',JSON.stringify(S.noForfeitDays||[]));
+  localStorage.setItem('nbh_streak',S.streak);
+  localStorage.setItem('nbh_best',JSON.stringify(S.personalBest));
+  localStorage.setItem('nbh_ach',JSON.stringify(S.achievements));
+  localStorage.setItem('nbh_noforfeit_days',JSON.stringify(S.noForfeitDays||[]));
 }
 function loadStats(){
-  const raw=localStorage.getItem('nb_stats');
+  const raw=localStorage.getItem('nbh_stats');
   if(raw){try{S.stats=JSON.parse(raw)}catch(e){}}
-  S.streak=parseInt(localStorage.getItem('nb_streak')||'0')||0;
-  try{const b=localStorage.getItem('nb_best');if(b){const p=JSON.parse(b);if(p&&typeof p==='object')S.personalBest=Object.assign({3:null,4:null,5:null},p);}}catch(e){}
-  try{const a=localStorage.getItem('nb_ach');if(a){const ac=JSON.parse(a);if(ac&&typeof ac==='object')S.achievements=ac;}}catch(e){}
-  try{const nf=localStorage.getItem('nb_noforfeit_days');if(nf){const d=JSON.parse(nf);if(Array.isArray(d))S.noForfeitDays=d;}}catch(e){}
+  S.streak=parseInt(localStorage.getItem('nbh_streak')||'0')||0;
+  try{const b=localStorage.getItem('nbh_best');if(b){const p=JSON.parse(b);if(p&&typeof p==='object')S.personalBest=Object.assign({3:null,4:null,5:null},p);}}catch(e){}
+  try{const a=localStorage.getItem('nbh_ach');if(a){const ac=JSON.parse(a);if(ac&&typeof ac==='object')S.achievements=ac;}}catch(e){}
+  try{const nf=localStorage.getItem('nbh_noforfeit_days');if(nf){const d=JSON.parse(nf);if(Array.isArray(d))S.noForfeitDays=d;}}catch(e){}
   try{S.team=localStorage.getItem('nb_team')||null;S.league=localStorage.getItem('nb_league')||null;}catch(e){}
 }
 
@@ -1932,11 +2028,11 @@ async function init(){
     localStorage.removeItem('nb_hit_inprog');saveDaily();
   }else{
     S.consumed=parseInt(localStorage.getItem('nb_hit_consumed')||'0');
-    S.scores=JSON.parse(localStorage.getItem('nb_scores')||'[]');
-    S.totalScore=parseInt(localStorage.getItem('nb_total')||'0');
-    S.registered=localStorage.getItem('nb_reg')==='true';
-    S.registeredScore=parseInt(localStorage.getItem('nb_reg_score')||'0');
-    S.vrUsed=localStorage.getItem('nb_vr')==='1';
+    S.scores=JSON.parse(localStorage.getItem('nbh_scores')||'[]');
+    S.totalScore=parseInt(localStorage.getItem('nbh_total')||'0');
+    S.registered=localStorage.getItem('nbh_reg')==='true';
+    S.registeredScore=parseInt(localStorage.getItem('nbh_reg_score')||'0');
+    S.vrUsed=localStorage.getItem('nbh_vr')==='1';
     S.hitVrUsedToday=localStorage.getItem('nb_hit_vr')||'';
     const ip=localStorage.getItem('nb_hit_inprog');
     if(ip&&S.scores.length<S.consumed){
@@ -1949,11 +2045,10 @@ async function init(){
       document.getElementById('homeScreen').classList.add('hidden');
     }
   }
-  const sw=localStorage.getItem('nb_day_rank');
-  if(sw!==S.dayId){localStorage.setItem('nb_day_rank',S.dayId);S.rankings=[];saveRankings();}
+  const sw=localStorage.getItem('nbh_day_rank');
+  if(sw!==S.dayId){localStorage.setItem('nbh_day_rank',S.dayId);S.rankings=[];saveRankings();}
   else{
-    S.rankings=JSON.parse(localStorage.getItem('nb_rankings')||'[]');
-    // 더미 데이터 제거 (이전 버전에서 저장된 seed_ 항목 정리)
+    S.rankings=JSON.parse(localStorage.getItem('nbh_rankings')||'[]');
     S.rankings=S.rankings.filter(r=>!String(r.id).startsWith('seed_'));
     saveRankings();
   }
@@ -1987,21 +2082,6 @@ async function init(){
     _hss.classList.add('hidden');
   }
   checkRoomUrl();
-  // 도메인 이전 공지 (nuball.vercel.app에서만)
-  if(location.hostname.includes('vercel.app')&&!localStorage.getItem('nb_migrate_closed')){
-    const ko=S.lang==='ko';
-    const mt=document.getElementById('migrateTitle');
-    const md=document.getElementById('migrateDesc');
-    const mw=document.getElementById('migrateWarn');
-    const mb=document.getElementById('migrateMoveBtn');
-    const ml=document.getElementById('migrateLaterBtn');
-    if(mt)mt.textContent=ko?'누볼이 새 주소로 이전했어요!':'NUBALL has moved to a new address!';
-    if(md)md.innerHTML=ko?'더 나은 서비스를 위해 주소가 변경되었습니다.<br>북마크나 홈화면에 추가하신 분들은 새 주소로 다시 저장해주세요.':'We moved to a better address.<br>Please update your bookmarks and home screen.';
-    if(mw)mw.textContent=ko?'⚠️ 기존 주소는 3월 31일까지만 운영됩니다.':'⚠️ The old address will be available until March 31.';
-    if(mb)mb.textContent=ko?'nuball.app으로 이동하기':'Go to nuball.app';
-    if(ml)ml.textContent=ko?'나중에':'Later';
-    setTimeout(()=>openModal('migrateModal'),1000);
-  }
 }
 
 /* ── THEME ── */
@@ -2036,7 +2116,7 @@ function applyLang(){
   if(e('menuLbl4'))e('menuLbl4').textContent=ko?'게임 방법':'How to Play';
   if(e('menuLbl5'))e('menuLbl5').textContent=ko?'나의 업적':'My Achievements';
   if(e('achModalTitle'))e('achModalTitle').textContent=ko?'🏅 나의 업적':'🏅 My Achievements';
-  if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'누볼 공유':'Share NUBALL';
+  if(e('shareSiteLabel'))e('shareSiteLabel').textContent=ko?'히팅 공유':'Share Hitting';
   if(e('menuLbl6'))e('menuLbl6').textContent=ko?'내팀 선택':'My Team';
   if(e('menuLbl8'))e('menuLbl8').textContent=ko?'같이하기':'Play Together';
   if(e('roomHomeBtnLabel'))e('roomHomeBtnLabel').textContent=ko?'같이하기':'Play Together';
@@ -2301,12 +2381,12 @@ function finishHitGame(won,label,type,finalScore){
     S.stats.dist[key]=(S.stats.dist[key]||0)+1;
     if(!S.personalBest)S.personalBest={3:null,4:null,5:null};
     if(S.personalBest[level]===null||_hPitchCount<S.personalBest[level])S.personalBest[level]=_hPitchCount;
-    const lastPlay=localStorage.getItem('nb_lastPlay');
+    const lastPlay=localStorage.getItem('nbh_lastPlay');
     const ydObj=new Date();ydObj.setDate(ydObj.getDate()-1);
     const yesterday=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
     if(lastPlay!==S.today){
       if(lastPlay===yesterday)S.streak=(S.streak||0)+1;else S.streak=1;
-      localStorage.setItem('nb_lastPlay',S.today);
+      localStorage.setItem('nbh_lastPlay',S.today);
     }
   }else{S.stats.streak=0;}
   saveStats();saveExtra();
@@ -2344,13 +2424,13 @@ function finishGame(won,score){
     if(!S.personalBest)S.personalBest={3:null,4:null,5:null};
     if(S.personalBest[level]===null||attempts<S.personalBest[level])S.personalBest[level]=attempts;
     // 스트릭 업데이트
-    const lastPlay=localStorage.getItem('nb_lastPlay');
+    const lastPlay=localStorage.getItem('nbh_lastPlay');
     const ydObj=new Date();ydObj.setDate(ydObj.getDate()-1);
     const yesterday=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
     if(lastPlay!==S.today){
       if(lastPlay===yesterday)S.streak=(S.streak||0)+1;
       else S.streak=1;
-      localStorage.setItem('nb_lastPlay',S.today);
+      localStorage.setItem('nbh_lastPlay',S.today);
     }
   }else{S.stats.streak=0;}
   saveStats();saveExtra();
@@ -2441,39 +2521,39 @@ function renderStats(){
 /* ── ACHIEVEMENTS ── */
 const ACHIEVEMENTS=[
   // ── 첫 경험 ──
-  {id:'first_play',   cat:'첫 경험', icon:'⚾', ko:'첫 타석',     en:'First At Bat',    descKo:'처음으로 누볼을 플레이했어요',           descEn:'Played NUBALL for the first time',           cond:'auto'},
-  {id:'first_lv1',    cat:'첫 경험', icon:'🎯', ko:'LV1 클리어',  en:'LV1 Clear',       descKo:'레벨1을 처음 클리어했어요',              descEn:'Cleared Level 1 for the first time',         cond:'auto'},
-  {id:'first_lv2',    cat:'첫 경험', icon:'🎯', ko:'LV2 클리어',  en:'LV2 Clear',       descKo:'레벨2를 처음 클리어했어요',              descEn:'Cleared Level 2 for the first time',         cond:'auto'},
-  {id:'first_lv3',    cat:'첫 경험', icon:'🎯', ko:'LV3 클리어',  en:'LV3 Clear',       descKo:'레벨3를 처음 클리어했어요',              descEn:'Cleared Level 3 for the first time',         cond:'auto'},
-  {id:'first_rank',   cat:'첫 경험', icon:'🏆', ko:'첫 랭킹 등록',en:'First Ranking',   descKo:'처음으로 일간 랭킹에 등록했어요',        descEn:'Registered on the daily ranking',            cond:'auto'},
+  {id:'first_play',   cat:'첫 경험', icon:'⚾', ko:'첫 타석',      en:'First At Bat',    descKo:'처음으로 누볼 히팅을 플레이했어요',        descEn:'Played NUBALL Hitting for the first time',       cond:'auto'},
+  {id:'first_lv1',   cat:'첫 경험', icon:'🏏', ko:'LV1 홈런',     en:'LV1 HR',          descKo:'LV1에서 처음으로 홈런/안타를 쳤어요',       descEn:'Hit a Home Run or Hit on LV1 for the first time',cond:'auto'},
+  {id:'first_lv2',   cat:'첫 경험', icon:'🏏', ko:'LV2 홈런',     en:'LV2 HR',          descKo:'LV2에서 처음으로 홈런/안타를 쳤어요',       descEn:'Hit a Home Run or Hit on LV2 for the first time',cond:'auto'},
+  {id:'first_lv3',   cat:'첫 경험', icon:'🏏', ko:'LV3 홈런',     en:'LV3 HR',          descKo:'LV3에서 처음으로 홈런/안타를 쳤어요',       descEn:'Hit a Home Run or Hit on LV3 for the first time',cond:'auto'},
+  {id:'first_rank',  cat:'첫 경험', icon:'🏆', ko:'첫 랭킹 등록', en:'First Ranking',   descKo:'처음으로 히팅 랭킹에 등록했어요',           descEn:'Registered on the Hitting daily ranking',        cond:'auto'},
   // ── 실력 ──
-  {id:'fast_lv1',     cat:'실력',    icon:'⚡', ko:'3번 안에 LV1',en:'Quick LV1',       descKo:'레벨1을 3번 이내에 맞혔어요',            descEn:'Cleared LV1 in 3 attempts or less',          cond:'won && level===3 && attempts<=3'},
-  {id:'fast_lv2',     cat:'실력',    icon:'🎯', ko:'5번 안에 LV2',en:'Quick LV2',       descKo:'레벨2를 5번 이내에 맞혔어요',            descEn:'Cleared LV2 in 5 attempts or less',          cond:'won && level===4 && attempts<=5'},
-  {id:'fast_lv3',     cat:'실력',    icon:'🚀', ko:'10번 안에 LV3',en:'LV3 Ace',        descKo:'레벨3를 10번 이내에 맞혔어요',           descEn:'Cleared LV3 in 10 attempts or less',         cond:'won && level===5 && attempts<=10'},
-  {id:'cold_game',    cat:'실력',    icon:'🥶', ko:'콜드게임',     en:'Cold Game',       descKo:'3판 모두 7번 이하로 클리어했어요',        descEn:'Cleared all 3 games in 7 attempts or less',  cond:'auto'},
-  {id:'one_shot',     cat:'실력',    icon:'💫', ko:'원샷!',        en:'One Shot!',       descKo:'단 1번 만에 정답을 맞혔어요',            descEn:'Got the answer in just 1 attempt',           cond:'won && attempts===1'},
+  {id:'fast_lv1',    cat:'실력',    icon:'⚡', ko:'9구 이내 LV1', en:'Quick LV1',       descKo:'LV1을 9구 이내에 클리어했어요',             descEn:'Cleared LV1 within 9 pitches',                   cond:'auto'},
+  {id:'fast_lv2',    cat:'실력',    icon:'🎯', ko:'13구 이내 LV2',en:'Quick LV2',       descKo:'LV2를 13구 이내에 클리어했어요',            descEn:'Cleared LV2 within 13 pitches',                  cond:'auto'},
+  {id:'fast_lv3',    cat:'실력',    icon:'🚀', ko:'18구 이내 LV3',en:'LV3 Ace',         descKo:'LV3를 18구 이내에 클리어했어요',            descEn:'Cleared LV3 within 18 pitches',                  cond:'auto'},
+  {id:'cold_game',   cat:'실력',    icon:'🥶', ko:'퍼펙트 타선',  en:'Perfect Lineup',  descKo:'하루 3게임 모두 볼넷/홈런/안타로 클리어!',  descEn:'Cleared all 3 games with Walk/HR/Hit!',          cond:'auto'},
+  {id:'one_shot',    cat:'실력',    icon:'💫', ko:'첫 스윙 홈런!',en:'First Swing HR!', descKo:'첫 스윙에 바로 홈런을 쳤어요!',             descEn:'Hit a Home Run on the very first swing!',        cond:'won && attempts===1'},
   // ── 꾸준함 ──
-  {id:'streak3',      cat:'꾸준함',  icon:'🔥', ko:'3일 연속',     en:'3-Day Streak',    descKo:'3일 연속으로 누볼을 플레이했어요',       descEn:'Played NUBALL 3 days in a row',              cond:'streak>=3'},
-  {id:'streak7',      cat:'꾸준함',  icon:'🔥', ko:'7일 연속',     en:'7-Day Streak',    descKo:'7일 연속으로 누볼을 플레이했어요',       descEn:'Played NUBALL 7 days in a row',              cond:'streak>=7'},
-  {id:'streak30',     cat:'꾸준함',  icon:'👑', ko:'꾸준왕',       en:'Dedication King', descKo:'30일 연속으로 누볼을 플레이했어요',      descEn:'Played NUBALL 30 days in a row',             cond:'streak>=30'},
+  {id:'streak3',     cat:'꾸준함',  icon:'🔥', ko:'3일 연속',     en:'3-Day Streak',    descKo:'3일 연속으로 누볼 히팅을 플레이했어요',     descEn:'Played NUBALL Hitting 3 days in a row',          cond:'streak>=3'},
+  {id:'streak7',     cat:'꾸준함',  icon:'🔥', ko:'7일 연속',     en:'7-Day Streak',    descKo:'7일 연속으로 누볼 히팅을 플레이했어요',     descEn:'Played NUBALL Hitting 7 days in a row',          cond:'streak>=7'},
+  {id:'streak30',    cat:'꾸준함',  icon:'👑', ko:'꾸준왕',       en:'Dedication King', descKo:'30일 연속으로 누볼 히팅을 플레이했어요',    descEn:'Played NUBALL Hitting 30 days in a row',         cond:'streak>=30'},
   // ── 점수 ──
-  {id:'score2000',    cat:'점수',    icon:'💰', ko:'2000점!',      en:'2000 pts!',       descKo:'하루 합산 점수가 2000점 이상이에요',     descEn:'Total daily score reached 2000 points',      cond:'auto'},
-  {id:'score2500',    cat:'점수',    icon:'💎', ko:'2500점!',      en:'2500 pts!',       descKo:'하루 합산 점수가 2500점 이상이에요',     descEn:'Total daily score reached 2500 points',      cond:'auto'},
+  {id:'score2000',   cat:'점수',    icon:'💰', ko:'2000점!',      en:'2000 pts!',       descKo:'하루 최고 점수 2000점 이상!',               descEn:'Daily best score reached 2000 points!',          cond:'auto'},
+  {id:'score2500',   cat:'점수',    icon:'💎', ko:'2500점!',      en:'2500 pts!',       descKo:'하루 최고 점수 2500점 이상!',               descEn:'Daily best score reached 2500 points!',          cond:'auto'},
   // ── 도전 ──
-  {id:'full_clear',   cat:'도전',    icon:'💪', ko:'퍼펙트 데이',  en:'Perfect Day',     descKo:'하루에 3판 모두 클리어했어요',           descEn:'Cleared all 3 games in one day',             cond:'auto'},
-  {id:'lv_explorer',  cat:'도전',    icon:'🧭', ko:'레벨탐험가',   en:'Level Explorer',  descKo:'LV1, LV2, LV3 모두 한 번씩 클리어했어요',descEn:'Cleared each of LV1, LV2, and LV3 once',     cond:'auto'},
-  {id:'no_forfeit',   cat:'도전',    icon:'🛡️', ko:'포기 없이',    en:'No Forfeit',      descKo:'포기 없이 3판을 완주했어요',             descEn:'Completed 3 games without forfeiting',       cond:'auto'},
-  {id:'no_forfeit7',  cat:'도전',    icon:'🔱', ko:'포기하지마',   en:'Never Give Up',   descKo:'포기 없이 7일 연속 플레이했어요',        descEn:'Played 7 days in a row without forfeiting',  cond:'auto'},
+  {id:'full_clear',  cat:'도전',    icon:'💪', ko:'퍼펙트 데이',  en:'Perfect Day',     descKo:'하루 3게임 모두 클리어했어요',              descEn:'Cleared all 3 games in one day',                 cond:'auto'},
+  {id:'lv_explorer', cat:'도전',    icon:'🧭', ko:'타석 탐험가',  en:'Batter Explorer', descKo:'LV1, LV2, LV3 모두 한 번씩 클리어했어요',  descEn:'Cleared each of LV1, LV2, and LV3 once',         cond:'auto'},
+  {id:'no_forfeit',  cat:'도전',    icon:'🛡️', ko:'끝까지 버텨', en:'Never Quit',      descKo:'포기 없이 3게임을 완주했어요',              descEn:'Completed 3 games without forfeiting',           cond:'auto'},
+  {id:'no_forfeit7', cat:'도전',    icon:'🔱', ko:'포기는 없다',  en:'Never Give Up',   descKo:'포기 없이 7일 연속 플레이했어요',           descEn:'Played 7 days in a row without forfeiting',      cond:'auto'},
   // ── 희귀 ──
-  {id:'solo_hr',      cat:'희귀',    icon:'⚾', ko:'솔로홈런',     en:'Solo HR',         descKo:'LV1을 단 1번 만에 맞혔어요!',           descEn:'Cleared LV1 in just 1 attempt!',             cond:'won && level===3 && attempts===1'},
-  {id:'two_run',      cat:'희귀',    icon:'⚾', ko:'투런홈런',     en:'Two-Run HR',      descKo:'LV2를 단 1번 만에 맞혔어요!',           descEn:'Cleared LV2 in just 1 attempt!',             cond:'won && level===4 && attempts===1'},
-  {id:'lv3_oneshot',  cat:'희귀',    icon:'🌟', ko:'쓰리런홈런',   en:'Three-Run HR',    descKo:'LV3를 단 1번 만에 맞혔어요 (전설급!)', descEn:'Cleared LV3 in just 1 attempt (legendary!)',  cond:'won && level===5 && attempts===1'},
-  {id:'grand_slam',   cat:'희귀',    icon:'💥', ko:'만루홈런',     en:'Grand Slam',      descKo:'만루홈런! 모든 업적을 달성했어요!',      descEn:'Grand Slam! All achievements unlocked!',     cond:'auto'},
-  // ── 랭킹 1위 업적 ──
-  {id:'rank1_all',    cat:'랭킹',    icon:'🥇', ko:'통합우승',     en:'Grand Champion',  descKo:'일간 랭킹 통합 1위를 달성했어요!',      descEn:'Reached #1 on the overall daily ranking!',   cond:'auto'},
-  {id:'rank1_lv1',    cat:'랭킹',    icon:'🏅', ko:'신인왕',       en:'Rookie of Year',  descKo:'LV1 랭킹 1위를 달성했어요!',            descEn:'Reached #1 on the LV1 daily ranking!',       cond:'auto'},
-  {id:'rank1_lv2',    cat:'랭킹',    icon:'🥈', ko:'골든글러브',   en:'Golden Glove',    descKo:'LV2 랭킹 1위를 달성했어요!',            descEn:'Reached #1 on the LV2 daily ranking!',       cond:'auto'},
-  {id:'rank1_lv3',    cat:'랭킹',    icon:'🏆', ko:'MVP',          en:'MVP',             descKo:'LV3 랭킹 1위를 달성했어요!',            descEn:'Reached #1 on the LV3 daily ranking!',       cond:'auto'},
+  {id:'solo_hr',     cat:'희귀',    icon:'⚾', ko:'솔로홈런',     en:'Solo HR',         descKo:'LV1을 첫 스윙에 홈런으로 클리어!',         descEn:'Cleared LV1 with a Home Run on first swing!',    cond:'won && level===3 && attempts===1'},
+  {id:'two_run',     cat:'희귀',    icon:'⚾', ko:'투런홈런',     en:'Two-Run HR',      descKo:'LV2를 첫 스윙에 홈런으로 클리어!',         descEn:'Cleared LV2 with a Home Run on first swing!',    cond:'won && level===4 && attempts===1'},
+  {id:'lv3_oneshot', cat:'희귀',    icon:'🌟', ko:'쓰리런홈런',   en:'Three-Run HR',    descKo:'LV3를 첫 스윙에 홈런! 전설이에요!',        descEn:'LV3 Home Run on first swing! Legendary!',        cond:'won && level===5 && attempts===1'},
+  {id:'grand_slam',  cat:'희귀',    icon:'💥', ko:'만루홈런',     en:'Grand Slam',      descKo:'만루홈런! 모든 업적을 달성했어요!',         descEn:'Grand Slam! All achievements unlocked!',         cond:'auto'},
+  // ── 랭킹 1위 ──
+  {id:'rank1_all',   cat:'랭킹',    icon:'🥇', ko:'히팅 챔피언',  en:'Hitting Champ',   descKo:'히팅 일간 랭킹 1위를 달성했어요!',         descEn:'Reached #1 on the Hitting daily ranking!',       cond:'auto'},
+  {id:'rank1_lv1',   cat:'랭킹',    icon:'🏅', ko:'LV1 MVP',     en:'LV1 MVP',         descKo:'LV1 히팅 랭킹 1위를 달성했어요!',          descEn:'Reached #1 on the LV1 Hitting ranking!',         cond:'auto'},
+  {id:'rank1_lv2',   cat:'랭킹',    icon:'🥈', ko:'LV2 MVP',     en:'LV2 MVP',         descKo:'LV2 히팅 랭킹 1위를 달성했어요!',          descEn:'Reached #1 on the LV2 Hitting ranking!',         cond:'auto'},
+  {id:'rank1_lv3',   cat:'랭킹',    icon:'🏆', ko:'LV3 MVP',     en:'LV3 MVP',         descKo:'LV3 히팅 랭킹 1위를 달성했어요!',          descEn:'Reached #1 on the LV3 Hitting ranking!',         cond:'auto'},
 ];
 
 function checkAchievements(won,level,attempts){
@@ -3014,15 +3094,37 @@ function renderPersonalBest(){
   const el=document.getElementById('personalBestArea');
   if(!el)return;
   const ko=S.lang==='ko';
-  const lvs=[{n:3,k:'LV.1'},{n:4,k:'LV.2'},{n:5,k:'LV.3'}];
-  const items=lvs.map(lv=>{
-    const b=S.personalBest[lv.n];
-    return '<div style="text-align:center;flex:1;background:var(--bg2);border-radius:8px;padding:10px 6px">'+
-      '<div style="font-size:20px;font-weight:900;color:var(--primary);font-family:\"DM Mono\",monospace;line-height:1">'+(b!==null?b+(ko?'번':' att'):'-')+'</div>'+
-      '<div style="font-size:10px;font-weight:700;color:var(--muted);margin-top:4px">'+lv.k+'</div>'+
+  const lvName={3:'LV.1',4:'LV.2',5:'LV.3'};
+  const typeLabel=ko
+    ?{hr:'홈런',hit:'안타',walk:'볼넷',strikeout:'삼진',beomta:'범타',forfeit:'포기'}
+    :{hr:'Home Run',hit:'Hit',walk:'Walk',strikeout:'K',beomta:'Flyout',forfeit:'Forfeit'};
+  const typeColor={hr:'var(--win)',hit:'var(--win)',walk:'var(--ball)',strikeout:'var(--lose)',beomta:'var(--lose)',forfeit:'var(--muted)'};
+
+  const items=[0,1,2].map(i=>{
+    const g=S.scores[i];
+    const lv=g?lvName[g.level]||('GAME '+(i+1)):'GAME '+(i+1);
+    if(!g){
+      return '<div style="flex:1;background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center;border:1.5px solid var(--border)">'+
+        '<div style="font-size:10px;font-weight:800;color:var(--subtle);margin-bottom:6px">'+lv+'</div>'+
+        '<div style="font-size:22px;font-weight:900;color:var(--border)">—</div>'+
       '</div>';
+    }
+    const result=typeLabel[g.type]||'—';
+    const color=typeColor[g.type]||'var(--muted)';
+    const score=g.won?'+'+g.score.toLocaleString():'0';
+    const scoreColor=g.won?'var(--primary)':'var(--subtle)';
+    return '<div style="flex:1;background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center;border:1.5px solid var(--border)">'+
+      '<div style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:6px">'+lv+'</div>'+
+      '<div style="font-size:13px;font-weight:900;color:'+color+';margin-bottom:4px">'+result+'</div>'+
+      '<div style="font-size:18px;font-weight:900;color:'+scoreColor+';font-family:\'DM Mono\',monospace;line-height:1">'+score+'</div>'+
+      '<div style="font-size:9px;font-weight:700;color:var(--subtle);margin-top:3px">pts</div>'+
+    '</div>';
   }).join('');
-  el.innerHTML='<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">'+(ko?'개인 최고 기록':'Personal Best')+'</div>'+
+
+  el.innerHTML=
+    '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">'+
+      (ko?'오늘의 게임':'Today\'s Games')+
+    '</div>'+
     '<div style="display:flex;gap:6px">'+items+'</div>';
 }
 
@@ -3091,10 +3193,10 @@ async function registerFromStats(){
   const statsBtn=document.getElementById('statsRegBtn');
   statsBtn.disabled=true;
   statsBtn.textContent=ko?'확인 중...':'Checking...';
-  // 닉네임 중복 체크 (본인 닉네임 제외)
+  // 닉네임 중복 체크 (히팅 랭킹 경로)
   if(window._fbReady){
     try{
-      const dayRef=window._fbRef(window._fbDb,'rankings/'+S.dayId);
+      const dayRef=window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId);
       const snap=await window._fbGet(dayRef);
       if(snap.exists()){
         const data=snap.val();
@@ -3134,53 +3236,35 @@ async function registerFromStats(){
 
   if(window._fbReady){
     try{
-      const path='rankings/'+S.dayId+'/'+S.uid;
+      const path=HITTING_RANK_PATH+'/'+S.dayId+'/'+S.uid;
       await window._fbSet(window._fbRef(window._fbDb,path),entry);
-      // 주간/월간 랭킹에도 등록 (더 높은 점수일 때만)
+      // 히팅 주간 랭킹 누적
       try{
-        // 주간 누적 합산: 하루 최고점을 매일 더해서 누적
-        const weekPath='rankings_weekly/'+getWeekId()+'/'+S.uid;
+        const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
         const wSnap=await window._fbGet(window._fbRef(window._fbDb,weekPath));
         const todayStr2=S.today;
         if(wSnap.exists()){
           const wd=wSnap.val();
           const prevDays=wd.days||{};
           const prevTodayBest=prevDays[todayStr2]||0;
-          // 오늘 점수가 이전 오늘 최고점보다 높을 때만 차액을 합산에 반영
           if(bestScore>prevTodayBest){
             const weekTotal=(wd.weekTotal||0)+(bestScore-prevTodayBest);
             prevDays[todayStr2]=bestScore;
-            const weekEntry={...entry,score:weekTotal,weekTotal,days:prevDays};
-            await window._fbSet(window._fbRef(window._fbDb,weekPath),weekEntry);
+            await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:weekTotal,weekTotal,days:prevDays});
           }
         }else{
-          // 이번주 첫 등록
           const days={};days[todayStr2]=bestScore;
-          const weekEntry={...entry,score:bestScore,weekTotal:bestScore,days};
-          await window._fbSet(window._fbRef(window._fbDb,weekPath),weekEntry);
+          await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:bestScore,weekTotal:bestScore,days});
         }
-      }catch(e){console.warn('weekly/monthly reg failed',e);}
-      // 히팅 랭킹 등록
-      const savedNick2=localStorage.getItem('nb_nick');
-      if(savedNick2)registerHittingRanking(savedNick2,country).catch(()=>{});
-      // 등록 완료 메시지 후 모달 자동 닫힘
+      }catch(e){console.warn('weekly reg failed',e);}
+      // 등록 완료
       const ko2=S.lang==='ko';
       const statsMbody=document.querySelector('#statsModal .mbody');
       if(statsMbody){
         const origContent=statsMbody.innerHTML;
         statsMbody.innerHTML='<div style="text-align:center;padding:40px 20px;font-size:18px;font-weight:800">✅ '+(ko2?'랭킹 등록 완료!':'Ranking Registered!')+'</div>';
-        setTimeout(()=>{
-          closeModal('statsModal');
-          statsMbody.innerHTML=origContent;
-          renderHome();
-          renderStats();
-          // 랭킹 1위 업적은 다음날 접속 시 확인
-        },1500);
-      }else{
-        renderHome();renderStats();
-        closeModal('statsModal');
-        // 랭킹 1위 업적은 다음날 접속 시 checkYesterdayRankAchievements에서 확인
-      }
+        setTimeout(()=>{closeModal('statsModal');statsMbody.innerHTML=origContent;renderHome();renderStats();},1500);
+      }else{renderHome();renderStats();closeModal('statsModal');}
     }catch(e){
       console.warn('Firebase write failed',e);
       alert(ko?'랭킹에 등록됐지만 서버 동기화에 실패했어요.\n잠시 후 다시 시도해 주세요.':'Registered locally, but server sync failed.');
@@ -3195,10 +3279,11 @@ async function registerFromStats(){
       if(window._fbReady){
         clearInterval(retry);
         try{
-          await window._fbSet(window._fbRef(window._fbDb,'rankings/'+S.dayId+'/'+S.uid),entry);
+          await window._fbSet(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId+'/'+S.uid),entry);
           const ko3=S.lang==='ko';
           const statsMbody2=document.querySelector('#statsModal .mbody');
-          if(statsMbody2){statsMbody2.innerHTML='<div style="text-align:center;padding:40px 20px;font-size:18px;font-weight:800">✅ '+(ko3?'랭킹 등록 완료!':'Ranking Registered!')+'</div>';setTimeout(()=>{closeModal('statsModal');renderHome();renderStats();},1500);}else{renderHome();renderStats();closeModal('statsModal');}
+          if(statsMbody2){statsMbody2.innerHTML='<div style="text-align:center;padding:40px 20px;font-size:18px;font-weight:800">✅ '+(ko3?'랭킹 등록 완료!':'Ranking Registered!')+'</div>';setTimeout(()=>{closeModal('statsModal');renderHome();renderStats();},1500);}
+          else{renderHome();renderStats();closeModal('statsModal');}
         }catch(e){
           alert(ko?'서버 연결에 실패했습니다.':'Server connection failed.');
           S.registered=false;saveDaily();
@@ -3505,10 +3590,10 @@ document.addEventListener('click',function(e){
 /* ── SITE SHARE ── */
 function shareSite(){
   const ko=S.lang==='ko';
-  const url='https://nuball.app';
-  const text=ko?'⚾ 누볼 — 숫자야구 퍼즐! 오늘의 도전에 참여해보세요':'⚾ NUBALL — Number Baseball Puzzle! Join today\'s challenge';
+  const url='https://nuball.app/hitting';
+  const text=ko?'⚾ 누볼 히팅 — 투수와 숨 막히는 수싸움! 도전해보세요':'⚾ NUBALL Hitting — A tense number battle with the pitcher!';
   if(navigator.share){
-    navigator.share({title:'NUBALL ⚾ - 내 기록 깹 사람?',text,url}).catch(()=>{});
+    navigator.share({title:'NUBALL HITTING 🏏',text,url}).catch(()=>{});
   }else if(navigator.clipboard){
     navigator.clipboard.writeText(url).then(()=>{
       const el=document.getElementById('copyResultMsg');
@@ -3580,10 +3665,17 @@ function buildHelpModal(ko){
     <div class="rule"><span class="rule-ico" style="color:var(--ball)">⬤</span><span><b>Ball</b> — ${ko?'정답에 있지만 자리가 다름':'Correct number, wrong position'}</span></div>
     <div style="height:1px;background:var(--border);margin:10px 0"></div>
     <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${ko?'결과':'Results'}</div>
-    <div class="rule"><span class="rule-ico" style="color:var(--win)">✅</span><span><b>${ko?'홈런 / 안타':'Home Run / Hit'}</b> — ${ko?'스윙으로 정답을 맞췄을 때':'Correct swing guess'}</span></div>
-    <div class="rule"><span class="rule-ico">4️⃣</span><span><b>${ko?'볼넷':'Walk'}</b> — ${ko?'4 Ball 누적 → 기회 소모 없이 성공!':'4 Balls → Success without losing a chance!'}</span></div>
-    <div class="rule"><span class="rule-ico" style="color:var(--lose)">⚡</span><span><b>${ko?'삼진 아웃':'Strikeout'}</b> — ${ko?'3 Strike 누적 → 실패':'3 Strikes → Fail'}</span></div>
-    <div class="rule"><span class="rule-ico" style="color:var(--lose)">❌</span><span><b>${ko?'범타':'Flyout'}</b> — ${ko?'스윙 오답 후 아웃 처리':'Wrong swing → Out'}</span></div>
+    <div style="background:color-mix(in srgb,var(--win) 8%,var(--card));border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:4px;margin-bottom:4px;border:1px solid color-mix(in srgb,var(--win) 20%,transparent)">
+      <div class="rule" style="border:none;padding:4px 0"><span class="rule-ico" style="color:var(--win)">⬤</span><span><b>${ko?'홈런':'Home Run'}</b> — ${ko?'정답 스윙, 낮은 확률로 발생, 추가 보너스 점수!':'Correct swing, rare occurrence, bonus score!'}</span></div>
+      <div class="rule" style="border:none;padding:4px 0"><span class="rule-ico" style="color:var(--win)">⬤</span><span><b>${ko?'안타':'Hit'}</b> — ${ko?'정답 스윙, 기본 성공':'Correct swing, standard success'}</span></div>
+      <div class="rule" style="border:none;padding:4px 0"><span class="rule-ico" style="color:var(--subtle)">⬤</span><span><b>${ko?'볼넷':'Walk'}</b> — ${ko?'4 Ball 누적 → 기회 소모 없이 성공!':'4 Balls → Success without losing a chance!'}</span></div>
+    </div>
+    <div style="background:var(--primary-light);border-radius:8px;padding:6px 10px;display:flex;flex-direction:column;gap:4px;margin-top:4px;border:1px solid color-mix(in srgb,var(--lose) 20%,transparent)">
+      <div class="rule" style="border:none;padding:4px 0"><span class="rule-ico" style="color:var(--lose)">⬤</span><span><b>${ko?'파울':'Foul'}</b> — ${ko?'Strike +1 (2S까지만)':'Strike +1 (up to 2S only)'}</span></div>
+      <div class="rule" style="border:none;padding:4px 0"><span class="rule-ico" style="color:var(--lose)">⬤</span><span><b>${ko?'헛스윙':'Miss'}</b> — ${ko?'Strike +1 (3S 즉시 삼진)':'Strike +1 (strikeout on 3rd)'}</span></div>
+      <div class="rule" style="border:none;padding:4px 0"><span class="rule-ico" style="color:var(--lose)">⬤</span><span><b>${ko?'삼진 아웃':'Strikeout'}</b> — ${ko?'3 Strike 누적 → 실패':'3 Strikes → Fail'}</span></div>
+      <div class="rule" style="border:none;padding:4px 0"><span class="rule-ico" style="color:var(--lose)">⬤</span><span><b>${ko?'범타 아웃':'Flyout'}</b> — ${ko?'즉시 아웃':'Immediate out'}</span></div>
+    </div>
     <div style="height:1px;background:var(--border);margin:10px 0"></div>
     <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${ko?'점수 기준':'Score Guide'}</div>
     <div class="rule"><span class="rule-ico">📅</span><span>${ko?'하루 3번 기회 — LV1(3자리) · LV2(4자리) · LV3(5자리)':'3 chances per day — LV1 (3-digit) · LV2 (4-digit) · LV3 (5-digit)'}</span></div>
