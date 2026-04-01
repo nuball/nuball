@@ -3135,7 +3135,7 @@ function renderStreak(){
   if(mb){
     if(S.streak>=1){
       const span=mb.querySelector('span');
-      if(span)span.textContent='🔥 '+S.streak+(ko?'일 연속':' day'+(S.streak===1?'':'s')+' streak');
+      if(span)span.textContent='🔥 '+S.streak+(ko?'일 연속 접속':' day'+(S.streak===1?'':'s')+' streak');
       mb.style.display='block';
     }else{mb.style.display='none';}
   }
@@ -3213,14 +3213,26 @@ function renderAchievements(){
 function copyResult(){
   const ko=S.lang==='ko';
   const lvMap={3:'LV.1',4:'LV.2',5:'LV.3'};
+  const typeIcon={hr:'🏠',hit:'⚾',walk:'4️⃣',strikeout:'💀',beomta:'💀',forfeit:'🏳'};
   const lines=S.scores.map((g,i)=>{
+    const icon=typeIcon[g.type]||'⚾';
+    const scoreStr=g.score>0?'+'+g.score.toLocaleString():'0';
     const vrTag=g.vr?'📹 ':'';
-    const result=g.won?'⚾ x'+g.attempts+'  '+g.score.toLocaleString()+'pts':'🏳  0pts';
-    return 'GAME '+(i+1)+' '+lvMap[g.level]+'\n'+vrTag+result;
+    return vrTag+icon+'  '+(ko?lvMap[g.level]:lvMap[g.level])+'  '+scoreStr+(ko?'점':' pts');
   });
-  const header='⚾ NUBALL - play baseball  '+S.today;
-  const total=(ko?'합산':'Total')+': '+S.totalScore.toLocaleString()+' PTS';
-  const text=header+'\n\n'+lines.join('\n')+'\n\n'+total+'\nnuball.app';
+  const atBats=S.scores.filter(g=>g.type!=='walk').length;
+  const wins=S.scores.filter(g=>g.type==='hr'||g.type==='hit').length;
+  const avg=atBats>0?(wins/atBats).toFixed(3).replace(/^0/,''):'—';
+  const statLine=ko
+    ?atBats+'타석 · 타율 '+avg
+    :atBats+' AB · AVG '+avg;
+  const header=ko
+    ?'🏏 누볼 히팅  '+S.today
+    :'🏏 NUBALL HITTING  '+S.today;
+  const total=ko
+    ?'합산 '+S.totalScore.toLocaleString()+' PTS'
+    :'Total '+S.totalScore.toLocaleString()+' PTS';
+  const text=[header,'',lines.join('\n'),'',total,statLine,'','nuball.app/hitting'].join('\n');
   if(navigator.clipboard){
     navigator.clipboard.writeText(text).then(()=>{
       const el=document.getElementById('copyResultMsg');
@@ -4131,14 +4143,20 @@ async function renderHRankList(){
         const ydSnap=await window._fbGet(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+ydDate));
         if(ydSnap.exists()){
           let ydEntries=[];
-          ydSnap.forEach(ch=>{const d=ch.val();ydEntries.push({nick:d.nick,score:d.score,country:d.country,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,atBats:d.atBats||0,wins:d.wins||0});});
-          ydEntries=ydEntries.filter(r=>r.level===levelDigits).sort((a,b)=>b.score-a.score);
+          ydSnap.forEach(ch=>{const d=ch.val();ydEntries.push({nick:d.nick,score:d.score,country:d.country,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,atBats:d.atBats||0,wins:d.wins||0,ts:d.ts||0});});
+          ydEntries=ydEntries.filter(r=>r.level===levelDigits).sort((a,b)=>{
+            if(b.score!==a.score)return b.score-a.score;
+            if(b.atBats!==a.atBats)return b.atBats-a.atBats;
+            const avgA=a.atBats>0?a.wins/a.atBats:0;
+            const avgB=b.atBats>0?b.wins/b.atBats:0;
+            if(avgB!==avgA)return avgB-avgA;
+            return (a.ts||0)-(b.ts||0);
+          });
           if(ydEntries.length){
             const top=ydEntries[0];
             const topTeam=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country||'KR',S.lang);
             const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
-            const ydAchBadge=top.achCount>0?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+top.achCount+'</span>':'';
-            const ydBadgeBlock=(ydStreakBadge||ydAchBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+ydAchBadge+'</div>':'';
+            const ydBadgeBlock=ydStreakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+'</div>':'';
             hYd.innerHTML=[
               '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등 · LV.'+_hRankLevel:"Yesterday's #1 · LV."+_hRankLevel)+'</div>',
               '<div class="rank-row" style="padding:6px 0">',
