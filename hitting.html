@@ -1342,18 +1342,61 @@ function genPitch0S2B(target, excluded=new Set()){
   return null;
 }
 
+// 0S3B
+function genPitch0S3B(target, excluded=new Set()){
+  const pool=[1,2,3,4,5,6,7,8,9].filter(n=>!excluded.has(n)||target.includes(n));
+  if(pool.length<target.length||target.length<3)return null;
+  for(let a=0;a<200;a++){
+    const idxs=[...Array(target.length).keys()];
+    // 정답에서 3개 숫자를 골라 각각 틀린 자리에 배치
+    const srcs=[];const used=new Set();
+    for(let k=0;k<3;k++){
+      const cands=idxs.filter(i=>!used.has(i));
+      const s=cands[Math.floor(Math.random()*cands.length)];
+      srcs.push(s);used.add(s);
+    }
+    const pitch=new Array(target.length).fill(null);
+    let ok=true;
+    const placedPos=new Set();
+    for(let k=0;k<3;k++){
+      const posCands=idxs.filter(i=>i!==srcs[k]&&!placedPos.has(i)&&pitch[i]===null);
+      if(!posCands.length){ok=false;break;}
+      const pos=posCands[Math.floor(Math.random()*posCands.length)];
+      pitch[pos]=target[srcs[k]];
+      placedPos.add(pos);
+    }
+    if(!ok)continue;
+    for(let i=0;i<target.length;i++){
+      if(pitch[i]!==null)continue;
+      const av=pool.filter(n=>!target.includes(n)&&!pitch.includes(n));
+      if(!av.length){ok=false;break;}
+      pitch[i]=av[Math.floor(Math.random()*av.length)];
+    }
+    if(!ok)continue;
+    let s=0,b=0;
+    pitch.forEach((n,i)=>{if(n===target[i])s++;else if(target.includes(n))b++;});
+    if(s===0&&b===3)return pitch;
+  }
+  return null;
+}
+
 function genNextPitch(target){
+  const level=S.game?S.game.level:3;
+  // 레벨별 투구 타입 풀
+  // LV1(3자리): 1S0B, 0S1B, 0S2B
+  // LV2(4자리): 1S0B, 1S1B, 0S1B, 0S2B
+  // LV3(5자리): 1S0B, 1S1B, 0S1B, 0S2B, 0S3B
+  const sTypes=level===3?['1S0B']:['1S0B','1S1B'];
+  const bTypes=level===5?['0S1B','0S2B','0S3B']:['0S1B','0S2B'];
+
   // 볼카운트 기반 S/B 계열 확률 조정
-  // 스트라이크↑ → B계열 확률↑ (투수가 볼로 유인)
-  // 볼↑ → S계열 확률↑ (투수가 스트라이크 던져야 함)
   const bias=_hStrikes*(-0.15)+_hBalls*0.10;
   const pS=Math.max(.20,Math.min(.80,.50+bias));
-  // pS: S계열(1S0B, 1S1B) 확률 / 1-pS: B계열(0S1B, 0S2B) 확률
-  // 각 계열 내에서는 50:50
+
   const pickType=()=>{
     const isS=Math.random()<pS;
-    if(isS)return Math.random()<0.5?'1S0B':'1S1B';
-    else return Math.random()<0.5?'0S1B':'0S2B';
+    if(isS)return sTypes[Math.floor(Math.random()*sTypes.length)];
+    else return bTypes[Math.floor(Math.random()*bTypes.length)];
   };
 
   for(const excludeCount of [3,1,0]){
@@ -1364,7 +1407,8 @@ function genNextPitch(target){
       if(type==='1S0B')pitch=genPitch1S(target,excluded);
       else if(type==='1S1B')pitch=genPitch1S1B(target,excluded);
       else if(type==='0S1B')pitch=genPitch1B(target,excluded);
-      else pitch=genPitch0S2B(target,excluded);
+      else if(type==='0S2B')pitch=genPitch0S2B(target,excluded);
+      else pitch=genPitch0S3B(target,excluded);
       if(!pitch)continue;
       const key=pitchKey(pitch);
       if(!_usedPitches.includes(key)){_usedPitches.push(key);return pitch;}
