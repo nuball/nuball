@@ -497,15 +497,15 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 
         <div class="tut-divider"></div>
 
-        <!-- STEP 2: 보내기 vs 스윙 -->
+        <!-- STEP 2: 지켜보기 vs 스윙 -->
         <div class="tut-step">
           <div class="tut-step-num">2</div>
           <div class="tut-step-content">
             <div class="tut-step-title" id="tut2Title">매 투구마다 선택하세요</div>
-            <div class="tut-step-desc" id="tut2Desc" style="margin-bottom:8px">보내기로 힌트를 모으고, 확신이 생기면 스윙!</div>
+            <div class="tut-step-desc" id="tut2Desc" style="margin-bottom:8px">지켜보기로 힌트를 모으고, 확신이 생기면 스윙!</div>
             <div style="display:flex;gap:8px;margin-bottom:6px">
               <div style="flex:1;background:var(--bg2);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.6;border:1.5px solid var(--border)">
-                <div style="color:var(--ball);margin-bottom:2px">👁 <span id="tut2TakeLabel">보내기</span></div>
+                <div style="color:var(--ball);margin-bottom:2px">👁 <span id="tut2TakeLabel">지켜보기</span></div>
                 <div id="tut2TakeDesc" style="color:var(--muted);font-weight:600">투구를 흘려보내며<br>S/B 힌트를 받습니다</div>
               </div>
               <div style="flex:1;background:var(--bg2);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.6;border:1.5px solid var(--primary)">
@@ -513,7 +513,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
                 <div id="tut2SwingDesc" style="color:var(--muted);font-weight:600">숫자를 직접 입력해<br>정답을 맞춥니다</div>
               </div>
             </div>
-            <div class="tut-hint" id="tut2Hint">💡 보내기는 소량 점수 차감! S/B 힌트를 모은 뒤 스윙하세요.</div>
+            <div class="tut-hint" id="tut2Hint">💡 지켜보기는 소량 점수 차감! S/B 힌트를 모은 뒤 스윙하세요.</div>
           </div>
         </div>
 
@@ -523,7 +523,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <div class="tut-step">
           <div class="tut-step-num">3</div>
           <div class="tut-step-content">
-            <div class="tut-step-title" id="tut3Title">보내기 힌트 — Strike / Ball</div>
+            <div class="tut-step-title" id="tut3Title">지켜보기 힌트 — Strike / Ball</div>
             <div class="tut-step-desc" id="tut3Desc" style="margin-bottom:8px">투구된 숫자가 정답과 얼마나 맞는지 알려줍니다</div>
             <div class="tut-example-row">
               <div id="tut3ExAnswer" class="tut-ex-label">정답</div>
@@ -557,7 +557,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <div class="tut-step-num">4</div>
           <div class="tut-step-content">
             <div class="tut-step-title" id="tut4Title">카운트 누적 — 삼진 or 볼넷</div>
-            <div class="tut-step-desc" id="tut4Desc" style="margin-bottom:8px">보내기 결과로 카운트가 쌓입니다</div>
+            <div class="tut-step-desc" id="tut4Desc" style="margin-bottom:8px">지켜보기 결과로 카운트가 쌓입니다</div>
             <div style="display:flex;gap:8px;margin-bottom:6px">
               <div style="flex:1;background:var(--strike-bg);border-radius:8px;padding:8px 10px;font-size:11px;font-weight:800;line-height:1.7;text-align:center">
                 <div style="color:var(--strike)">⚡ 3 Strike</div>
@@ -599,7 +599,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <div class="tut-step-num">🏆</div>
           <div class="tut-step-content">
             <div id="tut6Title" class="tut-step-title" style="color:var(--primary)">점수 & 랭킹</div>
-            <div id="tut6Hint1" class="tut-hint" style="margin-bottom:6px">시작 점수 1,000점 — 보내기는 소량 차감<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패!</div>
+            <div id="tut6Hint1" class="tut-hint" style="margin-bottom:6px">시작 점수 1,000점 — 지켜보기는 소량 차감<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패!</div>
             <div id="tut6Hint2" class="tut-hint">LV1(3자리) · LV2(4자리) · LV3(5자리) — 3게임 합산 점수로 일간 랭킹 도전!</div>
           </div>
         </div>
@@ -634,9 +634,9 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <div id="inputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:6px;opacity:0;transition:opacity .2s"></div>
           <button class="btn-p" id="swingConfirmBtn" onclick="confirmSwing()" style="width:100%;margin-bottom:8px;font-size:14px">⚾ <span id="swingConfirmLbl">스윙 확인</span></button>
         </div>
-        <!-- 보내기 + 스윙 버튼 -->
+        <!-- 지켜보기 + 스윙 버튼 -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn-p btn-o" id="takeBtn" onclick="handleTake()" style="font-size:14px;padding:13px 8px">👁 <span id="takeBtnLbl">보내기</span></button>
+          <button class="btn-p btn-o" id="takeBtn" onclick="handleTake()" style="font-size:14px;padding:13px 8px">👁 <span id="takeBtnLbl">지켜보기</span></button>
           <button class="btn-p btn-o" id="swingBtn" onclick="toggleSwingInput()" style="font-size:14px;padding:13px 8px;border-color:var(--primary);color:var(--primary)">🏏 <span id="swingBtnLbl">스윙</span></button>
         </div>
       </div>
@@ -906,7 +906,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="mbody" id="helpModalBody">
       <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">기본 규칙</div>
       <div class="rule"><span class="rule-ico">🎯</span><span>오늘의 숫자 (1~9, 중복 없음) 를 맞추는 야구 히팅 게임</span></div>
-      <div class="rule"><span class="rule-ico">👁</span><span><b>보내기</b> — 투구를 보내며 S/B 힌트 수집. 소량 점수 차감</span></div>
+      <div class="rule"><span class="rule-ico">👁</span><span><b>보내기</b> — 투구를 지켜보며 S/B 힌트 수집. 소량 점수 차감</span></div>
       <div class="rule"><span class="rule-ico">🏏</span><span><b>스윙</b> — 직접 숫자를 입력해 정답을 맞춥니다</span></div>
       <div style="height:1px;background:var(--border);margin:10px 0"></div>
       <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">힌트 (S / B)</div>
@@ -921,7 +921,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div style="height:1px;background:var(--border);margin:10px 0"></div>
       <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">점수 기준</div>
       <div class="rule"><span class="rule-ico">📅</span><span>하루 3번 기회 — LV1(3자리) · LV2(4자리) · LV3(5자리)</span></div>
-      <div class="rule"><span class="rule-ico">📹</span><span><b>비디오판독</b> — 하루 1회. 이전 보내기 중 하나를 선택하면 각 자리의 S/B/Out 표시</span></div>
+      <div class="rule"><span class="rule-ico">📹</span><span><b>비디오판독</b> — 하루 1회. 이전 지켜보기 중 하나를 선택하면 각 자리의 S/B/Out 표시</span></div>
       <table class="score-guide" style="margin-top:8px">
         <thead><tr><th>레벨</th><th>최고점</th><th>최저점</th><th>최저 기준</th></tr></thead>
         <tbody>
@@ -1544,7 +1544,7 @@ function renderHitLog(){
     const ko=S.lang==='ko';
     let actionTxt='';
     if(l.action==='take'){
-      actionTxt=ko?'보내기':'Take';
+      actionTxt=ko?'지켜보기':'Take';
     }else{
       const rLbl=ko
         ?{hr:'홈런',hit:'안타',foul:'파울',heotswing:'헛스윙',beomta:'범타'}
@@ -1597,7 +1597,7 @@ function openHitVRModal(){
     const isTake=l.action==='take';
     const pitchNums=l.pitch.map(d=>`<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:32px;border-radius:6px;border:1.5px solid var(--border);font-weight:900;font-family:'DM Mono',monospace;font-size:14px;background:var(--bg2)">${d}</span>`).join('');
     const actionBadge=isTake
-      ?`<span style="font-size:9px;font-weight:800;color:var(--ball);background:var(--ball-bg);border-radius:4px;padding:2px 5px">보내기</span>`
+      ?`<span style="font-size:9px;font-weight:800;color:var(--ball);background:var(--ball-bg);border-radius:4px;padding:2px 5px">지켜보기</span>`
       :`<span style="font-size:9px;font-weight:800;color:var(--primary);background:var(--primary-light);border-radius:4px;padding:2px 5px">스윙</span>`;
     html+=`<button id="vrItem_${i}" onclick="selectVRPitch(${i},this)" style="display:flex;align-items:center;gap:8px;background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;text-align:left;width:100%;font-family:inherit;transition:all .15s"><span style="font-size:11px;font-weight:700;color:var(--muted);min-width:24px;flex-shrink:0">${total-n}구</span><div style="display:flex;gap:4px">${pitchNums}</div>${actionBadge}<span style="font-size:10px;font-weight:700;color:var(--muted);margin-left:auto">S${l.s} B${l.b}</span></button>`;
   });
@@ -1607,7 +1607,7 @@ function openHitVRModal(){
   openModal('vrModal');
 }
 
-/* ── 보내기 ── */
+/* ── 지켜보기 ── */
 /* ── 포기 버튼 활성화 (첫 액션 후 레벨 변경 → 포기로 전환) ── */
 function activateForfeitBtn(){
   const bb=document.getElementById('backBtn');
@@ -2202,7 +2202,7 @@ function applyLang(){
   // 게임 화면 UI
   if(e('scorePrevLbl'))e('scorePrevLbl').textContent=ko?'현재 점수':'Current Score';
   if(e('swingConfirmLbl'))e('swingConfirmLbl').textContent=ko?'스윙 확인':'Confirm Swing';
-  if(e('takeBtnLbl'))e('takeBtnLbl').textContent=ko?'보내기':'Take';
+  if(e('takeBtnLbl'))e('takeBtnLbl').textContent=ko?'지켜보기':'Take';
   if(e('swingBtnLbl'))e('swingBtnLbl').textContent=ko?'스윙':'Swing';
   if(e('hrtab_daily'))e('hrtab_daily').textContent=ko?'일간':'Daily';
   if(e('hrtab_weekly'))e('hrtab_weekly').textContent=ko?'주간':'Weekly';
@@ -3721,14 +3721,14 @@ function applyTutorialLang(){
   set('tut1Title',ko?'숨겨진 숫자를 맞혀요':'Guess the hidden number');
   set('tut1Desc',ko?'1~9 중복 없는 숫자. 매일 새로운 문제!':'No repeats, digits 1–9. New puzzle every day!');
   set('tut1ArrowLbl',ko?'← 오늘의 정답':'← Today\'s answer');
-  set('tut2Title',ko?'보내기 or 스윙':'Take or Swing');
+  set('tut2Title',ko?'지켜보기 or 스윙':'Take or Swing');
   set('tut2Desc',ko?'투구마다 둘 중 하나를 선택해요':'Choose one action every pitch');
-  set('tut2TakeLabel',ko?'보내기':'Take');
+  set('tut2TakeLabel',ko?'지켜보기':'Take');
   const si=(id,v)=>{const e=el(id);if(e)e.innerHTML=v;};
   si('tut2TakeDesc',ko?'공을 흘려보내고<br>힌트를 받아요':'Watch the pitch<br>and get hints');
   set('tut2SwingLabel',ko?'스윙':'Swing');
   si('tut2SwingDesc',ko?'숫자를 직접 입력해<br>정답을 맞춰요':'Enter a number<br>to guess the answer');
-  set('tut2Hint',ko?'💡 보내기는 소량 점수 차감! 힌트를 모은 뒤 스윙하세요.':'💡 Taking costs a few pts. Collect hints, then swing!');
+  set('tut2Hint',ko?'💡 지켜보기는 소량 점수 차감! 힌트를 모은 뒤 스윙하세요.':'💡 Watching costs a few pts. Collect hints, then swing!');
   set('tut3Title',ko?'힌트: Strike / Ball':'Hints: Strike / Ball');
   set('tut3Desc',ko?'투구가 정답과 얼마나 가까운지 알려줘요':'Shows how close the pitch is to the answer');
   const s3=(id,v)=>{const e=el(id);if(e)e.innerHTML=v;};
@@ -3737,7 +3737,7 @@ function applyTutorialLang(){
   set('tut3ExPitch',ko?'투구':'Pitch');
   set('tut3HintB',ko?'⬤ Ball: 숫자는 있지만 자리가 달라요':'⬤ Ball: right number, wrong position');
   set('tut4Title',ko?'볼카운트 — 삼진 or 볼넷':'Count — Strikeout or Walk');
-  set('tut4Desc',ko?'보내기 결과로 S·B 카운트가 쌓여요':'Taking pitches builds up your S·B count');
+  set('tut4Desc',ko?'지켜보기 결과로 S·B 카운트가 쌓여요':'Taking pitches builds up your S·B count');
   set('tut4StrikeDesc',ko?'스트라이크 3개 → 아웃':'3 Strikes → Out');
   set('tut4BallDesc',ko?'볼 4개 → 기회 소모 없이 통과!':'4 Balls → Pass, no chance lost!');
   set('tut5Title',ko?'스윙 결과':'Swing Results');
@@ -3747,7 +3747,7 @@ function applyTutorialLang(){
   set('tut5LoseLabel',ko?'❌ 오답':'❌ Wrong');
   set('tut5LoseDesc',ko?'헛스윙 / 파울 / 범타':'Miss / Foul / Flyout');
   set('tut6Title',ko?'점수 & 랭킹':'Score & Ranking');
-  s3('tut6Hint1',ko?'시작 점수 1,000점 — 보내기는 소량 차감<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패':'Start at 1,000 pts — Takes cost a few pts<br>HR / Hit / Walk = Win · Strikeout / Flyout = Fail');
+  s3('tut6Hint1',ko?'시작 점수 1,000점 — 지켜보기는 소량 차감<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패':'Start at 1,000 pts — Watching costs a few pts<br>HR / Hit / Walk = Win · Strikeout / Flyout = Fail');
   set('tut6Hint2',ko?'하루 3게임, 게임별 점수로 일간 랭킹 도전!':'3 games per day — each game score enters the daily ranking!');
 }
 
@@ -3757,7 +3757,7 @@ function buildHelpModal(ko){
   el.innerHTML=`
     <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${ko?'기본 규칙':'Basic Rules'}</div>
     <div class="rule"><span class="rule-ico">🎯</span><span>${ko?'오늘의 숫자 (1~9, 중복 없음) 를 맞추는 야구 히팅 게임':'Guess today\'s number (1–9, no repeats) in this baseball hitting game'}</span></div>
-    <div class="rule"><span class="rule-ico">👁</span><span><b>${ko?'보내기':'Take'}</b> — ${ko?'투구를 보내며 S/B 힌트 수집. 소량 점수 차감':'Watch the pitch to collect S/B hints. Small score penalty'}</span></div>
+    <div class="rule"><span class="rule-ico">👁</span><span><b>${ko?'지켜보기':'Take'}</b> — ${ko?'투구를 지켜보며 S/B 힌트 수집. 소량 점수 차감':'Watch the pitch to collect S/B hints. Small score penalty'}</span></div>
     <div class="rule"><span class="rule-ico">🏏</span><span><b>${ko?'스윙':'Swing'}</b> — ${ko?'직접 숫자를 입력해 정답을 맞춥니다':'Enter the number directly to guess the answer'}</span></div>
     <div style="height:1px;background:var(--border);margin:10px 0"></div>
     <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${ko?'힌트 (S / B)':'Hints (S / B)'}</div>
@@ -3779,7 +3779,7 @@ function buildHelpModal(ko){
     <div style="height:1px;background:var(--border);margin:10px 0"></div>
     <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${ko?'점수 기준':'Score Guide'}</div>
     <div class="rule"><span class="rule-ico">📅</span><span>${ko?'하루 3번 기회 — LV1(3자리) · LV2(4자리) · LV3(5자리)':'3 chances per day — LV1 (3-digit) · LV2 (4-digit) · LV3 (5-digit)'}</span></div>
-    <div class="rule"><span class="rule-ico">📹</span><span><b>${ko?'비디오판독':'Video Review'}</b> — ${ko?'하루 1회. 이전 보내기 중 하나를 선택하면 각 자리의 S/B/Out 표시':'Once per day. Select a previous pitch to reveal S/B/Out per digit'}</span></div>
+    <div class="rule"><span class="rule-ico">📹</span><span><b>${ko?'비디오판독':'Video Review'}</b> — ${ko?'하루 1회. 이전 지켜보기 중 하나를 선택하면 각 자리의 S/B/Out 표시':'Once per day. Select a previous pitch to reveal S/B/Out per digit'}</span></div>
     <table class="score-guide" style="margin-top:8px">
       <thead><tr><th>${ko?'레벨':'Level'}</th><th>${ko?'최고점':'Max'}</th><th>${ko?'최저점':'Min'}</th><th>${ko?'최저 기준':'Threshold'}</th></tr></thead>
       <tbody>
