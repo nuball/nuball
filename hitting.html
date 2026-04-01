@@ -461,7 +461,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="lvl-cards" id="lvlCards"></div>
 
     <!-- ── 누볼 시리즈 ── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;margin-bottom:12px">
       <a href="https://nuball.app" style="text-decoration:none;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 10px;display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:13px;font-weight:900;color:var(--text)">⚾ <span id="seriesNuball">누볼</span></span>
         <span id="seriesNuballBadge" style="font-size:10px;font-weight:800;color:#16a34a;background:#dcfce7;border-radius:4px;padding:2px 6px">이동</span>
@@ -513,7 +513,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
                 <div id="tut2SwingDesc" style="color:var(--muted);font-weight:600">숫자를 직접 입력해<br>정답을 맞춥니다</div>
               </div>
             </div>
-            <div class="tut-hint" id="tut2Hint">💡 보내기는 점수 차감 없음! S/B 힌트를 충분히 모은 뒤 스윙하세요.</div>
+            <div class="tut-hint" id="tut2Hint">💡 보내기는 소량 점수 차감! S/B 힌트를 모은 뒤 스윙하세요.</div>
           </div>
         </div>
 
@@ -599,7 +599,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <div class="tut-step-num">🏆</div>
           <div class="tut-step-content">
             <div id="tut6Title" class="tut-step-title" style="color:var(--primary)">점수 & 랭킹</div>
-            <div id="tut6Hint1" class="tut-hint" style="margin-bottom:6px">시작 점수 1,000점 — 보내기는 점수 차감 없음<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패!</div>
+            <div id="tut6Hint1" class="tut-hint" style="margin-bottom:6px">시작 점수 1,000점 — 보내기는 소량 차감<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패!</div>
             <div id="tut6Hint2" class="tut-hint">LV1(3자리) · LV2(4자리) · LV3(5자리) — 3게임 합산 점수로 일간 랭킹 도전!</div>
           </div>
         </div>
@@ -906,7 +906,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="mbody" id="helpModalBody">
       <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">기본 규칙</div>
       <div class="rule"><span class="rule-ico">🎯</span><span>오늘의 숫자 (1~9, 중복 없음) 를 맞추는 야구 히팅 게임</span></div>
-      <div class="rule"><span class="rule-ico">👁</span><span><b>보내기</b> — 투구를 보내며 S/B 힌트 수집. 점수 차감 없음</span></div>
+      <div class="rule"><span class="rule-ico">👁</span><span><b>보내기</b> — 투구를 보내며 S/B 힌트 수집. 소량 점수 차감</span></div>
       <div class="rule"><span class="rule-ico">🏏</span><span><b>스윙</b> — 직접 숫자를 입력해 정답을 맞춥니다</span></div>
       <div style="height:1px;background:var(--border);margin:10px 0"></div>
       <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">힌트 (S / B)</div>
@@ -1428,14 +1428,14 @@ let _hPitchCount=0; // 보내기 횟수
 
 /* ── 스윙 확률 테이블 ── */
 const SWING_PROBS={
-  '2S3B':{foul:.84,heotswing:.15,beomta:.01},
-  '2S2B':{foul:.82,heotswing:.16,beomta:.02},
-  '2S1B':{foul:.80,heotswing:.18,beomta:.02},
-  '2S0B':{foul:.77,heotswing:.21,beomta:.02},
+  '2S3B':{foul:.90,heotswing:.09,beomta:.01},
+  '2S2B':{foul:.89,heotswing:.10,beomta:.01},
+  '2S1B':{foul:.88,heotswing:.11,beomta:.01},
+  '2S0B':{foul:.87,heotswing:.12,beomta:.01},
   '1S2B':{foul:.65,heotswing:.32,beomta:.03},
-  '1S1B':{foul:.38,heotswing:.58,beomta:.04},
-  '1S0B':{foul:.28,heotswing:.67,beomta:.05},
-  '0S3B':{foul:.65,heotswing:.32,beomta:.03},
+  '1S1B':{foul:.60,heotswing:.36,beomta:.04},
+  '1S0B':{foul:.55,heotswing:.40,beomta:.05},
+  '0S3B':{foul:.50,heotswing:.45,beomta:.05},
   '0S2B':{foul:.38,heotswing:.57,beomta:.05},
   '0S1B':{foul:.22,heotswing:.73,beomta:.05},
   '0S0B':{foul:.10,heotswing:.87,beomta:.03},
@@ -1628,10 +1628,13 @@ function handleTake(){
   if(!pitch){console.warn('pitch gen failed');return;}
   let s=0,b=0;
   pitch.forEach((n,i)=>{if(n===S.game.target[i])s++;else if(S.game.target.includes(n))b++;});
-  const type=s===1&&b===1?'1S1B':s===1?'1S0B':b===2?'0S2B':'0S1B';
+  const type=s===1&&b===1?'1S1B':s===1?'1S0B':b===3?'0S3B':b===2?'0S2B':'0S1B';
   _hPitchLogs.unshift({pitch,type,s,b,action:'take'});
   _hPitchCount++;
-  // 카운트: S 있으면 스트라이크+1, 없으면 볼+1 (1구 = 카운트 1개)
+  // 보내기 점수 차감 (LV1:15, LV2:10, LV3:5)
+  const takeDeduct={3:15,4:10,5:5}[S.game.level]||15;
+  _hScore=Math.max(300,_hScore-takeDeduct);
+  // 카운트: S 있으면 스트라이크+1, 없으면 볼+1
   if(s>0)_hStrikes++;else _hBalls++;
   showPitcherThrow();
   showPitchResult(pitch,type);
@@ -1753,7 +1756,7 @@ function openHitVR(logIdx){
   const target=S.game.target;
   const pitch=log.pitch;
   S.hitVrUsedToday=S.today;
-  S.scores=S.scores.map((g,i)=>i===S.scores.length-1?{...g,vr:true}:g);
+  S.vrUsedThisGame=true;
   saveDaily();
   renderGame(); // vrBtn 즉시 비활성화
 
@@ -2428,7 +2431,7 @@ function finishHitGame(won,label,type,finalScore){
   if(!S.game)return; // 볼넷 등으로 이미 게임 종료된 경우 방어
   const score = finalScore !== undefined ? finalScore : (won ? _hScore : 0);
   const{level,attempts,target}=S.game;
-  S.scores.push({level,score,attempts,won,vr:false,type});
+  S.scores.push({level,score,attempts,won,vr:S.vrUsedThisGame,type});
   S.totalScore=S.scores.reduce((a,g)=>a+g.score,0);
   S.stats.total++;
   if(won){
@@ -3722,7 +3725,7 @@ function applyTutorialLang(){
   si('tut2TakeDesc',ko?'공을 흘려보내고<br>힌트를 받아요':'Watch the pitch<br>and get hints');
   set('tut2SwingLabel',ko?'스윙':'Swing');
   si('tut2SwingDesc',ko?'숫자를 직접 입력해<br>정답을 맞춰요':'Enter a number<br>to guess the answer');
-  set('tut2Hint',ko?'💡 보내기는 점수 차감 없어요. 힌트를 모은 뒤 스윙하세요!':'💡 Taking is free. Collect hints, then swing!');
+  set('tut2Hint',ko?'💡 보내기는 소량 점수 차감! 힌트를 모은 뒤 스윙하세요.':'💡 Taking costs a few pts. Collect hints, then swing!');
   set('tut3Title',ko?'힌트: Strike / Ball':'Hints: Strike / Ball');
   set('tut3Desc',ko?'투구가 정답과 얼마나 가까운지 알려줘요':'Shows how close the pitch is to the answer');
   const s3=(id,v)=>{const e=el(id);if(e)e.innerHTML=v;};
@@ -3741,7 +3744,7 @@ function applyTutorialLang(){
   set('tut5LoseLabel',ko?'❌ 오답':'❌ Wrong');
   set('tut5LoseDesc',ko?'헛스윙 / 파울 / 범타':'Miss / Foul / Flyout');
   set('tut6Title',ko?'점수 & 랭킹':'Score & Ranking');
-  s3('tut6Hint1',ko?'시작 점수 1,000점 — 보내기는 공짜!<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패':'Start at 1,000 pts — Takes are free!<br>HR / Hit / Walk = Win · Strikeout / Flyout = Fail');
+  s3('tut6Hint1',ko?'시작 점수 1,000점 — 보내기는 소량 차감<br>홈런·안타·볼넷이면 성공, 삼진·범타면 실패':'Start at 1,000 pts — Takes cost a few pts<br>HR / Hit / Walk = Win · Strikeout / Flyout = Fail');
   set('tut6Hint2',ko?'하루 3게임, 게임별 점수로 일간 랭킹 도전!':'3 games per day — each game score enters the daily ranking!');
 }
 
@@ -3751,7 +3754,7 @@ function buildHelpModal(ko){
   el.innerHTML=`
     <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${ko?'기본 규칙':'Basic Rules'}</div>
     <div class="rule"><span class="rule-ico">🎯</span><span>${ko?'오늘의 숫자 (1~9, 중복 없음) 를 맞추는 야구 히팅 게임':'Guess today\'s number (1–9, no repeats) in this baseball hitting game'}</span></div>
-    <div class="rule"><span class="rule-ico">👁</span><span><b>${ko?'보내기':'Take'}</b> — ${ko?'투구를 보내며 S/B 힌트 수집. 점수 차감 없음':'Watch the pitch to collect S/B hints. No score penalty'}</span></div>
+    <div class="rule"><span class="rule-ico">👁</span><span><b>${ko?'보내기':'Take'}</b> — ${ko?'투구를 보내며 S/B 힌트 수집. 소량 점수 차감':'Watch the pitch to collect S/B hints. Small score penalty'}</span></div>
     <div class="rule"><span class="rule-ico">🏏</span><span><b>${ko?'스윙':'Swing'}</b> — ${ko?'직접 숫자를 입력해 정답을 맞춥니다':'Enter the number directly to guess the answer'}</span></div>
     <div style="height:1px;background:var(--border);margin:10px 0"></div>
     <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${ko?'힌트 (S / B)':'Hints (S / B)'}</div>
@@ -4094,7 +4097,20 @@ async function renderHRankList(){
       }else{
         const q=window._fbQuery(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId),window._fbOrderByChild('score'),window._fbLimitToLast(100));
         const snap=await window._fbGet(q);
-        if(snap.exists()){snap.forEach(child=>{const d=child.val();entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,league:d.league||null,atBats:d.atBats||0,wins:d.wins||0});});entries.sort((a,b)=>b.score-a.score);}
+        if(snap.exists()){
+          snap.forEach(child=>{const d=child.val();entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,league:d.league||null,atBats:d.atBats||0,wins:d.wins||0,ts:d.ts||0});});
+          entries.sort((a,b)=>{
+            if(b.score!==a.score)return b.score-a.score;
+            // 동점: 타석 많은 순
+            if(b.atBats!==a.atBats)return b.atBats-a.atBats;
+            // 타석 같으면: 타율 높은 순
+            const avgA=a.atBats>0?a.wins/a.atBats:0;
+            const avgB=b.atBats>0?b.wins/b.atBats:0;
+            if(avgB!==avgA)return avgB-avgA;
+            // 타율 같으면: 먼저 등록한 순
+            return a.ts-b.ts;
+          });
+        }
       }
       // 레벨 필터
       entries=entries.filter(r=>(r.level||0)===levelDigits);
@@ -4144,9 +4160,9 @@ async function renderHRankList(){
       const rank=i+1,isMe=r.id===S.uid;
       const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
       const rStreak=isMe?(S.streak||0):(r.streak||0);
-      const streakBadge=rStreak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+rStreak+'</span>':'';
+      const streakBadge=rStreak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3;white-space:nowrap">🔥'+rStreak+'</span>':'';
       // 업적 비활성화 중 — achBadge 숨김
-      const badgeBlock=streakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+streakBadge+'</div>':'';
+      const badgeBlock=streakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;flex-shrink:0;gap:1px">'+streakBadge+'</div>':'';
       const ab=r.atBats||0;
       const avg=ab>0?(r.wins||0)/ab:null;
       const avgStr=avg!==null?avg.toFixed(3).replace(/^0/,''):'—';
