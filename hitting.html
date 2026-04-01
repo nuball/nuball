@@ -2452,6 +2452,8 @@ function finishHitGame(won,label,type,finalScore){
   saveStats();saveExtra();
   setTimeout(()=>checkAchievements(won,level,_hPitchCount),400);
   localStorage.removeItem('nb_hit_inprog');saveDaily();
+  // 타석/타율 자동 업데이트 (랭킹 등록 여부 무관)
+  if(type!=='forfeit')autoUpdateAtBats();
   // 결과 화면
   const iconMap={hr:'🎉',hit:'⚾',walk:'4️⃣',strikeout:'💀',beomta:'💀',forfeit:'🏳'};
   document.getElementById('rIcon').innerHTML=iconMap[type]||(won?'⚾':'💀');
@@ -3230,6 +3232,38 @@ function fallbackCopy(text){
 
 /* ── RANKING (Firebase) ── */
 /* ── STATS 내 랭킹 등록 ── */
+/* ── 타석/타율 자동 업데이트 (랭킹 등록 여부 무관) ── */
+async function autoUpdateAtBats(){
+  if(!window._fbReady||!S.uid)return;
+  const nick=localStorage.getItem('nb_nick');
+  if(!nick)return; // 랭킹 등록 안 한 사람은 스킵
+  const atBats=S.scores.filter(g=>g.type!=='walk').length;
+  const wins=S.scores.filter(g=>g.type==='hr'||g.type==='hit').length;
+  try{
+    // 일간
+    const dayRef=window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId+'/'+S.uid);
+    const daySnap=await window._fbGet(dayRef);
+    if(daySnap.exists()){
+      await window._fbSet(dayRef,{...daySnap.val(),atBats,wins,streak:S.streak||0});
+    }
+    // 주간
+    const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
+    const wSnap=await window._fbGet(window._fbRef(window._fbDb,weekPath));
+    if(wSnap.exists()){
+      const wd=wSnap.val();
+      const abDays=wd.abDays||{};
+      const winDays=wd.winDays||{};
+      const prevAb=abDays[S.today]||0;
+      const prevWin=winDays[S.today]||0;
+      const weekAtBats=Math.max(0,(wd.weekAtBats||0)+(atBats-prevAb));
+      const weekWins=Math.max(0,(wd.weekWins||0)+(wins-prevWin));
+      abDays[S.today]=atBats;
+      winDays[S.today]=wins;
+      await window._fbSet(window._fbRef(window._fbDb,weekPath),{...wd,weekAtBats,weekWins,abDays,winDays,streak:S.streak||0});
+    }
+  }catch(e){console.warn('autoUpdateAtBats failed',e);}
+}
+
 async function registerFromStats(){
   const nick=document.getElementById('statsNickInput').value.trim();
   if(!nick){alert(t('nickAlert'));return}
