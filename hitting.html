@@ -1692,7 +1692,7 @@ function handleSwing(){
   _hPitchLogs.unshift({pitch:arr,type:'swing',s,b,action:'swing',hitResult:result});
   const deduct=calcHitDeduct(level);
   if(result==='hr'||result==='hit'){
-    const bonus=result==='hr'?50:0;
+    const bonus=result==='hr'?20:0;
     const sbBonus=calcHitSBBonus(level);
     const fs=Math.min(1000,_hScore+bonus+sbBonus);
     showSwingResultUI(arr,s,b,result);
