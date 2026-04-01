@@ -2488,9 +2488,8 @@ function renderStats(){
   const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
   const canRegister=S.consumed>=1;
   const needUpdate=S.registered&&bestScore>(S.registeredScore||0);
-  const showForm=canRegister&&(!S.registered||needUpdate);
 
-  if(showForm){
+  if(canRegister){
     regArea.style.display='block';
     const title=document.getElementById('statsRegTitle');
     const btn=document.getElementById('statsRegBtn');
@@ -2498,12 +2497,15 @@ function renderStats(){
     const sel=document.getElementById('statsCountrySelect');
     if(sni)sni.style.display='';
     if(sel)sel.style.display='';
-    if(needUpdate){
-      if(title)title.textContent=koLbl?'🔄 랭킹을 갱신할까요?':'🔄 Update your ranking?';
-      if(btn){btn.textContent=koLbl?'랭킹 갱신하기':'Update Ranking';btn.onclick=registerFromStats;btn.disabled=false;}
-    }else{
+    if(!S.registered){
       if(title)title.textContent=koLbl?'🏆 일간 랭킹에 등록할까요?':'🏆 Register for today\'s ranking?';
       if(btn){btn.textContent=koLbl?'랭킹 등록하기':'Register Ranking';btn.onclick=registerFromStats;btn.disabled=false;}
+    }else if(needUpdate){
+      if(title)title.textContent=koLbl?'🔄 점수가 올랐어요! 갱신할까요?':'🔄 New high score! Update ranking?';
+      if(btn){btn.textContent=koLbl?'랭킹 갱신하기':'Update Ranking';btn.onclick=registerFromStats;btn.disabled=false;}
+    }else{
+      if(title)title.textContent=koLbl?'✅ 등록됐어요! 닉네임을 바꾸려면 다시 등록하세요':'✅ Registered! Re-submit to change nickname';
+      if(btn){btn.textContent=koLbl?'닉네임/랭킹 업데이트':'Update Nickname/Ranking';btn.onclick=registerFromStats;btn.disabled=false;}
     }
     const savedNick=localStorage.getItem('nb_nick');
     if(sni&&savedNick&&!sni.value)sni.value=savedNick;
@@ -2512,16 +2514,6 @@ function renderStats(){
       sel.innerHTML=CC.map(x=>'<option value="'+x.c+'"'+(x.c===cur?' selected':'')+'>'
         +x.f+' '+(S.lang==='ko'?x.ko:x.en)+'</option>').join('');
     }
-  }else if(S.registered&&!needUpdate){
-    regArea.style.display='block';
-    const title=document.getElementById('statsRegTitle');
-    const btn=document.getElementById('statsRegBtn');
-    const sni=document.getElementById('statsNickInput');
-    const sel=document.getElementById('statsCountrySelect');
-    if(sni)sni.style.display='none';
-    if(sel)sel.style.display='none';
-    if(title)title.textContent=koLbl?'✅ 랭킹에 등록됐어요!':'✅ You\'re on the leaderboard!';
-    if(btn){btn.textContent=koLbl?'랭킹 보기':'View Ranking';btn.onclick=function(){closeModal('statsModal');openHittingRankModal();};btn.disabled=false;}
   }else{
     regArea.style.display='none';
   }
