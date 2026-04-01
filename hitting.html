@@ -3293,14 +3293,28 @@ async function registerFromStats(){
           const wd=wSnap.val();
           const prevDays=wd.days||{};
           const prevTodayBest=prevDays[todayStr2]||0;
+          // atBats/wins도 날짜별 누적
+          const prevAbDays=wd.abDays||{};
+          const prevWinDays=wd.winDays||{};
+          const prevAb=prevAbDays[todayStr2]||0;
+          const prevWin=prevWinDays[todayStr2]||0;
+          const weekAtBats=(wd.weekAtBats||0)+(atBats-prevAb);
+          const weekWins=(wd.weekWins||0)+(wins-prevWin);
+          prevAbDays[todayStr2]=atBats;
+          prevWinDays[todayStr2]=wins;
           if(bestScore>prevTodayBest){
             const weekTotal=(wd.weekTotal||0)+(bestScore-prevTodayBest);
             prevDays[todayStr2]=bestScore;
-            await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:weekTotal,weekTotal,days:prevDays});
+            await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:weekTotal,weekTotal,days:prevDays,weekAtBats:Math.max(0,weekAtBats),weekWins:Math.max(0,weekWins),abDays:prevAbDays,winDays:prevWinDays});
+          }else{
+            // 점수 갱신 없어도 타석/타율은 업데이트
+            await window._fbSet(window._fbRef(window._fbDb,weekPath),{...wd,weekAtBats:Math.max(0,weekAtBats),weekWins:Math.max(0,weekWins),abDays:prevAbDays,winDays:prevWinDays,streak:S.streak||0,nick,team:S.team||null});
           }
         }else{
           const days={};days[todayStr2]=bestScore;
-          await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:bestScore,weekTotal:bestScore,days});
+          const abDays={};abDays[todayStr2]=atBats;
+          const winDays={};winDays[todayStr2]=wins;
+          await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:bestScore,weekTotal:bestScore,days,weekAtBats:atBats,weekWins:wins,abDays,winDays});
         }
       }catch(e){console.warn('weekly reg failed',e);}
       // 등록 완료
@@ -4034,22 +4048,15 @@ async function renderHRankList(){
   if(window._fbReady){
     try{
       if(_hRankPeriod==='weekly'){
-        const today=nowKST();const dow=today.getUTCDay()||7;const dateStrs=[];
-        for(let i=1;i<=dow;i++){const d=nowKST();d.setUTCDate(today.getUTCDate()-(dow-i));dateStrs.push(d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate());}
-        const snaps=await Promise.all(dateStrs.map(dStr=>window._fbGet(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+dStr))));
-        const userMap={};
-        snaps.forEach(daySnap=>{
-          if(!daySnap.exists())return;
-          daySnap.forEach(child=>{
+        const snaps=await Promise.all([window._fbGet(window._fbRef(window._fbDb,HITTING_RANK_PATH+'_weekly/'+getWeekId()))]);
+        const weekSnap=snaps[0];
+        if(weekSnap.exists()){
+          weekSnap.forEach(child=>{
             const d2=child.val();const uid=child.key;
-            if(!userMap[uid]){userMap[uid]={id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,team:d2.team||null,league:d2.league||null,weekScore:0};}
-            userMap[uid].weekScore+=(d2.score||0);
-            if(d2.nick)userMap[uid].nick=d2.nick;
-            if(d2.team)userMap[uid].team=d2.team;
+            entries.push({id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,achCount:d2.achCount||0,team:d2.team||null,league:d2.league||null,score:d2.weekTotal||d2.score||0,atBats:d2.weekAtBats||0,wins:d2.weekWins||0});
           });
-        });
-        entries=Object.values(userMap).map(u=>({...u,score:u.weekScore}));
-        entries.sort((a,b)=>b.score-a.score);
+          entries.sort((a,b)=>b.score-a.score);
+        }
       }else{
         const q=window._fbQuery(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId),window._fbOrderByChild('score'),window._fbLimitToLast(100));
         const snap=await window._fbGet(q);
