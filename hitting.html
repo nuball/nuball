@@ -142,7 +142,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .btn-p:hover{background:var(--primary-h)}.btn-p:active{transform:scale(.99)}.btn-p:disabled{opacity:.5;cursor:not-allowed}
 .btn-o{background:transparent;border:1.5px solid var(--primary);color:var(--primary);-webkit-tap-highlight-color:transparent}
 .btn-o:hover{background:var(--primary-light)}
-@media(hover:none){.btn-o:hover,.btn-o:focus{background:transparent;outline:none}}
+@media(hover:none){.btn-o:hover,.btn-o:focus,.btn-o:active{background:transparent;outline:none;-webkit-tap-highlight-color:transparent}}
 
 /* ── GAME ── */
 #gameScreen{display:none}
@@ -1622,7 +1622,7 @@ function activateForfeitBtn(){
 }
 
 function handleTake(){
-  const tb=document.getElementById('takeBtn');if(tb)tb.blur();
+  const tb=document.getElementById('takeBtn');if(tb){tb.blur();tb.style.background='transparent';setTimeout(()=>{if(tb)tb.style.background='';},300);}
   if(!S.game)return;
   const pitch=genNextPitch(S.game.target);
   if(!pitch){console.warn('pitch gen failed');return;}
