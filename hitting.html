@@ -2438,6 +2438,9 @@ function finishHitGame(won,label,type,finalScore){
     S.stats.dist[key]=(S.stats.dist[key]||0)+1;
     if(!S.personalBest)S.personalBest={3:null,4:null,5:null};
     if(S.personalBest[level]===null||_hPitchCount<S.personalBest[level])S.personalBest[level]=_hPitchCount;
+  }else{S.stats.streak=0;}
+  // 플레이 여부만으로 연속 출석 스트릭 업데이트 (승패 무관)
+  if(type!=='forfeit'){
     const lastPlay=localStorage.getItem('nbh_lastPlay');
     const ydObj=new Date();ydObj.setDate(ydObj.getDate()-1);
     const yesterday=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
@@ -2445,7 +2448,7 @@ function finishHitGame(won,label,type,finalScore){
       if(lastPlay===yesterday)S.streak=(S.streak||0)+1;else S.streak=1;
       localStorage.setItem('nbh_lastPlay',S.today);
     }
-  }else{S.stats.streak=0;}
+  }
   saveStats();saveExtra();
   setTimeout(()=>checkAchievements(won,level,_hPitchCount),400);
   localStorage.removeItem('nb_hit_inprog');saveDaily();
@@ -2477,19 +2480,17 @@ function finishGame(won,score){
     if(S.stats.streak>S.stats.best)S.stats.best=S.stats.streak;
     const key=String(Math.min(attempts,22));
     S.stats.dist[key]=(S.stats.dist[key]||0)+1;
-    // 개인 최고 기록
     if(!S.personalBest)S.personalBest={3:null,4:null,5:null};
     if(S.personalBest[level]===null||attempts<S.personalBest[level])S.personalBest[level]=attempts;
-    // 스트릭 업데이트
-    const lastPlay=localStorage.getItem('nbh_lastPlay');
-    const ydObj=new Date();ydObj.setDate(ydObj.getDate()-1);
-    const yesterday=ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
-    if(lastPlay!==S.today){
-      if(lastPlay===yesterday)S.streak=(S.streak||0)+1;
-      else S.streak=1;
-      localStorage.setItem('nbh_lastPlay',S.today);
-    }
   }else{S.stats.streak=0;}
+  // 플레이 여부만으로 연속 출석 스트릭 업데이트 (승패 무관)
+  const lastPlay2=localStorage.getItem('nbh_lastPlay');
+  const ydObj2=new Date();ydObj2.setDate(ydObj2.getDate()-1);
+  const yesterday2=ydObj2.getFullYear()+'-'+(ydObj2.getMonth()+1)+'-'+ydObj2.getDate();
+  if(lastPlay2!==S.today){
+    if(lastPlay2===yesterday2)S.streak=(S.streak||0)+1;else S.streak=1;
+    localStorage.setItem('nbh_lastPlay',S.today);
+  }
   saveStats();saveExtra();
   setTimeout(()=>checkAchievements(won,level,attempts),400);
   localStorage.removeItem('nb_hit_inprog');saveDaily();
