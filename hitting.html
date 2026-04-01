@@ -689,6 +689,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <button class="rank-tab" id="hrtab_lv2" disabled style="font-size:11px;flex:1;opacity:0.35;cursor:not-allowed">LV.2</button>
           <button class="rank-tab" id="hrtab_lv3" disabled style="font-size:11px;flex:1;opacity:0.35;cursor:not-allowed">LV.3</button>
         </div>
+        <div id="hYesterdayTop" style="display:none;margin-bottom:4px;padding-bottom:8px;border-bottom:1px solid var(--border)"></div>
         <div id="hRankList"><div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">불러오는 중...</div></div>
         <div id="hRankResetEl" class="rank-reset" style="margin-top:8px"></div>
       </div>
@@ -3263,7 +3264,9 @@ async function registerFromStats(){
   const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
   const bestGame=S.scores.find(g=>g.score===bestScore)||S.scores[0];
   const achCount=Object.keys(S.achievements).length;
-  const entry={nick,country,score:bestScore,level:bestGame?bestGame.level:0,day:S.dayId,uid:S.uid,ts:Date.now(),streak:S.streak||0,achCount,team:S.team||null,league:S.league||null};
+  const atBats=S.scores.filter(g=>g.type!=='walk').length; // 볼넷 제외
+  const wins=S.scores.filter(g=>g.type==='hr'||g.type==='hit').length; // 홈런+안타만
+  const entry={nick,country,score:bestScore,level:bestGame?bestGame.level:0,day:S.dayId,uid:S.uid,ts:Date.now(),streak:S.streak||0,achCount,team:S.team||null,league:S.league||null,atBats,wins};
 
   S.rankings=S.rankings.filter(r=>r.id!==S.uid);
   S.rankings.push({id:S.uid,...entry});
@@ -4049,24 +4052,66 @@ async function renderHRankList(){
       }else{
         const q=window._fbQuery(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId),window._fbOrderByChild('score'),window._fbLimitToLast(100));
         const snap=await window._fbGet(q);
-        if(snap.exists()){snap.forEach(child=>{const d=child.val();entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,streak:d.streak||0,team:d.team||null,league:d.league||null});});entries.sort((a,b)=>b.score-a.score);}
+        if(snap.exists()){snap.forEach(child=>{const d=child.val();entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,league:d.league||null,atBats:d.atBats||0,wins:d.wins||0});});entries.sort((a,b)=>b.score-a.score);}
       }
       // 레벨 필터
       entries=entries.filter(r=>(r.level||0)===levelDigits);
     }catch(e){console.warn('Hitting rank read failed',e);}
   }
   const medals=['🥇','🥈','🥉'];
+  // 어제 1등 (레벨별) — daily만
+  const hYd=document.getElementById('hYesterdayTop');
+  if(hYd){
+    if(_hRankPeriod==='daily'&&window._fbReady){
+      try{
+        const ydObj=new Date();ydObj.setUTCDate(ydObj.getUTCDate()-1);
+        const ydStr=nowKST();ydStr.setUTCDate(ydStr.getUTCDate()-1);
+        const ydDate=ydStr.getUTCFullYear()+'-'+(ydStr.getUTCMonth()+1)+'-'+ydStr.getUTCDate();
+        const ydSnap=await window._fbGet(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+ydDate));
+        if(ydSnap.exists()){
+          let ydEntries=[];
+          ydSnap.forEach(ch=>{const d=ch.val();ydEntries.push({nick:d.nick,score:d.score,country:d.country,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,atBats:d.atBats||0,wins:d.wins||0});});
+          ydEntries=ydEntries.filter(r=>r.level===levelDigits).sort((a,b)=>b.score-a.score);
+          if(ydEntries.length){
+            const top=ydEntries[0];
+            const topTeam=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country||'KR',S.lang);
+            const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
+            const ydAchBadge=top.achCount>0?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+top.achCount+'</span>':'';
+            const ydBadgeBlock=(ydStreakBadge||ydAchBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+ydAchBadge+'</div>':'';
+            hYd.innerHTML=[
+              '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등 · LV.'+_hRankLevel:"Yesterday's #1 · LV."+_hRankLevel)+'</div>',
+              '<div class="rank-row" style="padding:6px 8px">',
+              '<div class="rank-pos medal">🥇</div>',
+              '<div class="rank-info"><div class="rank-nick">'+top.nick+'</div>',
+              '<div class="rank-country">'+topTeam+'</div></div>',
+              ydBadgeBlock,
+              '<div style="text-align:right"><div class="rank-score">'+top.score.toLocaleString()+'</div>',
+              top.atBats?'<div style="font-size:9px;color:var(--muted);font-weight:700">'+top.atBats+(ko?'타석':'AB')+' · '+(top.atBats>0?(top.wins/top.atBats).toFixed(3).replace(/^0/,''):'—')+'</div>':'',
+              '</div></div>'
+            ].join('');
+            hYd.style.display='block';
+          }else{hYd.style.display='none';}
+        }else{hYd.style.display='none';}
+      }catch(e){hYd.style.display='none';}
+    }else{hYd.style.display='none';}
+  }
   if(!entries.length){
     listEl.innerHTML='<p style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">'+(ko?'아직 등록된 참가자가 없습니다':'No participants yet')+'</p>';
   }else{
     listEl.innerHTML=entries.slice(0,50).map((r,i)=>{
       const rank=i+1,isMe=r.id===S.uid;
       const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
+      const streakBadge=r.streak>0?'<span style="font-size:10px;color:#ff6b00;font-weight:800;margin-left:4px">🔥'+r.streak+'</span>':'';
+      const achBadge=r.achCount>0?'<span style="font-size:10px;color:var(--primary);font-weight:800;margin-left:4px">🏆'+r.achCount+'</span>':'';
+      const ab=r.atBats||0;
+      const avg=ab>0?(r.wins||0)/ab:null;
+      const avgStr=avg!==null?avg.toFixed(3).replace(/^0/,''):'—';
+      const subInfo=ab?'<div style="font-size:10px;color:var(--muted);font-weight:700;margin-top:1px">'+ab+(ko?'타석':'AB')+' · '+avgStr+'</div>':'';
       return '<div class="rank-row'+(isMe?' my-row':'')+'" style="padding:10px 8px">'+
         '<div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div>'+
-        '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+lvBadge+'</div>'+
-        '<div class="rank-country">'+(r.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+r.team:ccLabel(r.country||'KR',S.lang))+'</div></div>'+
-        '<div class="rank-score">'+r.score.toLocaleString()+'</div></div>';
+        '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+lvBadge+streakBadge+achBadge+'</div>'+
+        '<div class="rank-country">'+(isMe&&S.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+S.team:r.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+r.team:ccLabel(r.country||'KR',S.lang))+'</div></div>'+
+        '<div style="text-align:right"><div class="rank-score">'+r.score.toLocaleString()+'</div>'+subInfo+'</div></div>';
     }).join('');
   }
   const rEl=document.getElementById('hRankResetEl');
