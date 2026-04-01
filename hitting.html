@@ -3994,9 +3994,10 @@ async function renderHRankList(){
           if(!daySnap.exists())return;
           daySnap.forEach(child=>{
             const d2=child.val();const uid=child.key;
-            if(!userMap[uid]){userMap[uid]={id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,weekScore:0};}
+            if(!userMap[uid]){userMap[uid]={id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,team:d2.team||null,league:d2.league||null,weekScore:0};}
             userMap[uid].weekScore+=(d2.score||0);
             if(d2.nick)userMap[uid].nick=d2.nick;
+            if(d2.team)userMap[uid].team=d2.team;
           });
         });
         entries=Object.values(userMap).map(u=>({...u,score:u.weekScore}));
@@ -4004,7 +4005,7 @@ async function renderHRankList(){
       }else{
         const q=window._fbQuery(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId),window._fbOrderByChild('score'),window._fbLimitToLast(100));
         const snap=await window._fbGet(q);
-        if(snap.exists()){snap.forEach(child=>{const d=child.val();entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,streak:d.streak||0});});entries.sort((a,b)=>b.score-a.score);}
+        if(snap.exists()){snap.forEach(child=>{const d=child.val();entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,streak:d.streak||0,team:d.team||null,league:d.league||null});});entries.sort((a,b)=>b.score-a.score);}
       }
       // 레벨 필터
       entries=entries.filter(r=>(r.level||0)===levelDigits);
@@ -4020,7 +4021,7 @@ async function renderHRankList(){
       return '<div class="rank-row'+(isMe?' my-row':'')+'" style="padding:10px 8px">'+
         '<div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div>'+
         '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+lvBadge+'</div>'+
-        '<div class="rank-country">'+ccLabel(r.country||'KR',S.lang)+'</div></div>'+
+        '<div class="rank-country">'+(r.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+r.team:ccLabel(r.country||'KR',S.lang))+'</div></div>'+
         '<div class="rank-score">'+r.score.toLocaleString()+'</div></div>';
     }).join('');
   }
