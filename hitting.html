@@ -2210,9 +2210,10 @@ function renderHome(){
   const maxLbl=t('maxLabel');
   // 투구 1회 이상이면 레벨 변경 불가
   const gameInProgress = S.game && (_hPitchCount > 0);
+  const allDone = S.consumed>=3 || S.scores.length>=3;
   document.getElementById('lvlCards').innerHTML=lvls.map(lv=>{
-    const isLocked = lv.n > 3; // LV2, LV3 잠금
-    const disabled = S.consumed>=3 || gameInProgress || isLocked;
+    const isLocked = lv.n > 3;
+    const disabled = allDone || gameInProgress || isLocked;
     const isCurrent = S.game && S.game.level===lv.n;
     const lockedBadge = isLocked
       ? '<span style="font-size:9px;font-weight:800;color:var(--muted);background:var(--border);border-radius:4px;padding:2px 7px;margin-left:6px">'+(ko?'준비 중':'Coming Soon')+'</span>'
@@ -2246,8 +2247,7 @@ function cancelLevel(){
 
 /* ── SELECT LEVEL (시도 전이면 레벨 변경 가능) ── */
 function selectLevel(level){
-  if(S.consumed>=3){alert(t('noChance'));return}
-  // 게임 진행 중(시도 O) → 변경 불가
+  if(S.consumed>=3||S.scores.length>=3){alert(t('noChance'));return}
   if(S.game && S.game.attempts>0){
     alert(S.lang==='ko'?'이미 시도를 했어요! 레벨을 바꿀 수 없어요.':'You already made a guess! Level cannot be changed.');
     return;
@@ -2268,7 +2268,7 @@ function selectLevel(level){
 
 /* ── START GAME ── */
 function startGame(level){
-  if(S.consumed>=3){alert(t('noChance'));return}
+  if(S.consumed>=3||S.scores.length>=3){alert(t('noChance'));return}
   const idx=S.consumed;S.consumed++;saveDaily();
   const target=genTarget(S.uid,S.today,level,idx);
   _hBalls=0;_hStrikes=0;_hScore=1000;_hHintUsed=false;
