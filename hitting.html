@@ -2196,7 +2196,7 @@ function renderHome(){
       const ln=lvName[g.level]||'';
       if(g.won){cls+=' win';lbl=ln+' '+(typeLabel[g.type]||t('slotWin'));val='+'+g.score.toLocaleString()}
       else{cls+=' lose';lbl=ln+' '+(typeLabel[g.type]||t('slotLose'));val='0'}
-    }else if(i===S.consumed&&S.consumed<3){cls+=' next';val='?'}
+    }else if(i===S.scores.length&&S.scores.length<3){cls+=' next';val='?'}
     else{cls+=' inactive'}
     const vrBadge=(g&&g.vr)?'<div class="slot-vr">📹</div>':'';
     sl.innerHTML+='<div class="'+cls+'"><div class="slot-lbl">'+lbl+'</div><div class="slot-val">'+val+'</div>'+vrBadge+'</div>';
