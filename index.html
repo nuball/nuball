@@ -2560,7 +2560,7 @@ async function registerFromStats(){
   S.rankings.push({id:S.uid,...entry});
   S.rankings.sort((a,b)=>b.score-a.score||(b.level||0)-(a.level||0));
   S.rankings=S.rankings.slice(0,100);
-  S.registered=true;saveDaily();saveRankings();
+  S.registered=true;S.registeredScore=bestScore;saveDaily();saveRankings();
   // first_rank 업적: 처음 등록할 때만 팝업
   if(!S.achievements['first_rank']){
     registerAchievement('first_rank');
@@ -3236,5 +3236,11 @@ function confirmVR(){
 
 init();
 </script>
+
+<!-- 푸터 저작권 -->
+<div style="text-align:center;padding:20px 16px 32px;font-size:11px;color:var(--subtle);font-weight:600;border-top:1px solid var(--border);margin-top:12px">
+  © 2025 NUBALL · nuball.app · All rights reserved
+</div>
+
 </body>
 </html>

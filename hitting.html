@@ -3227,7 +3227,7 @@ async function registerFromStats(){
   S.rankings.push({id:S.uid,...entry});
   S.rankings.sort((a,b)=>b.score-a.score||(b.level||0)-(a.level||0));
   S.rankings=S.rankings.slice(0,100);
-  S.registered=true;saveDaily();saveRankings();
+  S.registered=true;S.registeredScore=bestScore;saveDaily();saveRankings();
   // first_rank 업적: 처음 등록할 때만 팝업
   if(!S.achievements['first_rank']){
     registerAchievement('first_rank');
