@@ -1466,11 +1466,13 @@ async function init(){
     _hss.style.display='none';
     _hss.classList.add('hidden');
   }
-  // 누볼 히팅 테스트 오픈 안내 (매 접속마다)
-  setTimeout(()=>{
-    const m=document.getElementById('hittingNoticeModal');
-    if(m)m.classList.add('open');
-  },800);
+  // 누볼 히팅 테스트 오픈 안내 (최초 1회)
+  if(!localStorage.getItem('nb_hitting_notice_v1')){
+    setTimeout(()=>{
+      const m=document.getElementById('hittingNoticeModal');
+      if(m)m.classList.add('open');
+    },800);
+  }
 
   checkRoomUrl();
   // 도메인 이전 공지 (nuball.vercel.app에서만)
