@@ -4156,7 +4156,7 @@ async function renderHRankList(){
             const top=ydEntries[0];
             const topTeam=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country||'KR',S.lang);
             const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
-            const ydBadgeBlock=ydStreakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+'</div>':'';
+            const ydBadgeBlock=ydStreakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:28px;flex-shrink:0;gap:1px">'+ydStreakBadge+'</div>':'<div style="width:28px;flex-shrink:0"></div>';
             hYd.innerHTML=[
               '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등 · LV.'+_hRankLevel:"Yesterday's #1 · LV."+_hRankLevel)+'</div>',
               '<div class="rank-row" style="padding:6px 0">',
@@ -4183,7 +4183,7 @@ async function renderHRankList(){
       const rStreak=isMe?(S.streak||0):(r.streak||0);
       const streakBadge=rStreak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3;white-space:nowrap">🔥'+rStreak+'</span>':'';
       // 업적 비활성화 중 — achBadge 숨김
-      const badgeBlock=streakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;flex-shrink:0;gap:1px">'+streakBadge+'</div>':'';
+      const badgeBlock=streakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:28px;flex-shrink:0;gap:1px">'+streakBadge+'</div>':'<div style="width:28px;flex-shrink:0"></div>';
       const ab=r.atBats||0;
       const avg=ab>0?(r.wins||0)/ab:null;
       const avgStr=avg!==null?avg.toFixed(3).replace(/^0/,''):'—';
