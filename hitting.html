@@ -257,7 +257,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .rank-pos{width:30px;font-size:13px;font-weight:900;color:var(--subtle);text-align:right;flex-shrink:0;font-family:'DM Mono',monospace}.rank-pos.medal{font-size:20px}
 .rank-info{flex:1}.rank-nick{font-size:15px;font-weight:700}.rank-country{font-size:11px;color:var(--muted);margin-top:1px}
 .rank-score{font-size:17px;font-weight:900;color:var(--primary);font-family:'DM Mono',monospace}
-.my-row{background:var(--primary-light);border-radius:8px;padding:11px 10px;margin:0 -10px;display:flex;align-items:center}
+.my-row{background:var(--primary-light);border-radius:8px;padding:11px 10px;margin:0 -10px}
 .rank-reset{font-size:11px;color:var(--muted);text-align:center;padding:12px 0 0;border-top:1px solid var(--border);margin-top:8px}
 
 /* ── SUPPORT ── */
@@ -4141,7 +4141,7 @@ async function renderHRankList(){
             const ydBadgeBlock=(ydStreakBadge||ydAchBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+ydAchBadge+'</div>':'';
             hYd.innerHTML=[
               '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등 · LV.'+_hRankLevel:"Yesterday's #1 · LV."+_hRankLevel)+'</div>',
-              '<div class="rank-row" style="padding:6px 8px">',
+              '<div class="rank-row" style="padding:6px 0">',
               '<div class="rank-pos medal">🥇</div>',
               '<div class="rank-info"><div class="rank-nick">'+top.nick+'</div>',
               '<div class="rank-country">'+topTeam+'</div></div>',
@@ -4170,7 +4170,7 @@ async function renderHRankList(){
       const avg=ab>0?(r.wins||0)/ab:null;
       const avgStr=avg!==null?avg.toFixed(3).replace(/^0/,''):'—';
       const subInfo=ab?'<div style="font-size:10px;color:var(--muted);font-weight:700;margin-top:1px">'+ab+(ko?'타석':'AB')+' · '+avgStr+'</div>':'';
-      return '<div class="rank-row'+(isMe?' my-row':'')+'" style="'+(isMe?'':'padding:10px 8px')+'">'+
+      return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
         '<div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div>'+
         '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+lvBadge+'</div>'+
         '<div class="rank-country">'+(isMe&&S.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+S.team:r.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+r.team:ccLabel(r.country||'KR',S.lang))+'</div></div>'+
