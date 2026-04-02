@@ -650,7 +650,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <div class="game-att" id="gameAttEl"></div>
         </div>
         <!-- 카운트박스(B/S/O) -->
-        <div style="background:#111;border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:8px;margin-bottom:10px">
+        <div id="hCountBox" style="background:#111;border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:8px;margin-bottom:10px">
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-size:11px;font-weight:900;color:#fff;width:10px">B</span>
             <div style="display:flex;gap:3px" id="hBallDots"></div>
@@ -2454,7 +2454,16 @@ function executeForfeit(){
 
 /* ── FINISH HIT GAME ── */
 function finishHitGame(won,label,type,finalScore){
-  if(!S.game)return; // 볼넷 등으로 이미 게임 종료된 경우 방어
+  if(!S.game)return;
+  // 룸 게임이면 룸 결과 표시
+  if(S.game.isRoom){
+    clearInterval(_roomTimerInterval);
+    _roomGame.done=true;
+    const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
+    S.game=null;
+    setTimeout(()=>showRoomResult(elapsed),400);
+    return;
+  }
   const score = finalScore !== undefined ? finalScore : (won ? _hScore : 0);
   const{level,attempts,target}=S.game;
   S.scores.push({level,score,attempts,won,vr:S.vrUsedThisGame,type});
@@ -2502,7 +2511,15 @@ function finishHitGame(won,label,type,finalScore){
 
 /* ── FINISH ── */
 function finishGame(won,score){
-  const{level,attempts,target}=S.game;
+  // 룸 게임이면 룸 결과로
+  if(S.game&&S.game.isRoom){
+    clearInterval(_roomTimerInterval);
+    _roomGame.done=true;
+    const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
+    S.game=null;
+    setTimeout(()=>showRoomResult(elapsed),400);
+    return;
+  }
   S.scores.push({level,score,attempts,won,vr:S.vrUsedThisGame});
   S.totalScore=S.scores.reduce((a,g)=>a+g.score,0);
   S.stats.total++;
@@ -2973,54 +2990,36 @@ async function startRoomFromUrl(code){
 function beginRoomGame(){
   const ko=S.lang==='ko';
   _roomGame={logs:[],attempts:0,startTime:Date.now(),done:false};
-  // 히팅 전용 UI 숨기기
-  const tb=document.getElementById('takeBtn');
-  const sb=document.getElementById('swingBtn');
-  const scorePrev=document.querySelector('.score-prev');
-  const countBox=document.getElementById('hBallDots')?.closest('div');
-  const countWrap=countBox?.parentElement;
-  if(tb)tb.style.display='none';
-  if(sb)sb.style.display='none';
-  if(scorePrev)scorePrev.style.display='none';
-  if(countWrap)countWrap.style.display='none';
-  // 투구기록 헤더 숨기기
-  const pitchLogHdr=document.querySelector('.hist-hdr');
-  if(pitchLogHdr)pitchLogHdr.style.display='none';
-  // 포기/VR 버튼 숨기기
+  // S.game에 룸 정답 세팅 — 기존 히팅 UI 그대로 사용
+  _hBalls=0;_hStrikes=0;_hScore=1000;_hHintUsed=false;
+  _hPitchLogs=[];_hPitchCount=0;resetUsedPitches();
+  S.game={level:_roomLevel,target:_roomAnswer,logs:[],attempts:0,isRoom:true};
+  S.vrUsedThisGame=false;
+  // 포기 버튼 → 나가기로 표시
   const bb=document.getElementById('backBtn');
-  const vb=document.getElementById('vrBtn');
-  const hdrBtns=document.querySelector('.game-hdr-btns');
-  if(bb)bb.style.display='none';
-  if(vb)vb.style.display='none';
-  // 헤더에 타이머 표시
-  if(hdrBtns){
-    hdrBtns.innerHTML=`<div id="roomTimerLabel" style="font-size:13px;font-weight:800;color:var(--primary)">⏱️ <span id="roomTimerVal">00:00</span></div><div style="font-size:11px;color:var(--muted);font-weight:700;margin-left:8px">${_roomMode==='B'?(ko?'친구가 낸 문제':"Friend's puzzle"):(ko?'랜덤 문제':'Random puzzle')}</div>`;
+  if(bb){
+    bb.dataset.forfeitActive='';
+    bb.innerHTML='← '+(ko?'나가기':'Exit');
+    bb.style.color='var(--muted)';bb.style.borderColor='var(--border)';
+    bb.onmousedown=null;bb.onmouseup=null;bb.onmouseleave=null;
+    bb.ontouchstart=null;bb.ontouchend=null;
+    bb.onclick=function(){if(confirm(ko?'같이하기를 나갈까요?':'Exit Play Together?')){closeRoomResult();}};
   }
-  // 레벨 태그
-  const lvLabel={3:'LV.1 · 3자리',4:'LV.2 · 4자리',5:'LV.3 · 5자리'};
-  const ltag=document.getElementById('gameLvlTag');
-  if(ltag)ltag.textContent=`🆚 ${lvLabel[_roomLevel]||''}`;
-  const attEl=document.getElementById('gameAttEl');
-  if(attEl)attEl.textContent='0회';
-  const sh=document.getElementById('scoreHintEl');
-  if(sh)sh.textContent='';
-  // 입력칸 표시 + 기록 초기화
-  const sia=document.getElementById('swingInputArea');
-  if(sia){sia.style.maxHeight='none';sia.style.overflow='visible';}
-  const ni=document.getElementById('numberInput');
-  if(ni){ni.value='';ni.placeholder='•'.repeat(_roomLevel||3);}
-  const scb=document.getElementById('swingConfirmBtn');
-  if(scb){scb.onclick=handleRoomGuess;const sl=document.getElementById('swingConfirmLbl');if(sl)sl.textContent=ko?'입력':'Submit';}
-  document.getElementById('logContainer').innerHTML='<div class="empty-st"><span class="empty-ico">⚾</span></div>';
-  startRoomTimer();
+  // 헤더 타이머
+  const hdrBtns=document.querySelector('.game-hdr-btns');
+  if(hdrBtns){
+    hdrBtns.innerHTML=`<div style="font-size:12px;font-weight:800;color:var(--primary)">⏱️ <span id="roomTimerVal">00:00</span></div><div style="font-size:10px;color:var(--muted);font-weight:700;margin-left:6px">${_roomMode==='B'?(ko?'친구가 낸 문제':"Friend's puzzle"):(ko?'랜덤 문제':'Random puzzle')}</div>`;
+  }
+  // 투구 박스 초기화
+  const pb=document.getElementById('hPitchDisplay');if(pb)pb.textContent='—';
+  const pr=document.getElementById('hPitchResult');if(pr)pr.textContent='';
   // 화면 전환
-  const _hsEl=document.getElementById('homeScreen');
-  _hsEl.style.display='none';
-  _hsEl.classList.add('hidden');
-  const gs=document.getElementById('gameScreen');
-  gs.style.display='';gs.classList.add('active');
+  document.getElementById('homeScreen').classList.add('hidden');
+  const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
+  renderGame();renderHCount();renderOutDots();renderHitLog();
   window.scrollTo(0,0);
-  setTimeout(()=>{if(ni)ni.focus();},150);
+  startRoomTimer();
+  setTimeout(()=>document.getElementById('numberInput')?.focus(),150);
 }
 
 function startRoomTimer(){
@@ -3113,26 +3112,7 @@ function showRoomResult(elapsed){
   `;
   if(e('roomResultCopyBtn'))e('roomResultCopyBtn').textContent=ko?'📋 결과 복사':'📋 Copy Result';
   if(e('roomResultCloseBtn'))e('roomResultCloseBtn').textContent=ko?'닫기':'Close';
-  // 히팅 전용 UI 복구
-  const _tb=document.getElementById('takeBtn');
-  const _sb=document.getElementById('swingBtn');
-  const _scorePrev=document.querySelector('.score-prev');
-  const _countBox=document.getElementById('hBallDots')?.closest('div')?.parentElement;
-  const _pitchLogHdr=document.querySelector('.hist-hdr');
-  const _sia=document.getElementById('swingInputArea');
-  if(_tb)_tb.style.display='';
-  if(_sb)_sb.style.display='';
-  if(_scorePrev)_scorePrev.style.display='';
-  if(_countBox)_countBox.style.display='';
-  if(_pitchLogHdr)_pitchLogHdr.style.display='';
-  if(_sia){_sia.style.maxHeight='0';_sia.style.overflow='hidden';}
-  const _scb=document.getElementById('swingConfirmBtn');
-  if(_scb){_scb.onclick=confirmSwing;const _sl=document.getElementById('swingConfirmLbl');if(_sl)_sl.textContent=S.lang==='ko'?'스윙 확인':'Confirm Swing';}
-  // 포기/VR 버튼 복구
-  const _bb=document.getElementById('backBtn');
-  const _vb=document.getElementById('vrBtn');
-  if(_bb)_bb.style.display='';
-  if(_vb)_vb.style.display='';
+  // 게임화면 닫기
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('gameScreen').style.display='none';
   openModal('roomResultModal');
