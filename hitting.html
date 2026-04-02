@@ -688,9 +688,10 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </div>
         <div id="hYesterdayTop" style="display:none;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)"></div>
         <div style="display:flex;gap:4px;margin-bottom:12px">
-          <button class="rank-tab active" id="hrtab_lv1" onclick="setHRankLevel(1)" style="font-size:11px;flex:1">LV.1</button>
-          <button class="rank-tab" id="hrtab_lv2" disabled style="font-size:11px;flex:1;opacity:0.35;cursor:not-allowed">LV.2</button>
-          <button class="rank-tab" id="hrtab_lv3" disabled style="font-size:11px;flex:1;opacity:0.35;cursor:not-allowed">LV.3</button>
+          <button class="rank-tab active" id="hrtab_all" onclick="setHRankLevel(0)" style="font-size:11px;flex:1">통합</button>
+          <button class="rank-tab" id="hrtab_lv1" onclick="setHRankLevel(1)" style="font-size:11px;flex:1">LV.1</button>
+          <button class="rank-tab" id="hrtab_lv2" onclick="setHRankLevel(2)" style="font-size:11px;flex:1">LV.2</button>
+          <button class="rank-tab" id="hrtab_lv3" onclick="setHRankLevel(3)" style="font-size:11px;flex:1">LV.3</button>
         </div>
         <div id="hRankList"><div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">불러오는 중...</div></div>
         <div id="hRankResetEl" class="rank-reset" style="margin-top:8px"></div>
@@ -948,8 +949,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px" id="roomLvLbl">레벨 선택</div>
       <div style="display:flex;gap:8px;margin-bottom:14px">
         <button class="vm-btn room-lv-btn" id="roomLv3" onclick="selectRoomLv(3)" style="flex:1">3자리</button>
-        <button class="vm-btn room-lv-btn" id="roomLv4" disabled style="flex:1;opacity:0.35;cursor:not-allowed">4자리</button>
-        <button class="vm-btn room-lv-btn" id="roomLv5" disabled style="flex:1;opacity:0.35;cursor:not-allowed">5자리</button>
+        <button class="vm-btn room-lv-btn" id="roomLv4" onclick="selectRoomLv(4)" style="flex:1">4자리</button>
+        <button class="vm-btn room-lv-btn" id="roomLv5" onclick="selectRoomLv(5)" style="flex:1">5자리</button>
       </div>
       <!-- 출제 방식 -->
       <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px" id="roomModeLbl">출제 방식</div>
@@ -1394,8 +1395,8 @@ function genNextPitch(target){
   const bTypes=level===5?['0S1B','0S2B','0S3B']:['0S1B','0S2B'];
 
   // 볼카운트 기반 S/B 계열 확률 조정
-  const bias=_hStrikes*(-0.15)+_hBalls*0.10;
-  const pS=Math.max(.20,Math.min(.80,.50+bias));
+  const bias=_hStrikes*(-0.15)+_hBalls*0.15;
+  const pS=Math.max(.20,Math.min(.80,.40+bias));
 
   const pickType=()=>{
     const isS=Math.random()<pS;
@@ -1431,17 +1432,25 @@ let _hPitchCount=0; // 보내기 횟수
 
 /* ── 스윙 확률 테이블 ── */
 const SWING_PROBS={
-  '2S3B':{foul:.90,heotswing:.09,beomta:.01},
-  '2S2B':{foul:.89,heotswing:.10,beomta:.01},
-  '2S1B':{foul:.88,heotswing:.11,beomta:.01},
-  '2S0B':{foul:.87,heotswing:.12,beomta:.01},
-  '1S2B':{foul:.65,heotswing:.32,beomta:.03},
-  '1S1B':{foul:.60,heotswing:.36,beomta:.04},
-  '1S0B':{foul:.55,heotswing:.40,beomta:.05},
-  '0S3B':{foul:.50,heotswing:.45,beomta:.05},
-  '0S2B':{foul:.38,heotswing:.57,beomta:.05},
-  '0S1B':{foul:.22,heotswing:.73,beomta:.05},
   '0S0B':{foul:.10,heotswing:.87,beomta:.03},
+  '0S1B':{foul:.15,heotswing:.80,beomta:.05},
+  '0S2B':{foul:.20,heotswing:.75,beomta:.05},
+  '0S3B':{foul:.25,heotswing:.70,beomta:.05},
+  '0S4B':{foul:.30,heotswing:.65,beomta:.05},
+  '0S5B':{foul:.35,heotswing:.60,beomta:.05},
+  '1S0B':{foul:.40,heotswing:.55,beomta:.05},
+  '1S1B':{foul:.45,heotswing:.51,beomta:.04},
+  '1S2B':{foul:.50,heotswing:.47,beomta:.03},
+  '1S3B':{foul:.55,heotswing:.42,beomta:.03},
+  '1S4B':{foul:.60,heotswing:.37,beomta:.03},
+  '2S0B':{foul:.65,heotswing:.32,beomta:.03},
+  '2S1B':{foul:.68,heotswing:.29,beomta:.03},
+  '2S2B':{foul:.71,heotswing:.26,beomta:.03},
+  '2S3B':{foul:.74,heotswing:.23,beomta:.03},
+  '3S0B':{foul:.78,heotswing:.19,beomta:.03},
+  '3S1B':{foul:.81,heotswing:.16,beomta:.03},
+  '3S2B':{foul:.84,heotswing:.13,beomta:.03},
+  '4S0B':{foul:.88,heotswing:.09,beomta:.03},
 };
 function getSwingResult(s,b,level){
   if(s===level)return Math.random()<.25?'hr':'hit';
@@ -1501,7 +1510,7 @@ function genPitch1B(target, excluded=new Set()){
 
 /* ── 점수 계산 ── */
 function calcHitDeduct(level){
-  return level===3?33:level===4?23:13;
+  return level===3?33:level===4?22:11;
 }
 function calcHitSBBonus(level){
   const bonusCap={3:30,4:35,5:35};
@@ -1637,7 +1646,7 @@ function handleTake(){
   _hPitchLogs.unshift({pitch,type,s,b,action:'take'});
   _hPitchCount++;
   // 보내기 점수 차감 (LV1:30, LV2:20, LV3:10)
-  const takeDeduct={3:30,4:20,5:10}[S.game.level]||30;
+  const takeDeduct={3:30,4:25,5:12}[S.game.level]||30;
   _hScore=Math.max(300,_hScore-takeDeduct);
   // 카운트: S 있으면 스트라이크+1, 없으면 볼+1
   if(s>0)_hStrikes++;else _hBalls++;
@@ -2249,7 +2258,10 @@ function applyLang(){
   if(e('swingBtnLbl'))e('swingBtnLbl').textContent=ko?'스윙':'Swing';
   if(e('hrtab_daily'))e('hrtab_daily').textContent=ko?'일간':'Daily';
   if(e('hrtab_weekly'))e('hrtab_weekly').textContent=ko?'주간':'Weekly';
+  if(e('hrtab_all'))e('hrtab_all').textContent=ko?'통합':'All';
   if(e('hrtab_lv1'))e('hrtab_lv1').textContent='LV.1';
+  if(e('hrtab_lv2'))e('hrtab_lv2').textContent='LV.2';
+  if(e('hrtab_lv3'))e('hrtab_lv3').textContent='LV.3';
   if(e('pitchLogTitle'))e('pitchLogTitle').textContent=ko?'투구 기록':'Pitch Log';
   // 누볼 시리즈 카드
   if(e('seriesNuball'))e('seriesNuball').textContent=ko?'누볼':'NUBALL';
@@ -2289,6 +2301,7 @@ function renderHome(){
     if(g){
       const ln=lvName[g.level]||'';
       if(g.won){cls+=' win';lbl=ln+' '+(typeLabel[g.type]||t('slotWin'));val='+'+g.score.toLocaleString()}
+      else if(g.score>0){cls+=' lose';lbl=ln+' '+(typeLabel[g.type]||t('slotLose'));val='+'+g.score.toLocaleString()}
       else{cls+=' lose';lbl=ln+' '+(typeLabel[g.type]||t('slotLose'));val='0'}
     }else if(i===S.scores.length&&S.scores.length<3){cls+=' next';val='?'}
     else{cls+=' inactive'}
@@ -2306,7 +2319,7 @@ function renderHome(){
   const gameInProgress = S.game && (_hPitchCount > 0);
   const allDone = S.consumed>=3 || S.scores.length>=3;
   document.getElementById('lvlCards').innerHTML=lvls.map(lv=>{
-    const isLocked = lv.n > 3;
+    const isLocked = false;
     const disabled = allDone || gameInProgress || isLocked;
     const isCurrent = S.game && S.game.level===lv.n;
     const lockedBadge = isLocked
@@ -2913,7 +2926,6 @@ function openRoomModal(){
 }
 
 function selectRoomLv(lv){
-  if(lv!==3)return; // LV2, LV3 비활성
   _roomLevel=lv;
   [3,4,5].forEach(l=>{
     document.getElementById('roomLv'+l)?.classList.toggle('on',l===lv);
@@ -3265,8 +3277,8 @@ function renderPersonalBest(){
     }
     const result=typeLabel[g.type]||'—';
     const color=typeColor[g.type]||'var(--muted)';
-    const score=g.won?'+'+g.score.toLocaleString():'0';
-    const scoreColor=g.won?'var(--primary)':'var(--subtle)';
+    const score=g.score>0?'+'+g.score.toLocaleString():'0';
+    const scoreColor=g.score>0?'var(--primary)':'var(--subtle)';
     return '<div style="flex:1;background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center;border:1.5px solid var(--border)">'+
       '<div style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:6px">'+lv+'</div>'+
       '<div style="font-size:13px;font-weight:900;color:'+color+';margin-bottom:4px">'+result+'</div>'+
@@ -3995,7 +4007,7 @@ function shareImage(){
   const typeLabelEn={hr:'Home Run',hit:'Hit',walk:'Walk',strikeout:'Strikeout',beomta:'Flyout',forfeit:'Forfeit'};
 
   S.scores.forEach((g,idx)=>{
-    const isBest=g.won&&g.score===bestScore&&bestScore>0;
+    const isBest=g.score>0&&g.score===bestScore;
     const isWin=g.won;
     ctx.fillStyle=isWin?(isBest?CARD_BEST:CARD_WIN):CARD_LOSE;
     roundRect(ctx,PAD,y,W-PAD*2,ROW,10);ctx.fill();
@@ -4200,17 +4212,17 @@ function debugResetDaily(){
 /* ── 히팅 랭킹 ── */
 const HITTING_RANK_PATH='rankings_hitting';
 let _hRankPeriod='daily';
-let _hRankLevel=1; // 활성 레벨 (1만 사용 가능)
+let _hRankLevel=0; // 0=통합, 1=LV1, 2=LV2, 3=LV3
 
 function openHittingRankModal(){
-  _hRankPeriod='daily';_hRankLevel=1;
+  _hRankPeriod='daily';_hRankLevel=0;
   ['daily','weekly'].forEach(k=>{
     const el=document.getElementById('hrtab_'+k);
     if(el)el.classList.toggle('active',k==='daily');
   });
-  ['lv1','lv2','lv3'].forEach(k=>{
+  ['all','lv1','lv2','lv3'].forEach(k=>{
     const el=document.getElementById('hrtab_'+k);
-    if(el)el.classList.toggle('active',k==='lv1');
+    if(el)el.classList.toggle('active',k==='all');
   });
   renderHRankList();
   openModal('hittingRankModal');
@@ -4224,11 +4236,10 @@ function setHRankPeriod(p){
   renderHRankList();
 }
 function setHRankLevel(lv){
-  if(lv!==1)return; // LV2,3 비활성
   _hRankLevel=lv;
-  [1,2,3].forEach(k=>{
-    const el=document.getElementById('hrtab_lv'+k);
-    if(el)el.classList.toggle('active',k===lv);
+  ['all',1,2,3].forEach(k=>{
+    const el=document.getElementById('hrtab_'+(k==='all'?'all':'lv'+k));
+    if(el)el.classList.toggle('active',(k==='all'?0:k)===lv);
   });
   renderHRankList();
 }
@@ -4238,9 +4249,9 @@ async function renderHRankList(){
   if(!listEl)return;
   listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+(ko?'불러오는 중...':'Loading...')+'</div>';
   const titleEl=document.getElementById('hRankTitle');
-  const lvLabel='LV.'+_hRankLevel;
+  const lvLabel=_hRankLevel===0?(ko?'통합':'All'):('LV.'+_hRankLevel);
   if(titleEl)titleEl.textContent='🏏 '+(_hRankPeriod==='daily'?(ko?`히팅 일간 랭킹 · ${lvLabel}`:`Hitting Daily · ${lvLabel}`):(ko?`히팅 주간 랭킹 · ${lvLabel}`:`Hitting Weekly · ${lvLabel}`));
-  const levelDigits={1:3,2:4,3:5}[_hRankLevel]||3;
+  const levelDigits={1:3,2:4,3:5}[_hRankLevel]||0;
   let entries=[];
   if(window._fbReady){
     try{
@@ -4279,8 +4290,8 @@ async function renderHRankList(){
           });
         }
       }
-      // 레벨 필터
-      entries=entries.filter(r=>(r.level||0)===levelDigits);
+      // 레벨 필터 (0=통합, 필터 없음)
+      if(_hRankLevel!==0)entries=entries.filter(r=>(r.level||0)===levelDigits);
     }catch(e){console.warn('Hitting rank read failed',e);}
   }
   const medals=['🥇','🥈','🥉'];
@@ -4296,7 +4307,7 @@ async function renderHRankList(){
         if(ydSnap.exists()){
           let ydEntries=[];
           ydSnap.forEach(ch=>{const d=ch.val();ydEntries.push({nick:d.nick,score:d.score,country:d.country,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,atBats:d.atBats||0,wins:d.wins||0,ts:d.ts||0});});
-          ydEntries=ydEntries.filter(r=>r.level===levelDigits).sort((a,b)=>{
+          ydEntries=ydEntries.sort((a,b)=>{
             if(b.score!==a.score)return b.score-a.score;
             if(b.atBats!==a.atBats)return b.atBats-a.atBats;
             const avgA=a.atBats>0?a.wins/a.atBats:0;
@@ -4304,13 +4315,15 @@ async function renderHRankList(){
             if(avgB!==avgA)return avgB-avgA;
             return (a.ts||0)-(b.ts||0);
           });
+          // 어제 1등은 항상 통합 1등
+          const ydLvLabel=ydEntries[0]?({3:'LV.1',4:'LV.2',5:'LV.3'}[ydEntries[0].level]||''):'';
           if(ydEntries.length){
             const top=ydEntries[0];
             const topTeam=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country||'KR',S.lang);
             const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
             const ydBadgeBlock=ydStreakBadge?'<div style="display:flex;align-items:center;justify-content:center;min-width:28px;align-self:stretch">'+ydStreakBadge+'</div>':'';
             hYd.innerHTML=[
-              '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등 · LV.'+_hRankLevel:"Yesterday's #1 · LV."+_hRankLevel)+'</div>',
+              '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등':"Yesterday's #1")+'</div>',
               '<div class="rank-row" style="padding:6px 0">',
               '<div class="rank-pos medal">🥇</div>',
               '<div class="rank-info"><div class="rank-nick">'+top.nick+'</div>',
