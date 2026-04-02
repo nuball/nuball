@@ -1644,7 +1644,7 @@ function handleTake(){
   // 삼진/볼넷
   if(_hStrikes>=3){S.game._ending=true;setTimeout(()=>finishHitGame(false,S.lang==='ko'?'삼진 아웃':'Strikeout','strikeout'),700);return;}
   if(_hBalls>=4){
-    // 볼넷: 기회 소모 안함 → consumed 되돌리기
+    S.game._ending=true; // 즉시 잠금
     const walkTarget=S.game.target.slice();
     setTimeout(()=>{
       S.consumed=Math.max(0,S.consumed-1);
@@ -2456,6 +2456,7 @@ function cancelHoldForfeit(){
 function confirmForfeit(){openModal('forfeitModal')}
 function executeForfeit(){
   closeModal('forfeitModal');
+  if(S.game)S.game._ending=false; // 포기는 항상 허용
   finishHitGame(false,S.lang==='ko'?'포기':'Forfeit','forfeit',0);
 }
 
@@ -2473,7 +2474,9 @@ function finishHitGame(won,label,type,finalScore){
     setTimeout(()=>showRoomResult(elapsed,roomAttempts),400);
     return;
   }
+  const score=finalScore!==undefined?finalScore:(won?_hScore:0);
   const{level,attempts,target}=S.game;
+  S.game=null; // 즉시 null로 — 추가 입력 완전 차단
   S.scores.push({level,score,attempts,won,vr:S.vrUsedThisGame,type});
   S.totalScore=S.scores.reduce((a,g)=>a+g.score,0);
   S.stats.total++;
