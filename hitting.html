@@ -638,7 +638,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </div>
         <!-- 지켜보기 + 스윙 버튼 -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn-o" id="takeBtn" onclick="handleTake()" ontouchstart="this.style.background='transparent'" ontouchend="this.style.background='transparent'" ontouchcancel="this.style.background='transparent'" style="width:100%;padding:13px 8px;font-size:14px;border-radius:8px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;outline:none">👁 <span id="takeBtnLbl">지켜보기</span></button>
+          <button class="btn-o" id="takeBtn" onclick="handleTake()" ontouchstart="this.style.background='transparent'" ontouchend="this.style.background='transparent'" ontouchcancel="this.style.background='transparent'" style="width:100%;padding:13px 8px;font-size:14px;font-weight:800;border-radius:8px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;outline:none">👁 <span id="takeBtnLbl">지켜보기</span></button>
           <button class="btn-p btn-o" id="swingBtn" onclick="toggleSwingInput()" style="font-size:14px;padding:13px 8px;border-color:var(--primary);color:var(--primary)">🏏 <span id="swingBtnLbl">스윙</span></button>
         </div>
       </div>
@@ -2394,16 +2394,20 @@ function startGame(level){
 /* ── SAVE PROGRESS (새로고침 복구용) ── */
 function saveProgress(){
   if(!S.game)return;
-  if(S.game.isRoom)return;
   const data={
     level:S.game.level,target:S.game.target,logs:S.game.logs,
     hBalls:_hBalls,hStrikes:_hStrikes,hScore:_hScore,
     hPitchLogs:_hPitchLogs,hPitchCount:_hPitchCount,
-    usedPitches:_usedPitches
+    usedPitches:_usedPitches,
+    isRoom:S.game.isRoom||false
   };
-  localStorage.setItem('nb_hit_inprog',JSON.stringify(data));
-  // 투구기록 별도 저장 (복구 안정성을 위해)
-  localStorage.setItem('nb_hit_pitchlogs',JSON.stringify(_hPitchLogs));
+  if(S.game.isRoom){
+    // 룸 게임은 별도 키에 저장
+    localStorage.setItem('nb_hit_roominprog',JSON.stringify(data));
+  }else{
+    localStorage.setItem('nb_hit_inprog',JSON.stringify(data));
+    localStorage.setItem('nb_hit_pitchlogs',JSON.stringify(_hPitchLogs));
+  }
 }
 
 /* ── RENDER GAME ── */
@@ -2486,6 +2490,7 @@ function finishHitGame(won,label,type,finalScore){
     clearInterval(_roomTimerInterval);
     _roomGame.done=true;
     _swingInputOpen=false;
+    localStorage.removeItem('nb_hit_roominprog');
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
     const roomAttempts=S.game.attempts;
     S.game=null;
@@ -2547,6 +2552,7 @@ function finishGame(won,score){
     clearInterval(_roomTimerInterval);
     _roomGame.done=true;
     _swingInputOpen=false;
+    localStorage.removeItem('nb_hit_roominprog');
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
     const roomAttempts=S.game.attempts;
     S.game=null;
@@ -3023,13 +3029,34 @@ async function startRoomFromUrl(code){
 
 function beginRoomGame(){
   const ko=S.lang==='ko';
-  _roomGame={logs:[],attempts:0,startTime:Date.now(),done:false};
-  // S.game에 룸 정답 세팅 — 기존 히팅 UI 그대로 사용
-  localStorage.removeItem('nb_hit_inprog'); // 일간 복구 방지
-  _hBalls=0;_hStrikes=0;_hScore=1000;_hHintUsed=false;
-  _hPitchLogs=[];_hPitchCount=0;resetUsedPitches();
-  S.game={level:_roomLevel,target:_roomAnswer,logs:[],attempts:0,isRoom:true};
-  S.vrUsedThisGame=false;
+  localStorage.removeItem('nb_hit_inprog'); // 일반 게임 inprog 방지
+
+  // 저장된 룸 진행 상태 복구 시도
+  const rip=localStorage.getItem('nb_hit_roominprog');
+  let restored=false;
+  if(rip){
+    try{
+      const g=JSON.parse(rip);
+      // 같은 정답인지 확인 (target이 일치해야 복구)
+      const sameTarget=g.target&&_roomAnswer&&g.target.join(',')=== _roomAnswer.join(',');
+      if(sameTarget){
+        _roomGame={logs:[],attempts:g.hPitchCount||0,startTime:Date.now()-(g.elapsed||0),done:false};
+        _hBalls=g.hBalls||0;_hStrikes=g.hStrikes||0;_hScore=g.hScore||1000;
+        _hPitchLogs=g.hPitchLogs||[];_hPitchCount=g.hPitchCount||0;
+        _usedPitches=g.usedPitches||[];
+        S.game={level:g.level,target:_roomAnswer,logs:g.logs||[],attempts:g.logs?g.logs.length:0,isRoom:true};
+        S.vrUsedThisGame=false;
+        restored=true;
+      }
+    }catch(e){localStorage.removeItem('nb_hit_roominprog');}
+  }
+  if(!restored){
+    _roomGame={logs:[],attempts:0,startTime:Date.now(),done:false};
+    _hBalls=0;_hStrikes=0;_hScore=1000;_hHintUsed=false;
+    _hPitchLogs=[];_hPitchCount=0;resetUsedPitches();
+    S.game={level:_roomLevel,target:_roomAnswer,logs:[],attempts:0,isRoom:true};
+    S.vrUsedThisGame=false;
+  }
   // 포기 버튼 → 나가기로 표시
   const bb=document.getElementById('backBtn');
   if(bb){
