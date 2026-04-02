@@ -638,7 +638,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </div>
         <!-- 지켜보기 + 스윙 버튼 -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn-o" id="takeBtn" onclick="handleTake()" ontouchstart="this.style.background='transparent'" ontouchend="this.style.background='transparent'" ontouchcancel="this.style.background='transparent'" style="width:100%;padding:13px 8px;font-size:14px;border-radius:8px;cursor:pointer;font-family:inherit;transition:background .15s;-webkit-tap-highlight-color:transparent">👁 <span id="takeBtnLbl">지켜보기</span></button>
+          <button class="btn-o" id="takeBtn" onclick="handleTake()" ontouchstart="this.style.cssText='background:transparent !important'" ontouchend="this.style.cssText=''" ontouchcancel="this.style.cssText=''" style="width:100%;padding:13px 8px;font-size:14px;border-radius:8px;cursor:pointer;font-family:inherit;transition:background .15s;-webkit-tap-highlight-color:transparent">👁 <span id="takeBtnLbl">지켜보기</span></button>
           <button class="btn-p btn-o" id="swingBtn" onclick="toggleSwingInput()" style="font-size:14px;padding:13px 8px;border-color:var(--primary);color:var(--primary)">🏏 <span id="swingBtnLbl">스윙</span></button>
         </div>
       </div>
@@ -1626,7 +1626,12 @@ function activateForfeitBtn(){
 }
 
 function handleTake(){
-  const tb=document.getElementById('takeBtn');if(tb){tb.blur();tb.style.background='transparent';setTimeout(()=>{if(tb)tb.style.background='';},300);}
+  const tb=document.getElementById('takeBtn');
+  if(tb){
+    tb.blur();
+    tb.style.cssText='background:transparent !important';
+    setTimeout(()=>{if(tb)tb.style.cssText='';},50);
+  }
   if(!S.game||S.game._ending)return;
   const pitch=genNextPitch(S.game.target);
   if(!pitch){console.warn('pitch gen failed');return;}
@@ -2485,6 +2490,7 @@ function finishHitGame(won,label,type,finalScore){
   }
   const score=finalScore!==undefined?finalScore:(won?_hScore:0);
   const{level,attempts,target}=S.game;
+  localStorage.removeItem('nb_hit_inprog'); // 완료된 게임은 inprog 삭제
   S.game=null; // 즉시 null로 — 추가 입력 완전 차단
   S.scores.push({level,score,attempts,won,vr:S.vrUsedThisGame,type});
   S.totalScore=S.scores.reduce((a,g)=>a+g.score,0);
