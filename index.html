@@ -1423,8 +1423,9 @@ async function init(){
     const ip=localStorage.getItem('nb_inprog');
     if(ip&&S.scores.length<S.consumed){
       const g=JSON.parse(ip);
-      // 로그까지 복구
-      S.game={level:g.level,target:genTarget(S.uid,S.today,g.level,S.scores.length),logs:g.logs||[],attempts:g.logs?g.logs.length:0};
+      // target을 저장된 값으로 복구 (재계산 X)
+      const restoredTarget=g.target||genTarget(S.uid,S.today,g.level,S.scores.length);
+      S.game={level:g.level,target:restoredTarget,logs:g.logs||[],attempts:g.logs?g.logs.length:0};
       const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
       document.getElementById('homeScreen').classList.add('hidden');
     }
@@ -1658,7 +1659,7 @@ function startGame(level){
 /* ── SAVE PROGRESS (새로고침 복구용) ── */
 function saveProgress(){
   if(!S.game)return;
-  localStorage.setItem('nb_inprog',JSON.stringify({level:S.game.level,logs:S.game.logs}));
+  localStorage.setItem('nb_inprog',JSON.stringify({level:S.game.level,target:S.game.target,logs:S.game.logs}));
 }
 
 /* ── RENDER GAME ── */

@@ -2100,10 +2100,13 @@ async function init(){
     const ip=localStorage.getItem('nb_hit_inprog');
     if(ip&&S.scores.length<S.consumed){
       const g=JSON.parse(ip);
-      S.game={level:g.level,target:genTarget(S.uid,S.today,g.level,S.scores.length),logs:g.logs||[],attempts:g.logs?g.logs.length:0};
+      // target을 저장된 값으로 복구 (재계산 X — 재계산 시 target이 달라질 수 있음)
+      const restoredTarget=g.target||genTarget(S.uid,S.today,g.level,S.scores.length);
+      S.game={level:g.level,target:restoredTarget,logs:g.logs||[],attempts:g.logs?g.logs.length:0};
       // 히팅 상태 복구
       _hBalls=g.hBalls||0;_hStrikes=g.hStrikes||0;_hScore=g.hScore||1000;
       _hPitchLogs=g.hPitchLogs||[];_hPitchCount=g.hPitchCount||0;
+      _usedPitches=g.usedPitches||[];
       const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
       document.getElementById('homeScreen').classList.add('hidden');
     }
@@ -2375,10 +2378,12 @@ function startGame(level){
 /* ── SAVE PROGRESS (새로고침 복구용) ── */
 function saveProgress(){
   if(!S.game)return;
+  if(S.game.isRoom)return; // 룸 게임은 저장 안 함
   localStorage.setItem('nb_hit_inprog',JSON.stringify({
-    level:S.game.level,logs:S.game.logs,
+    level:S.game.level,target:S.game.target,logs:S.game.logs,
     hBalls:_hBalls,hStrikes:_hStrikes,hScore:_hScore,
-    hPitchLogs:_hPitchLogs,hPitchCount:_hPitchCount
+    hPitchLogs:_hPitchLogs,hPitchCount:_hPitchCount,
+    usedPitches:_usedPitches
   }));
 }
 
@@ -2996,6 +3001,7 @@ function beginRoomGame(){
   const ko=S.lang==='ko';
   _roomGame={logs:[],attempts:0,startTime:Date.now(),done:false};
   // S.game에 룸 정답 세팅 — 기존 히팅 UI 그대로 사용
+  localStorage.removeItem('nb_hit_inprog'); // 일간 복구 방지
   _hBalls=0;_hStrikes=0;_hScore=1000;_hHintUsed=false;
   _hPitchLogs=[];_hPitchCount=0;resetUsedPitches();
   S.game={level:_roomLevel,target:_roomAnswer,logs:[],attempts:0,isRoom:true};
