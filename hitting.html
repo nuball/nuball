@@ -3849,61 +3849,62 @@ function shareImage(){
   const nCards=Math.max(S.scores.length,1);
   const H=OUTER+HEADER+nCards*(ROW+GAP)-GAP+PAD+36+OUTER;
 
-
   const cv=document.createElement('canvas');
   const dpr=Math.min(window.devicePixelRatio||1,2);
   cv.width=W*dpr;cv.height=H*dpr;
   const ctx=cv.getContext('2d');
   ctx.scale(dpr,dpr);
 
-  // ── 색상 (흰 배경 + 진한 초록 테두리) ──
+  // ── 색상 (히팅 빨간 테마) ──
   const BG='#ffffff';
-  const BORDER_OUTER='#15803d';
-  const CARD_WIN='#f0fdf4';
-  const CARD_BEST='#dcfce7';
-  const CARD_LOSE='#fef2f2';
-  const CARD_STROKE_WIN='#86efac';
-  const CARD_STROKE_BEST='#16a34a';
-  const CARD_STROKE_LOSE='#fca5a5';
-  const GRN='#15803d';
-  const LOSE='#dc2626';
+  const BORDER_OUTER='#dc2626';
+  const CARD_WIN='#fff1f2';
+  const CARD_BEST='#fecdd3';
+  const CARD_LOSE='#f9fafb';
+  const CARD_STROKE_WIN='#fca5a5';
+  const CARD_STROKE_BEST='#dc2626';
+  const CARD_STROKE_LOSE='#e5e7eb';
+  const RED='#dc2626';
+  const LOSE='#6b7280';
   const MUT='#6b7280';
   const DARK='#111827';
-  const BADGE_BG='#15803d';
+  const BADGE_BG='#dc2626';
 
-  // ── 배경 흰색 ──
   ctx.fillStyle=BG;ctx.fillRect(0,0,W,H);
-  // 외곽 테두리
   ctx.strokeStyle=BORDER_OUTER;ctx.lineWidth=3;
   roundRect(ctx,1.5,1.5,W-3,H-3,14);ctx.stroke();
 
   // ── 헤더 ──
-  const bestScore=S.scores.length&&S.scores.some(g=>g.won)?Math.max(...S.scores.filter(g=>g.won).map(g=>g.score)):0;
+  const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
   ctx.textAlign='center';
-  ctx.fillStyle=GRN;
-  ctx.font='900 26px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
-  ctx.fillText('⚾ '+(ko?'누볼':'NUBALL'),W/2,PAD+26);
+  ctx.fillStyle=RED;
+  ctx.font='900 22px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
+  ctx.fillText('🏏 '+(ko?'누볼':'NUBALL'),W/2,PAD+22);
+  ctx.font='900 13px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
+  ctx.fillText(ko?'히팅':'HITTING',W/2,PAD+40);
   ctx.fillStyle=MUT;
   ctx.font='400 12px "Plus Jakarta Sans",sans-serif';
-  ctx.fillText(S.today+(S.streak>=2?' 🔥'+S.streak+(ko?'일 연속':' day streak'):''),W/2,PAD+48);
-  // 구분선
-  ctx.strokeStyle='#d1fae5';ctx.lineWidth=1;
+  ctx.fillText(S.today+(S.streak>=2?' 🔥'+S.streak+(ko?'일 연속 접속':' day streak'):''),W/2,PAD+60);
+  ctx.strokeStyle='#fca5a5';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(PAD,HEADER-10);ctx.lineTo(W-PAD,HEADER-10);ctx.stroke();
 
   let y=HEADER;
   const lvMapKo={3:'LV.1 · 3자리',4:'LV.2 · 4자리',5:'LV.3 · 5자리'};
   const lvMapEn={3:'LV.1 · 3-Digit',4:'LV.2 · 4-Digit',5:'LV.3 · 5-Digit'};
+  const typeIconMap={hr:'🏠',hit:'⚾',walk:'4️⃣',strikeout:'❌',beomta:'❌',forfeit:'🏳'};
+  const typeLabelKo={hr:'홈런',hit:'안타',walk:'볼넷',strikeout:'삼진',beomta:'범타',forfeit:'포기'};
+  const typeLabelEn={hr:'Home Run',hit:'Hit',walk:'Walk',strikeout:'Strikeout',beomta:'Flyout',forfeit:'Forfeit'};
 
   S.scores.forEach((g,idx)=>{
     const isBest=g.won&&g.score===bestScore&&bestScore>0;
-    // 카드 배경
-    ctx.fillStyle=g.won?(isBest?CARD_BEST:CARD_WIN):CARD_LOSE;
+    const isWin=g.won;
+    ctx.fillStyle=isWin?(isBest?CARD_BEST:CARD_WIN):CARD_LOSE;
     roundRect(ctx,PAD,y,W-PAD*2,ROW,10);ctx.fill();
-    ctx.strokeStyle=g.won?(isBest?CARD_STROKE_BEST:CARD_STROKE_WIN):CARD_STROKE_LOSE;
+    ctx.strokeStyle=isWin?(isBest?CARD_STROKE_BEST:CARD_STROKE_WIN):CARD_STROKE_LOSE;
     ctx.lineWidth=isBest?2:1;
     roundRect(ctx,PAD,y,W-PAD*2,ROW,10);ctx.stroke();
 
-    // 최고점 하이라이트 배지
+    // 최고점 배지
     if(isBest){
       ctx.fillStyle=BADGE_BG;
       roundRect(ctx,PAD+10,y+8,ko?46:36,18,6);ctx.fill();
@@ -3914,44 +3915,49 @@ function shareImage(){
 
     // 레벨 태그
     ctx.textAlign='left';
-    ctx.fillStyle=g.won?GRN:LOSE;
+    ctx.fillStyle=isWin?RED:LOSE;
     ctx.font='700 10px "Plus Jakarta Sans",sans-serif';
     const tagX=isBest?(PAD+14+(ko?50:40)):PAD+14;
     ctx.fillText((ko?lvMapKo:lvMapEn)[g.level]||'',tagX,y+20);
 
-    // 결과
-    if(g.won){
-      ctx.fillStyle=DARK;
-      ctx.font='800 20px "DM Mono",monospace';
-      ctx.fillText(g.score.toLocaleString()+(ko?'점':' pts'),PAD+14,y+52);
-      // 야구공 시도횟수
-      ctx.textAlign='right';
-      ctx.font='14px sans-serif';
-      const ballStr='⚾'.repeat(Math.min(g.attempts,9))+(g.attempts>9?'+':'');
-      ctx.fillText(ballStr,W-PAD-14,y+32);
-      ctx.fillStyle=MUT;ctx.font='700 11px "Plus Jakarta Sans",sans-serif';
-      ctx.fillText(g.attempts+(ko?'번':'att'),W-PAD-14,y+52);
-    }else{
-      ctx.fillStyle=LOSE;
-      ctx.font='700 16px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
-      ctx.fillText('🏳 '+(ko?'포기':'Forfeit'),PAD+14,y+50);
-    }
+    // 결과 아이콘 + 라벨
+    const icon=typeIconMap[g.type]||'⚾';
+    const label=(ko?typeLabelKo:typeLabelEn)[g.type]||'';
+    ctx.font='16px sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText(icon,PAD+14,y+50);
+    ctx.fillStyle=isWin?RED:LOSE;
+    ctx.font='700 13px "Plus Jakarta Sans","Noto Sans KR",sans-serif';
+    ctx.fillText(label,PAD+34,y+50);
 
+    // 점수
+    if(g.score>0){
+      ctx.textAlign='right';
+      ctx.fillStyle=isWin?RED:LOSE;
+      ctx.font='800 20px "DM Mono",monospace';
+      ctx.fillText('+'+g.score.toLocaleString(),W-PAD-14,y+50);
+    }else{
+      ctx.textAlign='right';
+      ctx.fillStyle=LOSE;
+      ctx.font='800 20px "DM Mono",monospace';
+      ctx.fillText('0',W-PAD-14,y+50);
+    }
+    ctx.textAlign='left';
     y+=ROW+GAP;
   });
 
   // ── 하단 URL ──
   y+=8;
-  ctx.strokeStyle='#d1fae5';ctx.lineWidth=1;
+  ctx.strokeStyle='#fca5a5';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(PAD,y);ctx.lineTo(W-PAD,y);ctx.stroke();
   ctx.fillStyle=MUT;ctx.font='400 11px "Plus Jakarta Sans",sans-serif';
   ctx.textAlign='center';
-  ctx.fillText('nuball.app',W/2,y+22);
+  ctx.fillText('nuball.app/hitting',W/2,y+22);
 
   cv.toBlob(async blob=>{
     if(!blob)return;
     const el=document.getElementById('copyResultMsg');
-    const fname='nuball-'+S.today+'.png';
+    const fname='nuball-hitting-'+S.today+'.png';
     if(window.showSaveFilePicker){
       try{
         const fh=await window.showSaveFilePicker({suggestedName:fname,types:[{description:'PNG',accept:{'image/png':['.png']}}]});
@@ -3959,11 +3965,10 @@ function shareImage(){
         el.textContent=ko?'이미지가 저장됐어요!':'Image saved!';setTimeout(()=>el.textContent='',2500);return;
       }catch(err){if(err.name==='AbortError')return;}
     }
-    // 모바일: 공유 시트
     if(navigator.share&&navigator.canShare){
       const file=new File([blob],fname,{type:'image/png'});
       if(navigator.canShare({files:[file]})){
-        try{await navigator.share({files:[file],title:ko?'누볼 결과':'NUBALL Result'});return;}catch(e){}
+        try{await navigator.share({files:[file],title:ko?'누볼 히팅 결과':'NUBALL HITTING Result'});return;}catch(e){}
       }
     }
     downloadImg(URL.createObjectURL(blob),fname);

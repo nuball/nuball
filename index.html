@@ -2440,7 +2440,7 @@ function renderStreak(){
   if(mb){
     if(S.streak>=1){
       const span=mb.querySelector('span');
-      if(span)span.textContent='🔥 '+S.streak+(ko?'일 연속':' day'+(S.streak===1?'':'s')+' streak');
+      if(span)span.textContent='🔥 '+S.streak+(ko?'일 연속 접속':' day'+(S.streak===1?'':'s')+' streak');
       mb.style.display='block';
     }else{mb.style.display='none';}
   }
@@ -3070,7 +3070,7 @@ function shareImage(){
   ctx.fillText('⚾ '+(ko?'누볼':'NUBALL'),W/2,PAD+26);
   ctx.fillStyle=MUT;
   ctx.font='400 12px "Plus Jakarta Sans",sans-serif';
-  ctx.fillText(S.today+(S.streak>=2?' 🔥'+S.streak+(ko?'일 연속':' day streak'):''),W/2,PAD+48);
+  ctx.fillText(S.today+(S.streak>=2?' 🔥'+S.streak+(ko?'일 연속 접속':' day streak'):''),W/2,PAD+48);
   // 구분선
   ctx.strokeStyle='#d1fae5';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(PAD,HEADER-10);ctx.lineTo(W-PAD,HEADER-10);ctx.stroke();
