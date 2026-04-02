@@ -1612,6 +1612,7 @@ function openHitVRModal(){
 /* ── 지켜보기 ── */
 /* ── 포기 버튼 활성화 (첫 액션 후 레벨 변경 → 포기로 전환) ── */
 function activateForfeitBtn(){
+  if(S.game&&S.game.isRoom)return; // 룸 모드에서는 나가기 버튼 유지
   const bb=document.getElementById('backBtn');
   if(!bb||bb.dataset.forfeitActive==='1')return;
   bb.dataset.forfeitActive='1';
@@ -2459,6 +2460,7 @@ function finishHitGame(won,label,type,finalScore){
   if(S.game.isRoom){
     clearInterval(_roomTimerInterval);
     _roomGame.done=true;
+    _swingInputOpen=false;
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
     S.game=null;
     setTimeout(()=>showRoomResult(elapsed),400);
@@ -2515,6 +2517,7 @@ function finishGame(won,score){
   if(S.game&&S.game.isRoom){
     clearInterval(_roomTimerInterval);
     _roomGame.done=true;
+    _swingInputOpen=false;
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
     S.game=null;
     setTimeout(()=>showRoomResult(elapsed),400);
@@ -3013,6 +3016,10 @@ function beginRoomGame(){
   // 투구 박스 초기화
   const pb=document.getElementById('hPitchDisplay');if(pb)pb.textContent='—';
   const pr=document.getElementById('hPitchResult');if(pr)pr.textContent='';
+  // 스윙 입력창 항상 열어두기 (룸 모드에서는 항상 입력 가능)
+  _swingInputOpen=true;
+  const sia=document.getElementById('swingInputArea');
+  if(sia){sia.style.maxHeight='200px';}
   // 화면 전환
   document.getElementById('homeScreen').classList.add('hidden');
   const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
@@ -3705,7 +3712,7 @@ document.getElementById('numberInput').addEventListener('input',e=>{
   if(hadZero)showInputMsg(t('zeroAlert'));
   else if(hadDup)showInputMsg(t('dupInputAlert'));
 });
-document.getElementById('numberInput').addEventListener('keypress',e=>{if(e.key==='Enter'){if(_roomGame)handleRoomGuess();else if(_swingInputOpen)confirmSwing();}});
+document.getElementById('numberInput').addEventListener('keypress',e=>{if(e.key==='Enter'){if(_swingInputOpen||S.game?.isRoom)confirmSwing();else if(_roomGame&&!S.game)handleRoomGuess();}});
 
 // 모바일: 키보드 올라올 때 마지막 시도 포함해서 보이게
 document.getElementById('numberInput').addEventListener('focus',()=>{
