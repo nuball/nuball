@@ -2144,6 +2144,27 @@ async function init(){
     _hss.classList.add('hidden');
   }
   checkRoomUrl();
+  // 주간 타석/타율 초기 로드
+  if(window._fbReady&&S.uid){
+    try{
+      const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
+      window._fbGet(window._fbRef(window._fbDb,weekPath)).then(snap=>{
+        if(snap.exists()){const d=snap.val();S.weekAtBats=d.weekAtBats||0;S.weekWins=d.weekWins||0;}
+      }).catch(()=>{});
+    }catch(e){}
+  }else{
+    // Firebase 준비 전이면 대기 후 재시도
+    setTimeout(()=>{
+      if(window._fbReady&&S.uid){
+        try{
+          const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
+          window._fbGet(window._fbRef(window._fbDb,weekPath)).then(snap=>{
+            if(snap.exists()){const d=snap.val();S.weekAtBats=d.weekAtBats||0;S.weekWins=d.weekWins||0;}
+          }).catch(()=>{});
+        }catch(e){}
+      }
+    },2000);
+  }
 }
 
 /* ── THEME ── */
