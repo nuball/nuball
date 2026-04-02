@@ -2491,6 +2491,7 @@ function finishHitGame(won,label,type,finalScore){
     _roomGame.done=true;
     _swingInputOpen=false;
     localStorage.removeItem('nb_hit_roominprog');
+    const vbr=document.getElementById('vrBtn');if(vbr)vbr.style.display='';
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
     const roomAttempts=S.game.attempts;
     S.game=null;
@@ -2553,6 +2554,7 @@ function finishGame(won,score){
     _roomGame.done=true;
     _swingInputOpen=false;
     localStorage.removeItem('nb_hit_roominprog');
+    const vbr2=document.getElementById('vrBtn');if(vbr2)vbr2.style.display='';
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
     const roomAttempts=S.game.attempts;
     S.game=null;
@@ -3067,7 +3069,9 @@ function beginRoomGame(){
     bb.ontouchstart=null;bb.ontouchend=null;
     bb.onclick=function(){if(confirm(ko?'같이하기를 나갈까요?':'Exit Play Together?')){closeRoomResult();}};
   }
-  // 헤더 타이머
+  // VR 버튼 숨기기 (같이하기에서는 비디오판독 불가)
+  const vb=document.getElementById('vrBtn');
+  if(vb)vb.style.display='none';
   const hdrBtns=document.querySelector('.game-hdr-btns');
   if(hdrBtns){
     hdrBtns.innerHTML=`<div style="font-size:12px;font-weight:800;color:var(--primary)">⏱️ <span id="roomTimerVal">00:00</span></div><div style="font-size:10px;color:var(--muted);font-weight:700;margin-left:6px">${_roomMode==='B'?(ko?'친구가 낸 문제':"Friend's puzzle"):(ko?'랜덤 문제':'Random puzzle')}</div>`;
