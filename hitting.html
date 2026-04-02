@@ -2875,6 +2875,7 @@ function openRoomModal(){
 function selectRoomLv(lv){
   if(lv!==3)return; // LV2, LV3 비활성
   _roomLevel=lv;
+  [3,4,5].forEach(l=>{
     document.getElementById('roomLv'+l)?.classList.toggle('on',l===lv);
   });
   const aw=document.getElementById('roomAnswerWrap');
