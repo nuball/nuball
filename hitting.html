@@ -1627,6 +1627,7 @@ function activateForfeitBtn(){
 function handleTake(){
   const tb=document.getElementById('takeBtn');if(tb){tb.blur();tb.style.background='transparent';setTimeout(()=>{if(tb)tb.style.background='';},300);}
   if(!S.game||S.game._ending)return;
+  const pitch=genNextPitch(S.game.target);
   if(!pitch){console.warn('pitch gen failed');return;}
   let s=0,b=0;
   pitch.forEach((n,i)=>{if(n===S.game.target[i])s++;else if(S.game.target.includes(n))b++;});
