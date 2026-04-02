@@ -454,7 +454,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <!-- 연속출석 배지 + 같이하기 버튼 한 행 -->
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
       <div id="menuStreakBadge" style="display:none"><span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800"></span></div>
-      <button id="roomHomeBtn" onclick="openRoomModal()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;border:1.5px solid var(--primary);background:var(--primary-light);color:var(--primary);transition:all .2s">🤝 <span id="roomHomeBtnLabel">같이하기</span></button>
+      <button id="roomHomeBtn" onclick="openRoomModal()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;border:1.5px solid #000;background:#000;color:#fff;transition:all .2s">🤝 <span id="roomHomeBtnLabel">같이하기</span></button>
     </div>
     <!-- 3. 야구공 기회 표시 -->
     <div class="balls-row" id="ballsRow"></div>
@@ -948,8 +948,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px" id="roomLvLbl">레벨 선택</div>
       <div style="display:flex;gap:8px;margin-bottom:14px">
         <button class="vm-btn room-lv-btn" id="roomLv3" onclick="selectRoomLv(3)" style="flex:1">3자리</button>
-        <button class="vm-btn room-lv-btn" id="roomLv4" onclick="selectRoomLv(4)" style="flex:1">4자리</button>
-        <button class="vm-btn room-lv-btn" id="roomLv5" onclick="selectRoomLv(5)" style="flex:1">5자리</button>
+        <button class="vm-btn room-lv-btn" id="roomLv4" disabled style="flex:1;opacity:0.35;cursor:not-allowed">4자리</button>
+        <button class="vm-btn room-lv-btn" id="roomLv5" disabled style="flex:1;opacity:0.35;cursor:not-allowed">5자리</button>
       </div>
       <!-- 출제 방식 -->
       <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px" id="roomModeLbl">출제 방식</div>
@@ -2462,11 +2462,11 @@ function finishHitGame(won,label,type,finalScore){
     _roomGame.done=true;
     _swingInputOpen=false;
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
+    const roomAttempts=S.game.attempts;
     S.game=null;
-    setTimeout(()=>showRoomResult(elapsed),400);
+    setTimeout(()=>showRoomResult(elapsed,roomAttempts),400);
     return;
   }
-  const score = finalScore !== undefined ? finalScore : (won ? _hScore : 0);
   const{level,attempts,target}=S.game;
   S.scores.push({level,score,attempts,won,vr:S.vrUsedThisGame,type});
   S.totalScore=S.scores.reduce((a,g)=>a+g.score,0);
@@ -2519,8 +2519,9 @@ function finishGame(won,score){
     _roomGame.done=true;
     _swingInputOpen=false;
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
+    const roomAttempts=S.game.attempts;
     S.game=null;
-    setTimeout(()=>showRoomResult(elapsed),400);
+    setTimeout(()=>showRoomResult(elapsed,roomAttempts),400);
     return;
   }
   S.scores.push({level,score,attempts,won,vr:S.vrUsedThisGame});
@@ -2872,8 +2873,8 @@ function openRoomModal(){
 }
 
 function selectRoomLv(lv){
+  if(lv!==3)return; // LV2, LV3 비활성
   _roomLevel=lv;
-  [3,4,5].forEach(l=>{
     document.getElementById('roomLv'+l)?.classList.toggle('on',l===lv);
   });
   const aw=document.getElementById('roomAnswerWrap');
@@ -3083,43 +3084,35 @@ function renderRoomLog(){
     '</div>').join('')+'</div>';
 }
 
-function showRoomResult(elapsed){
+function showRoomResult(elapsed,attempts){
+  attempts=attempts||0;
   const ko=S.lang==='ko';
-  const attempts=_roomGame?.attempts||0;
-  const score=calcScore(_roomLevel,attempts);
-  const bonus=calcSBBonus(_roomLevel,_roomGame?.logs||[]);
-  const total=score+bonus;
+  const score=calcScore(_roomLevel,Math.max(1,attempts));
   const m=String(Math.floor(elapsed/60)).padStart(2,'0');
   const s=String(elapsed%60).padStart(2,'0');
   const answerStr=_roomAnswer?.join(', ')||'';
   const e=id=>document.getElementById(id);
   if(e('roomResultTitle'))e('roomResultTitle').textContent=ko?'🏆 결과':'🏆 Result';
   if(e('roomResultBody'))e('roomResultBody').innerHTML=`
-    <div style="font-size:28px;margin-bottom:10px">🎉</div>
+    <div style="font-size:36px;margin-bottom:10px">🎉</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:16px">${ko?'정답':'Answer'}: <strong>${answerStr}</strong></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
-      <div style="background:var(--bg2);border-radius:10px;padding:12px 8px">
+      <div style="background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center">
         <div style="font-size:10px;color:var(--muted);font-weight:800;margin-bottom:4px">${ko?'시도':'Tries'}</div>
-        <div style="font-size:22px;font-weight:900;color:var(--text)">${attempts}</div>
+        <div style="font-size:24px;font-weight:900;color:var(--text)">${attempts}${ko?'번':''}</div>
       </div>
-      <div style="background:var(--bg2);border-radius:10px;padding:12px 8px">
-        <div style="font-size:10px;color:var(--muted);font-weight:800;margin-bottom:4px">${ko?'기본점수':'Score'}</div>
-        <div style="font-size:22px;font-weight:900;color:var(--primary)">${score}</div>
+      <div style="background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center">
+        <div style="font-size:10px;color:var(--muted);font-weight:800;margin-bottom:4px">${ko?'점수':'Score'}</div>
+        <div style="font-size:24px;font-weight:900;color:var(--primary)">${score.toLocaleString()}</div>
       </div>
-      <div style="background:var(--bg2);border-radius:10px;padding:12px 8px">
-        <div style="font-size:10px;color:var(--muted);font-weight:800;margin-bottom:4px">${ko?'보너스':'Bonus'}</div>
-        <div style="font-size:22px;font-weight:900;color:var(--strike)">+${bonus}</div>
+      <div style="background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center">
+        <div style="font-size:10px;color:var(--muted);font-weight:800;margin-bottom:4px">${ko?'시간':'Time'}</div>
+        <div style="font-size:18px;font-weight:900;color:var(--text)">${m}:${s}</div>
       </div>
     </div>
-    <div style="background:var(--primary-light);border-radius:10px;padding:12px;margin-bottom:4px">
-      <div style="font-size:11px;color:var(--primary);font-weight:800;margin-bottom:2px">${ko?'합계':'Total'}</div>
-      <div style="font-size:28px;font-weight:900;color:var(--primary)">${total}<span style="font-size:14px">pt</span></div>
-    </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:4px">⏱️ ${m}:${s}</div>
   `;
   if(e('roomResultCopyBtn'))e('roomResultCopyBtn').textContent=ko?'📋 결과 복사':'📋 Copy Result';
   if(e('roomResultCloseBtn'))e('roomResultCloseBtn').textContent=ko?'닫기':'Close';
-  // 게임화면 닫기
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('gameScreen').style.display='none';
   openModal('roomResultModal');
@@ -3133,9 +3126,7 @@ function closeRoomResult(){
 function copyRoomResult(){
   const ko=S.lang==='ko';
   const attempts=_roomGame?.attempts||0;
-  const score=calcScore(_roomLevel,attempts);
-  const bonus=calcSBBonus(_roomLevel,_roomGame?.logs||[]);
-  const total=score+bonus;
+  const score=calcScore(_roomLevel,Math.max(1,attempts));
   const elapsed=_roomGame?Math.floor((Date.now()-_roomGame.startTime)/1000):0;
   const m=String(Math.floor(elapsed/60)).padStart(2,'0');
   const s2=String(elapsed%60).padStart(2,'0');
@@ -3143,9 +3134,9 @@ function copyRoomResult(){
   const lines=[
     `🏏 ${ko?'누볼 히팅 같이하기':'NUBALL HITTING Play Together'} ${lvLabel[_roomLevel]||''}`,
     `${ko?'시도':'Tries'}: ${attempts}${ko?'번':''}`,
-    `${ko?'점수':'Score'}: ${score}pt (+${bonus})`,
-    `${ko?'합계':'Total'}: ${total}pt`,
-    `⏱️ ${m}:${s2}`
+    `${ko?'점수':'Score'}: ${score.toLocaleString()}pt`,
+    `⏱️ ${m}:${s2}`,
+    `nuball.app/hitting`
   ];
   navigator.clipboard?.writeText(lines.join('\n'))
     .then(()=>alert(ko?'결과가 복사됐어요!':'Result copied!'));
