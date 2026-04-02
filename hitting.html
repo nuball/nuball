@@ -4164,16 +4164,14 @@ async function renderHRankList(){
           if(ydEntries.length){
             const top=ydEntries[0];
             const topTeam=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country||'KR',S.lang);
-            const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
-            const ydBadgeBlock=ydStreakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px;align-self:center">'+ydStreakBadge+'</div>':'';
+            const ydStreakStr=top.streak>0?'<div style="font-size:9px;color:#ff6b00;font-weight:800;text-align:right;margin-bottom:1px">🔥'+top.streak+'</div>':'';
             hYd.innerHTML=[
               '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등 · LV.'+_hRankLevel:"Yesterday's #1 · LV."+_hRankLevel)+'</div>',
               '<div class="rank-row" style="padding:6px 0">',
               '<div class="rank-pos medal">🥇</div>',
               '<div class="rank-info"><div class="rank-nick">'+top.nick+'</div>',
               '<div class="rank-country">'+topTeam+'</div></div>',
-              ydBadgeBlock,
-              '<div class="rank-right"><div class="rank-score">'+top.score.toLocaleString()+'</div>',
+              '<div class="rank-right">'+ydStreakStr+'<div class="rank-score">'+top.score.toLocaleString()+'</div>',
               top.atBats?'<div class="rank-sub">'+top.atBats+(ko?'타석':'AB')+' · '+(top.atBats>0?(top.wins/top.atBats).toFixed(3).replace(/^0/,''):'—')+'</div>':'',
               '</div></div>'
             ].join('');
@@ -4190,19 +4188,17 @@ async function renderHRankList(){
       const rank=i+1,isMe=r.id===S.uid;
       const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
       const rStreak=isMe?(S.streak||0):(r.streak||0);
-      const streakBadge=rStreak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3;white-space:nowrap">🔥'+rStreak+'</span>':'';
       // 업적 비활성화 중 — achBadge 숨김
-      const badgeBlock=(streakBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px;align-self:center">'+streakBadge+'</div>':'';
       const ab=r.atBats||0;
       const avg=ab>0?(r.wins||0)/ab:null;
       const avgStr=avg!==null?avg.toFixed(3).replace(/^0/,''):'—';
+      const streakStr=rStreak>0?'<div style="font-size:9px;color:#ff6b00;font-weight:800;text-align:right;margin-bottom:1px">🔥'+rStreak+'</div>':'';
       const subInfo=ab?'<div class="rank-sub">'+ab+(ko?'타석':'AB')+' · '+avgStr+'</div>':'';
       return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
         '<div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div>'+
         '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+lvBadge+'</div>'+
         '<div class="rank-country">'+(isMe&&S.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+S.team:r.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+r.team:ccLabel(r.country||'KR',S.lang))+'</div></div>'+
-        badgeBlock+
-        '<div class="rank-right"><div class="rank-score">'+r.score.toLocaleString()+'</div>'+subInfo+'</div></div>';
+        '<div class="rank-right">'+streakStr+'<div class="rank-score">'+r.score.toLocaleString()+'</div>'+subInfo+'</div></div>';
     }).join('');
   }
   const rEl=document.getElementById('hRankResetEl');
