@@ -259,7 +259,7 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .rank-score{font-size:17px;font-weight:900;color:var(--primary);font-family:'DM Mono',monospace}
 .rank-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;align-self:center}
 .rank-sub{font-size:10px;color:var(--muted);font-weight:700;margin-top:1px}
-.my-row{background:var(--primary-light);border-radius:8px;padding:11px 10px;margin:0 -10px}
+.my-row{background:var(--primary-light);border-radius:8px;padding:11px 10px;margin:0 -10px;display:flex;align-items:center;gap:12px}
 .rank-reset{font-size:11px;color:var(--muted);text-align:center;padding:12px 0 0;border-top:1px solid var(--border);margin-top:8px}
 
 /* ── SUPPORT ── */
@@ -4164,14 +4164,16 @@ async function renderHRankList(){
           if(ydEntries.length){
             const top=ydEntries[0];
             const topTeam=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country||'KR',S.lang);
-            const ydStreakStr=top.streak>0?'<div style="font-size:9px;color:#ff6b00;font-weight:800;text-align:right;margin-bottom:1px">🔥'+top.streak+'</div>':'';
+            const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
+            const ydBadgeBlock=ydStreakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+'</div>':'';
             hYd.innerHTML=[
               '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등 · LV.'+_hRankLevel:"Yesterday's #1 · LV."+_hRankLevel)+'</div>',
               '<div class="rank-row" style="padding:6px 0">',
               '<div class="rank-pos medal">🥇</div>',
               '<div class="rank-info"><div class="rank-nick">'+top.nick+'</div>',
               '<div class="rank-country">'+topTeam+'</div></div>',
-              '<div class="rank-right">'+ydStreakStr+'<div class="rank-score">'+top.score.toLocaleString()+'</div>',
+              ydBadgeBlock,
+              '<div class="rank-right"><div class="rank-score">'+top.score.toLocaleString()+'</div>',
               top.atBats?'<div class="rank-sub">'+top.atBats+(ko?'타석':'AB')+' · '+(top.atBats>0?(top.wins/top.atBats).toFixed(3).replace(/^0/,''):'—')+'</div>':'',
               '</div></div>'
             ].join('');
@@ -4188,17 +4190,18 @@ async function renderHRankList(){
       const rank=i+1,isMe=r.id===S.uid;
       const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
       const rStreak=isMe?(S.streak||0):(r.streak||0);
-      // 업적 비활성화 중 — achBadge 숨김
+      const streakBadge=rStreak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+rStreak+'</span>':'';
+      const badgeBlock=streakBadge?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+streakBadge+'</div>':'';
       const ab=r.atBats||0;
       const avg=ab>0?(r.wins||0)/ab:null;
       const avgStr=avg!==null?avg.toFixed(3).replace(/^0/,''):'—';
-      const streakStr=rStreak>0?'<div style="font-size:9px;color:#ff6b00;font-weight:800;text-align:right;margin-bottom:1px">🔥'+rStreak+'</div>':'';
       const subInfo=ab?'<div class="rank-sub">'+ab+(ko?'타석':'AB')+' · '+avgStr+'</div>':'';
       return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
         '<div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div>'+
         '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+lvBadge+'</div>'+
         '<div class="rank-country">'+(isMe&&S.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+S.team:r.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+r.team:ccLabel(r.country||'KR',S.lang))+'</div></div>'+
-        '<div class="rank-right">'+streakStr+'<div class="rank-score">'+r.score.toLocaleString()+'</div>'+subInfo+'</div></div>';
+        badgeBlock+
+        '<div class="rank-right"><div class="rank-score">'+r.score.toLocaleString()+'</div>'+subInfo+'</div></div>';
     }).join('');
   }
   const rEl=document.getElementById('hRankResetEl');
