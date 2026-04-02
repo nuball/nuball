@@ -638,7 +638,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </div>
         <!-- 지켜보기 + 스윙 버튼 -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn-p btn-o" id="takeBtn" onclick="handleTake()" ontouchstart="this.style.background='transparent'" ontouchend="this.style.background='transparent'" ontouchcancel="this.style.background='transparent'" style="font-size:14px;padding:13px 8px">👁 <span id="takeBtnLbl">지켜보기</span></button>
+          <button class="btn-o" id="takeBtn" onclick="handleTake()" ontouchstart="this.style.background='transparent'" ontouchend="this.style.background='transparent'" ontouchcancel="this.style.background='transparent'" style="width:100%;padding:13px 8px;font-size:14px;border-radius:8px;cursor:pointer;font-family:inherit;transition:background .15s;-webkit-tap-highlight-color:transparent">👁 <span id="takeBtnLbl">지켜보기</span></button>
           <button class="btn-p btn-o" id="swingBtn" onclick="toggleSwingInput()" style="font-size:14px;padding:13px 8px;border-color:var(--primary);color:var(--primary)">🏏 <span id="swingBtnLbl">스윙</span></button>
         </div>
       </div>
@@ -2125,7 +2125,13 @@ async function init(){
   applyTheme();applyLang();buildCountrySelect();
   detectCC().then(cc=>{S.country=cc;buildCountrySelect()});
   renderHome();
-  if(S.game){renderGame();renderHCount();renderOutDots();renderHitLog();document.getElementById('numberInput').focus();}
+  if(S.game){
+    renderGame();renderHCount();renderOutDots();renderHitLog();
+    // 게임 화면 활성화 (renderHome이 homeScreen을 보일 수 있으므로 다시 설정)
+    document.getElementById('homeScreen').classList.add('hidden');
+    const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
+    setTimeout(()=>document.getElementById('numberInput')?.focus(),100);
+  }
   // 카운트다운 타이머
   setInterval(()=>{const el=document.getElementById('countdownEl');if(el&&el.offsetParent)el.textContent=timeUntilMidnight();},1000);
   // 어제 랭킹 1위 업적 체크 (다음날 접속 시)
