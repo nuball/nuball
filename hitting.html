@@ -454,7 +454,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <!-- 연속출석 배지 + 같이하기 버튼 한 행 -->
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
       <div id="menuStreakBadge" style="display:none"><span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800"></span></div>
-      <button id="roomHomeBtn" disabled style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:not-allowed;font-family:inherit;border:1.5px solid var(--border);background:var(--bg2);color:var(--subtle);transition:all .2s">🤝 <span id="roomHomeBtnLabel">같이하기</span></button>
+      <button id="roomHomeBtn" onclick="openRoomModal()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;border:1.5px solid var(--primary);background:var(--primary-light);color:var(--primary);transition:all .2s">🤝 <span id="roomHomeBtnLabel">같이하기</span></button>
     </div>
     <!-- 3. 야구공 기회 표시 -->
     <div class="balls-row" id="ballsRow"></div>
@@ -2973,7 +2973,20 @@ async function startRoomFromUrl(code){
 function beginRoomGame(){
   const ko=S.lang==='ko';
   _roomGame={logs:[],attempts:0,startTime:Date.now(),done:false};
-  // 기존 gameScreen 활용 — 포기/VR 버튼 숨기고 룸 모드 표시
+  // 히팅 전용 UI 숨기기
+  const tb=document.getElementById('takeBtn');
+  const sb=document.getElementById('swingBtn');
+  const scorePrev=document.querySelector('.score-prev');
+  const countBox=document.getElementById('hBallDots')?.closest('div');
+  const countWrap=countBox?.parentElement;
+  if(tb)tb.style.display='none';
+  if(sb)sb.style.display='none';
+  if(scorePrev)scorePrev.style.display='none';
+  if(countWrap)countWrap.style.display='none';
+  // 투구기록 헤더 숨기기
+  const pitchLogHdr=document.querySelector('.hist-hdr');
+  if(pitchLogHdr)pitchLogHdr.style.display='none';
+  // 포기/VR 버튼 숨기기
   const bb=document.getElementById('backBtn');
   const vb=document.getElementById('vrBtn');
   const hdrBtns=document.querySelector('.game-hdr-btns');
@@ -2989,24 +3002,24 @@ function beginRoomGame(){
   if(ltag)ltag.textContent=`🆚 ${lvLabel[_roomLevel]||''}`;
   const attEl=document.getElementById('gameAttEl');
   if(attEl)attEl.textContent='0회';
-  // 점수 영역 숨기기 (룸 게임에서는 불필요)
-  const spBox=document.querySelector('.score-prev');
-  if(spBox)spBox.style.display='none';
   const sh=document.getElementById('scoreHintEl');
   if(sh)sh.textContent='';
-  // 입력칸, 기록 초기화
+  // 입력칸 표시 + 기록 초기화
+  const sia=document.getElementById('swingInputArea');
+  if(sia){sia.style.maxHeight='none';sia.style.overflow='visible';}
   const ni=document.getElementById('numberInput');
   if(ni){ni.value='';ni.placeholder='•'.repeat(_roomLevel||3);}
+  const scb=document.getElementById('swingConfirmBtn');
+  if(scb){scb.onclick=handleRoomGuess;const sl=document.getElementById('swingConfirmLbl');if(sl)sl.textContent=ko?'입력':'Submit';}
   document.getElementById('logContainer').innerHTML='<div class="empty-st"><span class="empty-ico">⚾</span></div>';
   startRoomTimer();
-  // 화면 전환 (기존 startGame 방식과 동일)
+  // 화면 전환
   const _hsEl=document.getElementById('homeScreen');
   _hsEl.style.display='none';
   _hsEl.classList.add('hidden');
   const gs=document.getElementById('gameScreen');
   gs.style.display='';gs.classList.add('active');
   window.scrollTo(0,0);
-  // 포커스
   setTimeout(()=>{if(ni)ni.focus();},150);
 }
 
@@ -3100,6 +3113,21 @@ function showRoomResult(elapsed){
   `;
   if(e('roomResultCopyBtn'))e('roomResultCopyBtn').textContent=ko?'📋 결과 복사':'📋 Copy Result';
   if(e('roomResultCloseBtn'))e('roomResultCloseBtn').textContent=ko?'닫기':'Close';
+  // 히팅 전용 UI 복구
+  const _tb=document.getElementById('takeBtn');
+  const _sb=document.getElementById('swingBtn');
+  const _scorePrev=document.querySelector('.score-prev');
+  const _countBox=document.getElementById('hBallDots')?.closest('div')?.parentElement;
+  const _pitchLogHdr=document.querySelector('.hist-hdr');
+  const _sia=document.getElementById('swingInputArea');
+  if(_tb)_tb.style.display='';
+  if(_sb)_sb.style.display='';
+  if(_scorePrev)_scorePrev.style.display='';
+  if(_countBox)_countBox.style.display='';
+  if(_pitchLogHdr)_pitchLogHdr.style.display='';
+  if(_sia){_sia.style.maxHeight='0';_sia.style.overflow='hidden';}
+  const _scb=document.getElementById('swingConfirmBtn');
+  if(_scb){_scb.onclick=confirmSwing;const _sl=document.getElementById('swingConfirmLbl');if(_sl)_sl.textContent=S.lang==='ko'?'스윙 확인':'Confirm Swing';}
   // 포기/VR 버튼 복구
   const _bb=document.getElementById('backBtn');
   const _vb=document.getElementById('vrBtn');
@@ -3126,7 +3154,7 @@ function copyRoomResult(){
   const s2=String(elapsed%60).padStart(2,'0');
   const lvLabel={3:'LV.1',4:'LV.2',5:'LV.3'};
   const lines=[
-    `🆚 NUBALL ${ko?'같이하기':'Play Together'} ${lvLabel[_roomLevel]||''}`,
+    `🏏 ${ko?'누볼 히팅 같이하기':'NUBALL HITTING Play Together'} ${lvLabel[_roomLevel]||''}`,
     `${ko?'시도':'Tries'}: ${attempts}${ko?'번':''}`,
     `${ko?'점수':'Score'}: ${score}pt (+${bonus})`,
     `${ko?'합계':'Total'}: ${total}pt`,
