@@ -3209,8 +3209,7 @@ function copyRoomResult(){
     `🏏 ${ko?'누볼 히팅 같이하기':'NUBALL HITTING Play Together'} ${lvLabel[_roomLevel]||''}`,
     `${ko?'시도':'Tries'}: ${attempts}${ko?'번':''}`,
     `${ko?'점수':'Score'}: ${score.toLocaleString()}pt`,
-    `⏱️ ${m}:${s2}`,
-    `nuball.app/hitting`
+    `⏱️ ${m}:${s2}`
   ];
   navigator.clipboard?.writeText(lines.join('\n'))
     .then(()=>alert(ko?'결과가 복사됐어요!':'Result copied!'));
