@@ -1626,8 +1626,7 @@ function activateForfeitBtn(){
 
 function handleTake(){
   const tb=document.getElementById('takeBtn');if(tb){tb.blur();tb.style.background='transparent';setTimeout(()=>{if(tb)tb.style.background='';},300);}
-  if(!S.game)return;
-  const pitch=genNextPitch(S.game.target);
+  if(!S.game||S.game._ending)return;
   if(!pitch){console.warn('pitch gen failed');return;}
   let s=0,b=0;
   pitch.forEach((n,i)=>{if(n===S.game.target[i])s++;else if(S.game.target.includes(n))b++;});
@@ -1643,7 +1642,7 @@ function handleTake(){
   showPitchResult(pitch,type);
   renderHCount();renderOutDots();renderGame();renderHitLog();saveProgress();
   // 삼진/볼넷
-  if(_hStrikes>=3){setTimeout(()=>finishHitGame(false,S.lang==='ko'?'삼진 아웃':'Strikeout','strikeout'),700);return;}
+  if(_hStrikes>=3){S.game._ending=true;setTimeout(()=>finishHitGame(false,S.lang==='ko'?'삼진 아웃':'Strikeout','strikeout'),700);return;}
   if(_hBalls>=4){
     // 볼넷: 기회 소모 안함 → consumed 되돌리기
     const walkTarget=S.game.target.slice();
@@ -1675,7 +1674,7 @@ function handleTake(){
 
 /* ── 스윙 ── */
 function handleSwing(){
-  if(!S.game)return;
+  if(!S.game||S.game._ending)return;
   const input=document.getElementById('numberInput');
   const val=input.value;
   const{level,target}=S.game;
@@ -1695,6 +1694,7 @@ function handleSwing(){
   _hPitchLogs.unshift({pitch:arr,type:'swing',s,b,action:'swing',hitResult:result});
   const deduct=calcHitDeduct(level);
   if(result==='hr'||result==='hit'){
+    S.game._ending=true; // 즉시 잠금 — 700ms 딜레이 동안 추가 스윙 방지
     const bonus=result==='hr'?20:0;
     const sbBonus=calcHitSBBonus(level);
     const fs=Math.min(1000,_hScore+bonus+sbBonus);
@@ -1715,10 +1715,11 @@ function handleSwing(){
     _hStrikes++;
     showSwingResultUI(arr,s,b,result);
     renderHCount();renderOutDots();renderGame();renderHitLog();saveProgress();
-    if(_hStrikes>=3){setTimeout(()=>finishHitGame(false,S.lang==='ko'?'삼진 아웃':'Strikeout','strikeout'),700);}
+    if(_hStrikes>=3){S.game._ending=true;setTimeout(()=>finishHitGame(false,S.lang==='ko'?'삼진 아웃':'Strikeout','strikeout'),700);}
     return;
   }
   if(result==='beomta'){
+    S.game._ending=true;
     showSwingResultUI(arr,s,b,result);
     renderHitLog();
     setTimeout(()=>finishHitGame(false,S.lang==='ko'?'범타 아웃':'Flyout','beomta'),700);
