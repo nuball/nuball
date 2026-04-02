@@ -2493,7 +2493,7 @@ function finishHitGame(won,label,type,finalScore){
     localStorage.removeItem('nb_hit_roominprog');
     const vbr=document.getElementById('vrBtn');if(vbr)vbr.style.display='';
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
-    const roomAttempts=S.game.attempts;
+    const roomAttempts=_hPitchCount;
     // 점수 계산 (일반게임과 동일)
     const roomScore=finalScore!==undefined?finalScore:(won?_hScore:0);
     S.game=null;
@@ -2558,7 +2558,7 @@ function finishGame(won,score){
     localStorage.removeItem('nb_hit_roominprog');
     const vbr2=document.getElementById('vrBtn');if(vbr2)vbr2.style.display='';
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
-    const roomAttempts=S.game.attempts;
+    const roomAttempts=_hPitchCount;
     S.game=null;
     setTimeout(()=>showRoomResult(elapsed,roomAttempts,'hit',score),400);
     return;
