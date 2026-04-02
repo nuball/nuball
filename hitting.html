@@ -140,9 +140,9 @@ main{max-width:560px;margin:0 auto;width:100%;padding:24px 16px 80px}
 .fselect{appearance:none;cursor:pointer;padding-right:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
 .btn-p{width:100%;padding:14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:background .15s,transform .1s;margin-top:4px}
 .btn-p:hover{background:var(--primary-h)}.btn-p:active{transform:scale(.99)}.btn-p:disabled{opacity:.5;cursor:not-allowed}
-.btn-o{background:transparent;border:1.5px solid var(--primary);color:var(--primary);-webkit-tap-highlight-color:transparent}
-.btn-o:hover{background:var(--primary-light)}
-@media(hover:none){.btn-o:hover,.btn-o:focus,.btn-o:active,.btn-o:focus-visible{background:transparent !important;outline:none;-webkit-tap-highlight-color:transparent}}
+.btn-o{background:transparent !important;border:1.5px solid var(--primary);color:var(--primary);-webkit-tap-highlight-color:transparent;outline:none}
+.btn-o:hover,.btn-o:focus,.btn-o:active,.btn-o:focus-visible{background:transparent !important;outline:none}
+#swingBtn:hover{background:var(--primary-light) !important}
 
 /* ── GAME ── */
 #gameScreen{display:none}
@@ -638,7 +638,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         </div>
         <!-- 지켜보기 + 스윙 버튼 -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <button class="btn-o" id="takeBtn" onclick="handleTake()" ontouchstart="this.style.cssText='background:transparent !important'" ontouchend="this.style.cssText=''" ontouchcancel="this.style.cssText=''" style="width:100%;padding:13px 8px;font-size:14px;border-radius:8px;cursor:pointer;font-family:inherit;transition:background .15s;-webkit-tap-highlight-color:transparent">👁 <span id="takeBtnLbl">지켜보기</span></button>
+          <button class="btn-o" id="takeBtn" onclick="handleTake()" ontouchstart="this.style.background='transparent'" ontouchend="this.style.background='transparent'" ontouchcancel="this.style.background='transparent'" style="width:100%;padding:13px 8px;font-size:14px;border-radius:8px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;outline:none">👁 <span id="takeBtnLbl">지켜보기</span></button>
           <button class="btn-p btn-o" id="swingBtn" onclick="toggleSwingInput()" style="font-size:14px;padding:13px 8px;border-color:var(--primary);color:var(--primary)">🏏 <span id="swingBtnLbl">스윙</span></button>
         </div>
       </div>
@@ -1627,11 +1627,7 @@ function activateForfeitBtn(){
 
 function handleTake(){
   const tb=document.getElementById('takeBtn');
-  if(tb){
-    tb.blur();
-    tb.style.cssText='background:transparent !important';
-    setTimeout(()=>{if(tb)tb.style.cssText='';},50);
-  }
+  if(tb){tb.blur();tb.style.background='transparent';}
   if(!S.game||S.game._ending)return;
   const pitch=genNextPitch(S.game.target);
   if(!pitch){console.warn('pitch gen failed');return;}
@@ -2107,17 +2103,22 @@ async function init(){
     S.vrUsed=localStorage.getItem('nbh_vr')==='1';
     S.hitVrUsedToday=localStorage.getItem('nb_hit_vr')||'';
     const ip=localStorage.getItem('nb_hit_inprog');
-    if(ip&&S.scores.length<S.consumed){
-      const g=JSON.parse(ip);
-      // target을 저장된 값으로 복구 (재계산 X — 재계산 시 target이 달라질 수 있음)
-      const restoredTarget=g.target||genTarget(S.uid,S.today,g.level,S.scores.length);
-      S.game={level:g.level,target:restoredTarget,logs:g.logs||[],attempts:g.logs?g.logs.length:0};
-      // 히팅 상태 복구
-      _hBalls=g.hBalls||0;_hStrikes=g.hStrikes||0;_hScore=g.hScore||1000;
-      _hPitchLogs=g.hPitchLogs||[];_hPitchCount=g.hPitchCount||0;
-      _usedPitches=g.usedPitches||[];
-      const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
-      document.getElementById('homeScreen').classList.add('hidden');
+    if(ip){
+      try{
+        const g=JSON.parse(ip);
+        // consumed와 scores 불일치 방어 — ip가 있으면 게임 중이었다고 신뢰
+        if(S.scores.length<S.consumed||(g.target&&S.scores.length<3)){
+          const restoredTarget=g.target||genTarget(S.uid,S.today,g.level,S.scores.length);
+          S.game={level:g.level,target:restoredTarget,logs:g.logs||[],attempts:g.logs?g.logs.length:0};
+          _hBalls=g.hBalls||0;_hStrikes=g.hStrikes||0;_hScore=g.hScore||1000;
+          const savedPitchLogs=localStorage.getItem('nb_hit_pitchlogs');
+          _hPitchLogs=savedPitchLogs?JSON.parse(savedPitchLogs):(g.hPitchLogs||[]);
+          _hPitchCount=g.hPitchCount||_hPitchLogs.length;
+          _usedPitches=g.usedPitches||[];
+          const gs=document.getElementById('gameScreen');gs.style.display='';gs.classList.add('active');
+          document.getElementById('homeScreen').classList.add('hidden');
+        }
+      }catch(e){localStorage.removeItem('nb_hit_inprog');localStorage.removeItem('nb_hit_pitchlogs');}
     }
   }
   const sw=localStorage.getItem('nbh_day_rank');
@@ -2393,13 +2394,16 @@ function startGame(level){
 /* ── SAVE PROGRESS (새로고침 복구용) ── */
 function saveProgress(){
   if(!S.game)return;
-  if(S.game.isRoom)return; // 룸 게임은 저장 안 함
-  localStorage.setItem('nb_hit_inprog',JSON.stringify({
+  if(S.game.isRoom)return;
+  const data={
     level:S.game.level,target:S.game.target,logs:S.game.logs,
     hBalls:_hBalls,hStrikes:_hStrikes,hScore:_hScore,
     hPitchLogs:_hPitchLogs,hPitchCount:_hPitchCount,
     usedPitches:_usedPitches
-  }));
+  };
+  localStorage.setItem('nb_hit_inprog',JSON.stringify(data));
+  // 투구기록 별도 저장 (복구 안정성을 위해)
+  localStorage.setItem('nb_hit_pitchlogs',JSON.stringify(_hPitchLogs));
 }
 
 /* ── RENDER GAME ── */
@@ -2490,7 +2494,8 @@ function finishHitGame(won,label,type,finalScore){
   }
   const score=finalScore!==undefined?finalScore:(won?_hScore:0);
   const{level,attempts,target}=S.game;
-  localStorage.removeItem('nb_hit_inprog'); // 완료된 게임은 inprog 삭제
+  localStorage.removeItem('nb_hit_inprog');
+  localStorage.removeItem('nb_hit_pitchlogs');
   S.game=null; // 즉시 null로 — 추가 입력 완전 차단
   S.scores.push({level,score,attempts,won,vr:S.vrUsedThisGame,type});
   S.totalScore=S.scores.reduce((a,g)=>a+g.score,0);
