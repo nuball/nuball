@@ -1288,6 +1288,69 @@ function genPitch1S1B(target, excluded=new Set()){
   }
   return null;
 }
+// 6. 2S0B
+function genPitch2S0B(target, excluded=new Set()){
+  if(target.length<2)return null;
+  const pool=[1,2,3,4,5,6,7,8,9].filter(n=>!excluded.has(n)||target.includes(n));
+  if(pool.length<target.length)return null;
+  for(let a=0;a<200;a++){
+    // 2개 자리 선택해서 스트라이크
+    const idxs=[...Array(target.length).keys()];
+    const si1=idxs[Math.floor(Math.random()*idxs.length)];
+    const rest=idxs.filter(i=>i!==si1);
+    const si2=rest[Math.floor(Math.random()*rest.length)];
+    const pitch=new Array(target.length).fill(null);
+    pitch[si1]=target[si1];pitch[si2]=target[si2];
+    let ok=true;
+    for(let i=0;i<target.length;i++){
+      if(pitch[i]!==null)continue;
+      // 나머지는 정답에 없는 숫자 (볼 0개)
+      const av=pool.filter(n=>!target.includes(n)&&!pitch.includes(n));
+      if(!av.length){ok=false;break;}
+      pitch[i]=av[Math.floor(Math.random()*av.length)];
+    }
+    if(!ok)continue;
+    let s=0,b=0;
+    pitch.forEach((n,i)=>{if(n===target[i])s++;else if(target.includes(n))b++;});
+    if(s===2&&b===0)return pitch;
+  }
+  return null;
+}
+// 7. 2S1B
+function genPitch2S1B(target, excluded=new Set()){
+  if(target.length<3)return null;
+  const pool=[1,2,3,4,5,6,7,8,9].filter(n=>!excluded.has(n)||target.includes(n));
+  if(pool.length<target.length)return null;
+  for(let a=0;a<200;a++){
+    const idxs=[...Array(target.length).keys()];
+    const si1=idxs[Math.floor(Math.random()*idxs.length)];
+    const rest1=idxs.filter(i=>i!==si1);
+    const si2=rest1[Math.floor(Math.random()*rest1.length)];
+    const rest2=rest1.filter(i=>i!==si2);
+    // 볼 1개 — 정답에 있지만 위치가 다른 숫자
+    const ballCands=target.filter((_,i)=>i!==si1&&i!==si2);
+    if(!ballCands.length)continue;
+    const bVal=ballCands[Math.floor(Math.random()*ballCands.length)];
+    const bOrigIdx=target.indexOf(bVal);
+    const bPosCands=rest2.filter(i=>i!==bOrigIdx);
+    if(!bPosCands.length)continue;
+    const bPos=bPosCands[Math.floor(Math.random()*bPosCands.length)];
+    const pitch=new Array(target.length).fill(null);
+    pitch[si1]=target[si1];pitch[si2]=target[si2];pitch[bPos]=bVal;
+    let ok=true;
+    for(let i=0;i<target.length;i++){
+      if(pitch[i]!==null)continue;
+      const av=pool.filter(n=>!target.includes(n)&&!pitch.includes(n));
+      if(!av.length){ok=false;break;}
+      pitch[i]=av[Math.floor(Math.random()*av.length)];
+    }
+    if(!ok)continue;
+    let s=0,b=0;
+    pitch.forEach((n,i)=>{if(n===target[i])s++;else if(target.includes(n))b++;});
+    if(s===2&&b===1)return pitch;
+  }
+  return null;
+}
 // 3. 0S1B
 function genPitch1B(target, excluded=new Set()){
   const pool=[1,2,3,4,5,6,7,8,9].filter(n=>!excluded.has(n)||target.includes(n));
@@ -1390,8 +1453,8 @@ function genNextPitch(target){
   // 레벨별 투구 타입 풀
   // LV1(3자리): 1S0B, 0S1B, 0S2B
   // LV2(4자리): 1S0B, 1S1B, 0S1B, 0S2B
-  // LV3(5자리): 1S0B, 1S1B, 0S1B, 0S2B, 0S3B
-  const sTypes=level===3?['1S0B']:['1S0B','1S1B'];
+  // LV3(5자리): 1S1B, 2S0B, 2S1B, 0S1B, 0S2B, 0S3B
+  const sTypes=level===3?['1S0B']:level===4?['1S0B','1S1B']:['1S1B','2S0B','2S1B'];
   const bTypes=level===5?['0S1B','0S2B','0S3B']:['0S1B','0S2B'];
 
   // 볼카운트 기반 S/B 계열 확률 조정
@@ -1411,6 +1474,8 @@ function genNextPitch(target){
       let pitch=null;
       if(type==='1S0B')pitch=genPitch1S(target,excluded);
       else if(type==='1S1B')pitch=genPitch1S1B(target,excluded);
+      else if(type==='2S0B')pitch=genPitch2S0B(target,excluded);
+      else if(type==='2S1B')pitch=genPitch2S1B(target,excluded);
       else if(type==='0S1B')pitch=genPitch1B(target,excluded);
       else if(type==='0S2B')pitch=genPitch0S2B(target,excluded);
       else pitch=genPitch0S3B(target,excluded);
