@@ -3522,7 +3522,7 @@ async function registerFromStats(){
   const achCount=Object.keys(S.achievements).length;
   const atBats=S.scores.filter(g=>g.type!=='walk').length; // 볼넷 제외
   const wins=S.scores.filter(g=>g.type==='hr'||g.type==='hit').length; // 홈런+안타만
-  const entry={nick,country,score:bestScore,level:bestGame?bestGame.level:0,day:S.dayId,uid:S.uid,ts:Date.now(),streak:S.streak||0,achCount,team:S.team||null,league:S.league||null,atBats,wins};
+  const entry={nick,country,score:bestScore,level:bestGame?bestGame.level:0,day:S.dayId,uid:S.uid,ts:Date.now(),streak:S.streak||0,achCount,achVer:'v2',team:S.team||null,league:S.league||null,atBats,wins};
 
   S.rankings=S.rankings.filter(r=>r.id!==S.uid);
   S.rankings.push({id:S.uid,...entry});
@@ -4364,7 +4364,7 @@ async function renderHRankList(){
         const q=window._fbQuery(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId),window._fbOrderByChild('score'),window._fbLimitToLast(100));
         const snap=await window._fbGet(q);
         if(snap.exists()){
-          snap.forEach(child=>{const d=child.val();entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,league:d.league||null,atBats:d.atBats||0,wins:d.wins||0,ts:d.ts||0});});
+          snap.forEach(child=>{const d=child.val();entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,achVer:d.achVer||'',team:d.team||null,league:d.league||null,atBats:d.atBats||0,wins:d.wins||0,ts:d.ts||0});});
           entries.sort((a,b)=>{
             if(b.score!==a.score)return b.score-a.score;
             // 동점: 타석 많은 순
@@ -4434,7 +4434,7 @@ async function renderHRankList(){
       const rank=i+1,isMe=r.id===S.uid;
       const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
       const rStreak=isMe?(S.streak||0):(r.streak||0);
-      const rAch=isMe?(Object.keys(S.achievements).length):(r.achCount||0);
+      const rAch=isMe?(Object.keys(S.achievements).length):(r.achVer==='v2'?r.achCount||0:0);
       const streakBadge=rStreak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+rStreak+'</span>':'';
       const achBadge=rAch>0?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+rAch+'</span>':'';
       const badgeBlock=(streakBadge||achBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px;align-self:stretch">'+streakBadge+achBadge+'</div>':'';
