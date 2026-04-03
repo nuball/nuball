@@ -1722,12 +1722,25 @@ function handleTake(){
   if(_hStrikes>=3){S.game._ending=true;const partialScore=Math.round(_hScore*0.5);setTimeout(()=>finishHitGame(false,S.lang==='ko'?'삼진 아웃':'Strikeout','strikeout',partialScore),700);return;}
   if(_hBalls>=4){
     S.game._ending=true; // 즉시 잠금
+    const isRoomGame=S.game.isRoom;
     const walkTarget=S.game.target.slice();
     setTimeout(()=>{
-      S.consumed=Math.max(0,S.consumed-1);
+      if(!isRoomGame){
+        S.consumed=Math.max(0,S.consumed-1);
+        localStorage.removeItem('nb_hit_inprog');
+        saveDaily();
+      }
       S.game=null;
-      localStorage.removeItem('nb_hit_inprog');
-      saveDaily();
+      if(isRoomGame){
+        // 룸게임 볼넷 → 룸 결과창
+        clearInterval(_roomTimerInterval);
+        if(_roomGame){_roomGame.done=true;}
+        localStorage.removeItem('nb_hit_roominprog');
+        const vbr=document.getElementById('vrBtn');if(vbr)vbr.style.display='';
+        const elapsed=Math.floor((Date.now()-(_roomGame?.startTime||Date.now()))/1000);
+        showRoomResult(elapsed,_hPitchCount,'walk',0);
+        return;
+      }
       const rm=document.getElementById('resultModal');
       document.getElementById('rIcon').innerHTML='4️⃣';
       document.getElementById('rAns').textContent=walkTarget.join('');
@@ -3086,7 +3099,25 @@ async function generateAndCopyRoom(){
 
 async function startRoomFromUrl(code){
   const ko=S.lang==='ko';
-  if(_roomStarting)return; // 중복 실행 방지
+  if(_roomStarting)return;
+
+  // 저장된 룸 진행 상태가 있으면 Firebase 없이 바로 복구 시도
+  const rip=localStorage.getItem('nb_hit_roominprog');
+  if(rip){
+    try{
+      const g=JSON.parse(rip);
+      if(g.target&&g.hPitchLogs){
+        _roomCode=code;
+        _roomLevel=g.level;
+        _roomAnswer=g.target;
+        _roomMode='A';
+        _roomStarting=true;
+        beginRoomGame();
+        return;
+      }
+    }catch(e){localStorage.removeItem('nb_hit_roominprog');}
+  }
+
   if(!window._fbReady){
     setTimeout(()=>startRoomFromUrl(code),500);
     return;
@@ -3097,7 +3128,6 @@ async function startRoomFromUrl(code){
       ?'진행 중인 게임이 있어요.\n같이하기를 시작하면 현재 게임은 포기 처리됩니다.\n계속할까요?'
       :'You have a game in progress.\nIt will be forfeited if you start Play Together.\nContinue?');
     if(!ok)return;
-    // 포기 처리
     S.game=null;
   }
   try{
@@ -3105,7 +3135,6 @@ async function startRoomFromUrl(code){
     if(!snap.exists()){alert(ko?'존재하지 않는 방이에요':'Room not found');return;}
     const data=snap.val();
     if(data.expiresAt<Date.now()){
-      // 만료된 방 자동 삭제
       try{await window._fbSet(window._fbRef(window._fbDb,'rooms/'+code),null);}catch(e){}
       alert(ko?'만료된 링크예요':'Link has expired');
       return;
@@ -3114,7 +3143,6 @@ async function startRoomFromUrl(code){
     _roomLevel=data.level;
     _roomMode=data.mode||'A';
     _roomAnswer=data.answer.split('').map(Number);
-    // 게임 시작
     _roomStarting=true;
     beginRoomGame();
   }catch(err){alert(ko?'방 정보를 불러오지 못했어요':'Failed to load room');}
@@ -3158,7 +3186,20 @@ function beginRoomGame(){
     bb.style.color='var(--muted)';bb.style.borderColor='var(--border)';
     bb.onmousedown=null;bb.onmouseup=null;bb.onmouseleave=null;
     bb.ontouchstart=null;bb.ontouchend=null;
-    bb.onclick=function(){if(confirm(ko?'같이하기를 나갈까요?':'Exit Play Together?')){closeRoomResult();}};
+    bb.onclick=function(){
+      if(confirm(ko?'같이하기를 나갈까요?':'Exit Play Together?')){
+        if(S.game&&S.game.isRoom){
+          clearInterval(_roomTimerInterval);
+          if(_roomGame)_roomGame.done=true;
+          _swingInputOpen=false;
+          localStorage.removeItem('nb_hit_roominprog');
+          const vbr=document.getElementById('vrBtn');if(vbr)vbr.style.display='';
+          const elapsed=Math.floor((Date.now()-(_roomGame?.startTime||Date.now()))/1000);
+          S.game=null;
+          showRoomResult(elapsed,_hPitchCount,'forfeit',0);
+        }else{closeRoomResult();}
+      }
+    };
   }
   // VR 버튼 숨기기 (같이하기에서는 비디오판독 불가)
   const vb=document.getElementById('vrBtn');
@@ -3288,7 +3329,8 @@ function showRoomResult(elapsed,attempts,type,score){
 
 function closeRoomResult(){
   if(_roomTimerInterval){clearInterval(_roomTimerInterval);_roomTimerInterval=null;}
-  // 페이지 새로고침으로 홈 복귀 — WebView 렌더링 + 홈 복귀 동시 해결
+  _roomStarting=false;
+  _roomGame=null;
   location.replace(location.pathname);
 }
 function copyRoomResult(){
