@@ -3341,8 +3341,11 @@ function copyRoomResult(){
   const m=String(Math.floor(elapsed/60)).padStart(2,'0');
   const s2=String(elapsed%60).padStart(2,'0');
   const lvLabel={3:'LV.1',4:'LV.2',5:'LV.3'};
+  const numEmoji=['','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'];
+  const answerStr=_roomAnswer?_roomAnswer.map(n=>numEmoji[n]||n).join(''):'';
   const lines=[
     `🏏 ${ko?'누볼 히팅 같이하기':'NUBALL HITTING Play Together'} ${lvLabel[_roomLevel]||''}`,
+    `${ko?'정답':'Answer'}: ${answerStr}`,
     `${ko?'시도':'Tries'}: ${attempts}${ko?'번':''}`,
     `${ko?'점수':'Score'}: ${score.toLocaleString()}pt`,
     `⏱️ ${m}:${s2}`
