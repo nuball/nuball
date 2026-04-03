@@ -2582,10 +2582,8 @@ function finishHitGame(won,label,type,finalScore){
     _roomGame.done=true;
     _swingInputOpen=false;
     localStorage.removeItem('nb_hit_roominprog');
-    const vbr=document.getElementById('vrBtn');if(vbr)vbr.style.display='';
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
     const roomAttempts=_hPitchCount;
-    // 점수 계산 (일반게임과 동일)
     const roomScore=finalScore!==undefined?finalScore:(won?_hScore:0);
     S.game=null;
     setTimeout(()=>showRoomResult(elapsed,roomAttempts,type,roomScore),400);
@@ -2647,7 +2645,6 @@ function finishGame(won,score){
     _roomGame.done=true;
     _swingInputOpen=false;
     localStorage.removeItem('nb_hit_roominprog');
-    const vbr2=document.getElementById('vrBtn');if(vbr2)vbr2.style.display='';
     const elapsed=Math.floor((Date.now()-_roomGame.startTime)/1000);
     const roomAttempts=_hPitchCount;
     S.game=null;
@@ -3326,6 +3323,8 @@ function showRoomResult(elapsed,attempts,type,score){
   if(e('roomResultCloseBtn'))e('roomResultCloseBtn').textContent=ko?'닫기':'Close';
   document.getElementById('gameScreen').classList.remove('active');
   document.getElementById('gameScreen').style.display='none';
+  // VR 버튼 복구 (게임 화면 숨긴 후)
+  const vbr=document.getElementById('vrBtn');if(vbr)vbr.style.display='';
   openModal('roomResultModal');
 }
 
