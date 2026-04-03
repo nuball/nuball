@@ -404,7 +404,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
           <span id="menuLbl1">나의 랭킹</span>
         </button>
-        <button class="hdr-menu-item" disabled style="opacity:0.4;cursor:not-allowed">
+        <button class="hdr-menu-item" onclick="closeMenu();openAchModal()">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
           <span id="menuLbl5">나의 업적</span>
         </button>
@@ -1898,7 +1898,7 @@ function saveStats(){localStorage.setItem('nbh_stats',JSON.stringify(S.stats))}
 function saveExtra(){
   localStorage.setItem('nbh_streak',S.streak);
   localStorage.setItem('nbh_best',JSON.stringify(S.personalBest));
-  localStorage.setItem('nbh_ach',JSON.stringify(S.achievements));
+  localStorage.setItem('nbh_ach_v2',JSON.stringify(S.achievements));
   localStorage.setItem('nbh_noforfeit_days',JSON.stringify(S.noForfeitDays||[]));
 }
 function loadStats(){
@@ -1906,7 +1906,7 @@ function loadStats(){
   if(raw){try{S.stats=JSON.parse(raw)}catch(e){}}
   S.streak=parseInt(localStorage.getItem('nbh_streak')||'0')||0;
   try{const b=localStorage.getItem('nbh_best');if(b){const p=JSON.parse(b);if(p&&typeof p==='object')S.personalBest=Object.assign({3:null,4:null,5:null},p);}}catch(e){}
-  try{const a=localStorage.getItem('nbh_ach');if(a){const ac=JSON.parse(a);if(ac&&typeof ac==='object')S.achievements=ac;}}catch(e){}
+  try{const a=localStorage.getItem('nbh_ach_v2');if(a){const ac=JSON.parse(a);if(ac&&typeof ac==='object')S.achievements=ac;}}catch(e){}
   try{const nf=localStorage.getItem('nbh_noforfeit_days');if(nf){const d=JSON.parse(nf);if(Array.isArray(d))S.noForfeitDays=d;}}catch(e){}
   try{S.team=localStorage.getItem('nb_team')||null;S.league=localStorage.getItem('nb_league')||null;}catch(e){}
 }
@@ -2740,71 +2740,84 @@ function renderStats(){
 /* ── ACHIEVEMENTS ── */
 const ACHIEVEMENTS=[
   // ── 첫 경험 ──
-  {id:'first_play',   cat:'첫 경험', icon:'⚾', ko:'첫 타석',      en:'First At Bat',    descKo:'처음으로 누볼 히팅을 플레이했어요',        descEn:'Played NUBALL Hitting for the first time',       cond:'auto'},
-  {id:'first_lv1',   cat:'첫 경험', icon:'🏏', ko:'LV1 홈런',     en:'LV1 HR',          descKo:'LV1에서 처음으로 홈런/안타를 쳤어요',       descEn:'Hit a Home Run or Hit on LV1 for the first time',cond:'auto'},
-  {id:'first_lv2',   cat:'첫 경험', icon:'🏏', ko:'LV2 홈런',     en:'LV2 HR',          descKo:'LV2에서 처음으로 홈런/안타를 쳤어요',       descEn:'Hit a Home Run or Hit on LV2 for the first time',cond:'auto'},
-  {id:'first_lv3',   cat:'첫 경험', icon:'🏏', ko:'LV3 홈런',     en:'LV3 HR',          descKo:'LV3에서 처음으로 홈런/안타를 쳤어요',       descEn:'Hit a Home Run or Hit on LV3 for the first time',cond:'auto'},
-  {id:'first_rank',  cat:'첫 경험', icon:'🏆', ko:'첫 랭킹 등록', en:'First Ranking',   descKo:'처음으로 히팅 랭킹에 등록했어요',           descEn:'Registered on the Hitting daily ranking',        cond:'auto'},
+  {id:'first_play',    cat:'첫 경험', icon:'⚾', ko:'첫 타석',        en:'First At Bat',     descKo:'처음으로 누볼 히팅을 플레이했어요',               descEn:'Played NUBALL Hitting for the first time',         cond:'auto'},
+  {id:'first_lv1',    cat:'첫 경험', icon:'🏏', ko:'1군 데뷔',       en:'Pro Debut',        descKo:'LV1에서 처음으로 클리어했어요',                   descEn:'Cleared LV1 for the first time',                   cond:'auto'},
+  {id:'first_lv2',    cat:'첫 경험', icon:'🏟', ko:'주전 발탁',      en:'Starting Lineup',  descKo:'LV2에서 처음으로 클리어했어요',                   descEn:'Cleared LV2 for the first time',                   cond:'auto'},
+  {id:'first_lv3',    cat:'첫 경험', icon:'🌟', ko:'올스타 선정',    en:'All-Star',         descKo:'LV3에서 처음으로 클리어했어요',                   descEn:'Cleared LV3 for the first time',                   cond:'auto'},
+  {id:'first_rank',   cat:'첫 경험', icon:'🏆', ko:'첫 랭킹 등록',   en:'First Ranking',    descKo:'처음으로 히팅 랭킹에 등록했어요',                 descEn:'Registered on the Hitting daily ranking',          cond:'auto'},
   // ── 실력 ──
-  {id:'fast_lv1',    cat:'실력',    icon:'⚡', ko:'9구 이내 LV1', en:'Quick LV1',       descKo:'LV1을 9구 이내에 클리어했어요',             descEn:'Cleared LV1 within 9 pitches',                   cond:'auto'},
-  {id:'fast_lv2',    cat:'실력',    icon:'🎯', ko:'13구 이내 LV2',en:'Quick LV2',       descKo:'LV2를 13구 이내에 클리어했어요',            descEn:'Cleared LV2 within 13 pitches',                  cond:'auto'},
-  {id:'fast_lv3',    cat:'실력',    icon:'🚀', ko:'18구 이내 LV3',en:'LV3 Ace',         descKo:'LV3를 18구 이내에 클리어했어요',            descEn:'Cleared LV3 within 18 pitches',                  cond:'auto'},
-  {id:'cold_game',   cat:'실력',    icon:'🥶', ko:'퍼펙트 타선',  en:'Perfect Lineup',  descKo:'하루 3게임 모두 볼넷/홈런/안타로 클리어!',  descEn:'Cleared all 3 games with Walk/HR/Hit!',          cond:'auto'},
-  {id:'one_shot',    cat:'실력',    icon:'💫', ko:'첫 스윙 홈런!',en:'First Swing HR!', descKo:'첫 스윙에 바로 홈런을 쳤어요!',             descEn:'Hit a Home Run on the very first swing!',        cond:'won && attempts===1'},
+  {id:'fast_lv1',     cat:'실력',    icon:'⚡', ko:'속공 타자',      en:'Quick Batter',     descKo:'LV1을 6구 이내에 클리어했어요',                   descEn:'Cleared LV1 within 6 pitches',                     cond:'auto'},
+  {id:'fast_lv2',     cat:'실력',    icon:'🎯', ko:'선구안',         en:'Good Eye',         descKo:'LV2를 10구 이내에 클리어했어요',                  descEn:'Cleared LV2 within 10 pitches',                    cond:'auto'},
+  {id:'fast_lv3',     cat:'실력',    icon:'🚀', ko:'타격왕',         en:'Batting King',     descKo:'LV3를 15구 이내에 클리어했어요',                  descEn:'Cleared LV3 within 15 pitches',                    cond:'auto'},
+  {id:'cold_game',    cat:'실력',    icon:'🎡', ko:'사이클링히트',   en:'Cycle Hit',        descKo:'하루 3게임에서 홈런, 안타, 볼넷을 각각 달성했어요', descEn:'Hit a HR, Hit, and Walk across 3 games in one day', cond:'auto'},
+  {id:'one_shot',     cat:'실력',    icon:'💫', ko:'첫 스윙 홈런',   en:'First Swing HR',   descKo:'첫 스윙에 바로 홈런을 쳤어요',                    descEn:'Hit a Home Run on the very first swing',            cond:'auto'},
+  {id:'hr_streak',    cat:'실력',    icon:'🎆', ko:'3연속 홈런',     en:'HR Hat-Trick',     descKo:'하루 3게임 모두 홈런으로 클리어했어요',            descEn:'Cleared all 3 games with Home Runs',               cond:'auto'},
   // ── 꾸준함 ──
-  {id:'streak3',     cat:'꾸준함',  icon:'🔥', ko:'3일 연속',     en:'3-Day Streak',    descKo:'3일 연속으로 누볼 히팅을 플레이했어요',     descEn:'Played NUBALL Hitting 3 days in a row',          cond:'streak>=3'},
-  {id:'streak7',     cat:'꾸준함',  icon:'🔥', ko:'7일 연속',     en:'7-Day Streak',    descKo:'7일 연속으로 누볼 히팅을 플레이했어요',     descEn:'Played NUBALL Hitting 7 days in a row',          cond:'streak>=7'},
-  {id:'streak30',    cat:'꾸준함',  icon:'👑', ko:'꾸준왕',       en:'Dedication King', descKo:'30일 연속으로 누볼 히팅을 플레이했어요',    descEn:'Played NUBALL Hitting 30 days in a row',         cond:'streak>=30'},
+  {id:'streak3',      cat:'꾸준함',  icon:'🔥', ko:'3일 연속',       en:'3-Day Streak',     descKo:'3일 연속으로 누볼 히팅을 플레이했어요',            descEn:'Played NUBALL Hitting 3 days in a row',            cond:'streak>=3'},
+  {id:'streak7',      cat:'꾸준함',  icon:'🔥', ko:'7일 연속',       en:'7-Day Streak',     descKo:'7일 연속으로 누볼 히팅을 플레이했어요',            descEn:'Played NUBALL Hitting 7 days in a row',            cond:'streak>=7'},
+  {id:'streak30',     cat:'꾸준함',  icon:'👑', ko:'꾸준왕',         en:'Dedication King',  descKo:'30일 연속으로 누볼 히팅을 플레이했어요',           descEn:'Played NUBALL Hitting 30 days in a row',           cond:'streak>=30'},
   // ── 점수 ──
-  {id:'score2000',   cat:'점수',    icon:'💰', ko:'2000점!',      en:'2000 pts!',       descKo:'하루 최고 점수 2000점 이상!',               descEn:'Daily best score reached 2000 points!',          cond:'auto'},
-  {id:'score2500',   cat:'점수',    icon:'💎', ko:'2500점!',      en:'2500 pts!',       descKo:'하루 최고 점수 2500점 이상!',               descEn:'Daily best score reached 2500 points!',          cond:'auto'},
+  {id:'score900',     cat:'점수',    icon:'⭐', ko:'3할 타자',       en:'300 Hitter',       descKo:'단일 게임 900점 이상을 달성했어요',                descEn:'Scored 900 or more in a single game',              cond:'auto'},
+  {id:'score950',     cat:'점수',    icon:'💫', ko:'4할 타자',       en:'400 Hitter',       descKo:'단일 게임 950점 이상을 달성했어요',                descEn:'Scored 950 or more in a single game',              cond:'auto'},
+  {id:'score1000',    cat:'점수',    icon:'👑', ko:'퍼펙트게임',     en:'Perfect Game',     descKo:'단일 게임 1000점 만점을 달성했어요',               descEn:'Achieved a perfect 1000 in a single game',         cond:'auto'},
   // ── 도전 ──
-  {id:'full_clear',  cat:'도전',    icon:'💪', ko:'퍼펙트 데이',  en:'Perfect Day',     descKo:'하루 3게임 모두 클리어했어요',              descEn:'Cleared all 3 games in one day',                 cond:'auto'},
-  {id:'lv_explorer', cat:'도전',    icon:'🧭', ko:'타석 탐험가',  en:'Batter Explorer', descKo:'LV1, LV2, LV3 모두 한 번씩 클리어했어요',  descEn:'Cleared each of LV1, LV2, and LV3 once',         cond:'auto'},
-  {id:'no_forfeit',  cat:'도전',    icon:'🛡️', ko:'끝까지 버텨', en:'Never Quit',      descKo:'포기 없이 3게임을 완주했어요',              descEn:'Completed 3 games without forfeiting',           cond:'auto'},
-  {id:'no_forfeit7', cat:'도전',    icon:'🔱', ko:'포기는 없다',  en:'Never Give Up',   descKo:'포기 없이 7일 연속 플레이했어요',           descEn:'Played 7 days in a row without forfeiting',      cond:'auto'},
+  {id:'full_clear',   cat:'도전',    icon:'💪', ko:'퍼펙트 데이',    en:'Perfect Day',      descKo:'하루 3게임 모두 클리어했어요',                    descEn:'Cleared all 3 games in one day',                   cond:'auto'},
+  {id:'lv_explorer',  cat:'도전',    icon:'🧭', ko:'전 레벨 탐험',   en:'Level Explorer',   descKo:'LV1, LV2, LV3 모두 한 번씩 클리어했어요',          descEn:'Cleared each of LV1, LV2, and LV3 once',           cond:'auto'},
+  {id:'no_forfeit',   cat:'도전',    icon:'🛡', ko:'끝까지 버텨',    en:'Never Quit',       descKo:'포기 없이 3게임을 완주했어요',                    descEn:'Completed 3 games without forfeiting',             cond:'auto'},
+  {id:'no_forfeit7',  cat:'도전',    icon:'🔱', ko:'포기는 없다',    en:'Never Give Up',    descKo:'포기 없이 7일 연속 플레이했어요',                  descEn:'Played 7 days in a row without forfeiting',        cond:'auto'},
+  {id:'together_clear',cat:'도전',   icon:'🤝', ko:'같이하기 클리어',en:'Together Clear',   descKo:'같이하기에서 처음으로 클리어했어요',               descEn:'Cleared a Play Together game for the first time',  cond:'auto'},
   // ── 희귀 ──
-  {id:'solo_hr',     cat:'희귀',    icon:'⚾', ko:'솔로홈런',     en:'Solo HR',         descKo:'LV1을 첫 스윙에 홈런으로 클리어!',         descEn:'Cleared LV1 with a Home Run on first swing!',    cond:'won && level===3 && attempts===1'},
-  {id:'two_run',     cat:'희귀',    icon:'⚾', ko:'투런홈런',     en:'Two-Run HR',      descKo:'LV2를 첫 스윙에 홈런으로 클리어!',         descEn:'Cleared LV2 with a Home Run on first swing!',    cond:'won && level===4 && attempts===1'},
-  {id:'lv3_oneshot', cat:'희귀',    icon:'🌟', ko:'쓰리런홈런',   en:'Three-Run HR',    descKo:'LV3를 첫 스윙에 홈런! 전설이에요!',        descEn:'LV3 Home Run on first swing! Legendary!',        cond:'won && level===5 && attempts===1'},
-  {id:'grand_slam',  cat:'희귀',    icon:'💥', ko:'만루홈런',     en:'Grand Slam',      descKo:'만루홈런! 모든 업적을 달성했어요!',         descEn:'Grand Slam! All achievements unlocked!',         cond:'auto'},
-  // ── 랭킹 1위 ──
-  {id:'rank1_all',   cat:'랭킹',    icon:'🥇', ko:'히팅 챔피언',  en:'Hitting Champ',   descKo:'히팅 일간 랭킹 1위를 달성했어요!',         descEn:'Reached #1 on the Hitting daily ranking!',       cond:'auto'},
-  {id:'rank1_lv1',   cat:'랭킹',    icon:'🏅', ko:'LV1 MVP',     en:'LV1 MVP',         descKo:'LV1 히팅 랭킹 1위를 달성했어요!',          descEn:'Reached #1 on the LV1 Hitting ranking!',         cond:'auto'},
-  {id:'rank1_lv2',   cat:'랭킹',    icon:'🥈', ko:'LV2 MVP',     en:'LV2 MVP',         descKo:'LV2 히팅 랭킹 1위를 달성했어요!',          descEn:'Reached #1 on the LV2 Hitting ranking!',         cond:'auto'},
-  {id:'rank1_lv3',   cat:'랭킹',    icon:'🏆', ko:'LV3 MVP',     en:'LV3 MVP',         descKo:'LV3 히팅 랭킹 1위를 달성했어요!',          descEn:'Reached #1 on the LV3 Hitting ranking!',         cond:'auto'},
+  {id:'solo_hr',      cat:'희귀',    icon:'⚾', ko:'솔로홈런',       en:'Solo HR',          descKo:'LV1을 첫 스윙에 홈런으로 클리어했어요',           descEn:'Cleared LV1 with a HR on the first swing',         cond:'auto'},
+  {id:'two_run',      cat:'희귀',    icon:'⚾', ko:'투런홈런',       en:'Two-Run HR',       descKo:'LV2를 첫 스윙에 홈런으로 클리어했어요',           descEn:'Cleared LV2 with a HR on the first swing',         cond:'auto'},
+  {id:'lv3_oneshot',  cat:'희귀',    icon:'🌟', ko:'쓰리런홈런',     en:'Three-Run HR',     descKo:'LV3를 첫 스윙에 홈런으로 클리어했어요',           descEn:'Cleared LV3 with a HR on the first swing',         cond:'auto'},
+  {id:'grand_slam',   cat:'희귀',    icon:'💥', ko:'만루홈런',       en:'Grand Slam',       descKo:'만루홈런! 모든 업적을 달성했어요',                 descEn:'Grand Slam! All achievements unlocked!',            cond:'auto'},
+  // ── 랭킹 ──
+  {id:'rank1_all',    cat:'랭킹',    icon:'🥇', ko:'히팅 챔피언',    en:'Hitting Champ',    descKo:'히팅 일간 통합 랭킹 1위를 달성했어요',             descEn:'Reached #1 on the overall Hitting daily ranking',  cond:'auto'},
+  {id:'rank1_lv1',    cat:'랭킹',    icon:'🏅', ko:'LV1 MVP',       en:'LV1 MVP',          descKo:'LV1 히팅 랭킹 1위를 달성했어요',                  descEn:'Reached #1 on the LV1 Hitting ranking',            cond:'auto'},
+  {id:'rank1_lv2',    cat:'랭킹',    icon:'🥈', ko:'LV2 MVP',       en:'LV2 MVP',          descKo:'LV2 히팅 랭킹 1위를 달성했어요',                  descEn:'Reached #1 on the LV2 Hitting ranking',            cond:'auto'},
+  {id:'rank1_lv3',    cat:'랭킹',    icon:'🏆', ko:'LV3 MVP',       en:'LV3 MVP',          descKo:'LV3 히팅 랭킹 1위를 달성했어요',                  descEn:'Reached #1 on the LV3 Hitting ranking',            cond:'auto'},
 ];
 
 function checkAchievements(won,level,attempts){
   const toUnlock=[];
-  // 첫 경험
+  const type=S.scores.length?S.scores[S.scores.length-1].type:'';
+  // ── 첫 경험 ──
   if(S.stats.total>=1)toUnlock.push('first_play');
-  if(won&&level===3)toUnlock.push('first_lv1');
-  if(won&&level===4)toUnlock.push('first_lv2');
-  if(won&&level===5)toUnlock.push('first_lv3');
-  // 실력
-  if(won&&level===3&&attempts<=3)toUnlock.push('fast_lv1');
-  if(won&&level===4&&attempts<=5)toUnlock.push('fast_lv2');
-  if(won&&level===5&&attempts<=10)toUnlock.push('fast_lv3');
-  if(S.scores.length===3&&S.scores.every(g=>g.won&&g.attempts<=7))toUnlock.push('cold_game');
-  if(won&&attempts===1)toUnlock.push('one_shot');
-  // 꾸준함
+  if((won||type==='walk')&&level===3)toUnlock.push('first_lv1');
+  if((won||type==='walk')&&level===4)toUnlock.push('first_lv2');
+  if((won||type==='walk')&&level===5)toUnlock.push('first_lv3');
+  // ── 실력 ──
+  if(won&&level===3&&_hPitchCount<=6)toUnlock.push('fast_lv1');
+  if(won&&level===4&&_hPitchCount<=10)toUnlock.push('fast_lv2');
+  if(won&&level===5&&_hPitchCount<=15)toUnlock.push('fast_lv3');
+  // 사이클링히트: 하루 3게임에서 홈런/안타/볼넷 각각 1개씩
+  if(S.scores.length===3){
+    const types=S.scores.map(g=>g.type);
+    if(types.includes('hr')&&types.includes('hit')&&types.includes('walk'))toUnlock.push('cold_game');
+  }
+  // 첫 스윙 홈런
+  if(type==='hr'&&_hPitchCount===1)toUnlock.push('one_shot');
+  // 3연속 홈런
+  if(S.scores.length===3&&S.scores.every(g=>g.type==='hr'))toUnlock.push('hr_streak');
+  // ── 꾸준함 ──
   if(S.streak>=3)toUnlock.push('streak3');
   if(S.streak>=7)toUnlock.push('streak7');
   if(S.streak>=30)toUnlock.push('streak30');
-  // 점수
-  if(S.totalScore>=2000)toUnlock.push('score2000');
-  if(S.totalScore>=2500)toUnlock.push('score2500');
-  // 도전: full_clear, no_forfeit
-  if(S.scores.length===3&&S.scores.every(g=>g.won))toUnlock.push('full_clear');
-  if(S.scores.length===3&&S.scores.every(g=>g.won||g.score!==0))toUnlock.push('no_forfeit');
-  // 도전: 레벨탐험가 - 이번 판 포함해서 체크
+  // ── 점수 ──
+  const bestScore=S.scores.length?Math.max(...S.scores.map(g=>g.score)):0;
+  if(bestScore>=900)toUnlock.push('score900');
+  if(bestScore>=950)toUnlock.push('score950');
+  if(bestScore>=1000)toUnlock.push('score1000');
+  // ── 도전 ──
+  if(S.scores.length===3&&S.scores.every(g=>g.won||g.type==='walk'))toUnlock.push('full_clear');
+  if(S.scores.length===3&&S.scores.every(g=>g.type!=='forfeit'))toUnlock.push('no_forfeit');
+  // 전 레벨 탐험
   const lv1done=toUnlock.includes('first_lv1')||!!S.achievements['first_lv1'];
   const lv2done=toUnlock.includes('first_lv2')||!!S.achievements['first_lv2'];
   const lv3done=toUnlock.includes('first_lv3')||!!S.achievements['first_lv3'];
   if(lv1done&&lv2done&&lv3done)toUnlock.push('lv_explorer');
-  // 도전: 포기하지마 (7일 연속 포기 없이)
-  if(S.scores.length===3&&S.scores.every(g=>g.won||g.score!==0)){
+  // 포기는 없다 (7일 연속 포기 없이)
+  if(S.scores.length===3&&S.scores.every(g=>g.type!=='forfeit')){
     if(!S.noForfeitDays)S.noForfeitDays=[];
     if(!S.noForfeitDays.includes(S.today)){
       S.noForfeitDays.push(S.today);
@@ -2819,23 +2832,21 @@ function checkAchievements(won,level,attempts){
       saveExtra();
     }
   }
-  // 희귀: 홈런 시리즈
-  if(won&&level===3&&attempts===1)toUnlock.push('solo_hr');
-  if(won&&level===4&&attempts===1)toUnlock.push('two_run');
-  if(won&&level===5&&attempts===1)toUnlock.push('lv3_oneshot');
+  // ── 희귀: 홈런 시리즈 ──
+  if(type==='hr'&&level===3&&_hPitchCount===1)toUnlock.push('solo_hr');
+  if(type==='hr'&&level===4&&_hPitchCount===1)toUnlock.push('two_run');
+  if(type==='hr'&&level===5&&_hPitchCount===1)toUnlock.push('lv3_oneshot');
 
   let newOnes=[];
   toUnlock.forEach(id=>{
     if(!S.achievements[id]){S.achievements[id]=S.today;newOnes.push(id);}
   });
-
-  // 만루홈런: grand_slam/랭킹 제외 모든 업적 달성 시
+  // 만루홈런: 랭킹/grand_slam 제외 모든 업적 달성 시
   const nonGrandIds=ACHIEVEMENTS.filter(a=>a.id!=='grand_slam'&&a.cat!=='랭킹').map(a=>a.id);
   if(!S.achievements['grand_slam']&&nonGrandIds.every(id=>S.achievements[id])){
     S.achievements['grand_slam']=S.today;
     newOnes.push('grand_slam');
   }
-
   if(newOnes.length)saveExtra();
   newOnes.forEach((id,i)=>setTimeout(()=>showAchievementPopup(id),i*800));
 }
@@ -3241,6 +3252,12 @@ function showRoomResult(elapsed,attempts,type,score){
   const resultIcon=typeIconMap[type]||'⚾';
   const resultLabel=ko?(typeLabelKo[type]||'성공'):(typeLabelEn[type]||'Success');
   const won=(type==='hr'||type==='hit'||type==='walk');
+  // 같이하기 클리어 업적
+  if(won&&!S.achievements['together_clear']){
+    S.achievements['together_clear']=S.today;
+    saveExtra();
+    setTimeout(()=>showAchievementPopup('together_clear'),400);
+  }
   const e=id=>document.getElementById(id);
   if(e('roomResultTitle'))e('roomResultTitle').textContent=ko?'🏆 결과':'🏆 Result';
   if(e('roomResultBody'))e('roomResultBody').innerHTML=`
@@ -3304,7 +3321,13 @@ function registerAchievement(id){
 }
 
 function showAchievementPopup(id){
-  // 업적 비활성화 중 — 팝업 표시 안 함
+  const ach=ACHIEVEMENTS.find(a=>a.id===id);if(!ach)return;
+  const ko=S.lang==='ko';
+  const pop=document.createElement('div');
+  pop.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;border-radius:12px;padding:12px 18px;font-size:13px;font-weight:700;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:achSlide .35s ease;white-space:nowrap';
+  pop.innerHTML='<span style="font-size:20px">'+ach.icon+'</span><div><div style="font-size:10px;opacity:.8;letter-spacing:.5px;margin-bottom:1px">'+(ko?'업적 달성!':'Achievement Unlocked!')+'</div><div>'+(ko?ach.ko:ach.en)+'</div></div>';
+  document.body.appendChild(pop);
+  setTimeout(()=>{pop.style.animation='achSlide .3s ease reverse';setTimeout(()=>pop.remove(),300);},2500);
 }
 
 /* ── STREAK 화면 표시 ── */
@@ -4411,8 +4434,10 @@ async function renderHRankList(){
       const rank=i+1,isMe=r.id===S.uid;
       const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
       const rStreak=isMe?(S.streak||0):(r.streak||0);
+      const rAch=isMe?(Object.keys(S.achievements).length):(r.achCount||0);
       const streakBadge=rStreak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+rStreak+'</span>':'';
-      const badgeBlock=streakBadge?'<div style="display:flex;align-items:center;justify-content:center;min-width:28px;align-self:stretch">'+streakBadge+'</div>':'';
+      const achBadge=rAch>0?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+rAch+'</span>':'';
+      const badgeBlock=(streakBadge||achBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px;align-self:stretch">'+streakBadge+achBadge+'</div>':'';
       const ab=r.atBats||0;
       const avg=ab>0?(r.wins||0)/ab:null;
       const avgStr=avg!==null?avg.toFixed(3).replace(/^0/,''):'—';
