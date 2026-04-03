@@ -3464,7 +3464,8 @@ async function autoUpdateAtBats(){
     const dayRef=window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId+'/'+S.uid);
     const daySnap=await window._fbGet(dayRef);
     if(daySnap.exists()){
-      await window._fbSet(dayRef,{...daySnap.val(),atBats,wins,streak:S.streak||0});
+      const achCount=Object.keys(S.achievements).length;
+      await window._fbSet(dayRef,{...daySnap.val(),atBats,wins,streak:S.streak||0,achCount,achVer:'v2'});
     }
     // 주간
     const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
@@ -4349,7 +4350,7 @@ async function renderHRankList(){
         if(weekSnap.exists()){
           weekSnap.forEach(child=>{
             const d2=child.val();const uid=child.key;
-            entries.push({id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,achCount:d2.achCount||0,team:d2.team||null,league:d2.league||null,score:d2.weekTotal||d2.score||0,atBats:d2.weekAtBats||0,wins:d2.weekWins||0});
+            entries.push({id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,achCount:d2.achCount||0,achVer:d2.achVer||'',team:d2.team||null,league:d2.league||null,score:d2.weekTotal||d2.score||0,atBats:d2.weekAtBats||0,wins:d2.weekWins||0});
           });
           entries.sort((a,b)=>{
             if(b.score!==a.score)return b.score-a.score;
