@@ -3710,25 +3710,39 @@ async function renderRankList(){
       const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(10));
       const ydSnap=await window._fbGet(ydQ);
       if(ydSnap.exists()){
-        // 최고점 찾기 → 동점이면 먼저 등록한(ts 작은) 사람이 1등
         let candidates=[];
-        ydSnap.forEach(ch=>{const d=ch.val();candidates.push({nick:d.nick,score:d.score,country:d.country,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,ts:d.ts||0});});
+        ydSnap.forEach(ch=>{const d=ch.val();candidates.push({uid:ch.key,nick:d.nick,score:d.score,country:d.country,streak:d.streak||0,achCount:d.achCount||0,achVer:d.achVer||'',team:d.team||null,ts:d.ts||0});});
         const maxScore=Math.max(...candidates.map(c=>c.score));
         const topCandidates=candidates.filter(c=>c.score===maxScore);
         topCandidates.sort((a,b)=>a.ts-b.ts);
         let top=topCandidates[0]||null;
         if(top){
+          // 오늘 랭킹에서 uid로 실시간 streak/achCount 조회
+          try{
+            const todayRef=window._fbRef(window._fbDb,'rankings/'+S.dayId+'/'+top.uid);
+            const todaySnap=await window._fbGet(todayRef);
+            if(todaySnap.exists()){
+              const td=todaySnap.val();
+              if(td.streak)top.streak=td.streak;
+              if(td.achCount&&td.achVer==='v2'){top.achCount=td.achCount;top.achVer='v2';}
+            }
+          }catch(e2){}
+          // 만약 본인 자신이라면 로컬 데이터 우선
+          if(top.uid===S.uid){
+            top.streak=S.streak||top.streak;
+            top.achCount=Object.keys(S.achievements).length;
+            top.achVer='v2';
+          }
           const topCountry=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country,S.lang);
-          const topStreak=top.streak>0?'<span style="font-size:10px;color:#ff6b00;font-weight:800;margin-left:6px">🔥'+top.streak+'</span>':'';
-          const topAch=top.achCount>0?'<span style="font-size:10px;color:var(--primary);font-weight:800;margin-left:4px">🏆'+top.achCount+'</span>':'';
+          const ydLvBadge=top.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);background:var(--primary-light);padding:1px 5px;border-radius:4px;margin-left:4px">LV.'+(top.level-2)+'</span>':'';
           const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
-          const ydAchBadge=top.achCount>0?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+top.achCount+'</span>':'';
+          const ydAchBadge=(top.achVer==='v2'&&top.achCount>0)?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+top.achCount+'</span>':'';
           const ydBadgeBlock=(ydStreakBadge||ydAchBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+ydAchBadge+'</div>':'';
           ydEl.innerHTML=[
             '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등':"Yesterday's #1")+'</div>',
             '<div class="rank-row" style="border-bottom:none;padding:8px 0">',
             '<div class="rank-pos medal">🥇</div>',
-            '<div class="rank-info"><div class="rank-nick">'+top.nick+'</div>',
+            '<div class="rank-info"><div class="rank-nick">'+top.nick+ydLvBadge+'</div>',
             '<div class="rank-country">'+topCountry+'</div></div>',
             ydBadgeBlock,
             '<div class="rank-score">'+top.score.toLocaleString()+'</div>',
@@ -4441,7 +4455,7 @@ async function renderHRankList(){
         const ydSnap=await window._fbGet(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+ydDate));
         if(ydSnap.exists()){
           let ydEntries=[];
-          ydSnap.forEach(ch=>{const d=ch.val();ydEntries.push({nick:d.nick,score:d.score,country:d.country,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,atBats:d.atBats||0,wins:d.wins||0,ts:d.ts||0});});
+          ydSnap.forEach(ch=>{const d=ch.val();ydEntries.push({uid:ch.key,nick:d.nick,score:d.score,country:d.country,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,achVer:d.achVer||'',team:d.team||null,atBats:d.atBats||0,wins:d.wins||0,ts:d.ts||0});});
           ydEntries=ydEntries.sort((a,b)=>{
             if(b.score!==a.score)return b.score-a.score;
             if(b.atBats!==a.atBats)return b.atBats-a.atBats;
@@ -4450,18 +4464,34 @@ async function renderHRankList(){
             if(avgB!==avgA)return avgB-avgA;
             return (a.ts||0)-(b.ts||0);
           });
-          // 어제 1등은 항상 통합 1등
           const ydLvLabel=ydEntries[0]?({3:'LV.1',4:'LV.2',5:'LV.3'}[ydEntries[0].level]||''):'';
           if(ydEntries.length){
             const top=ydEntries[0];
+            // 오늘 랭킹에서 uid로 실시간 streak/achCount 조회
+            try{
+              const todayRef=window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId+'/'+top.uid);
+              const todaySnap=await window._fbGet(todayRef);
+              if(todaySnap.exists()){
+                const td=todaySnap.val();
+                if(td.streak)top.streak=td.streak;
+                if(td.achCount&&td.achVer==='v2'){top.achCount=td.achCount;top.achVer='v2';}
+              }
+            }catch(e2){}
+            if(top.uid===S.uid){
+              top.streak=S.streak||top.streak;
+              top.achCount=Object.keys(S.achievements).length;
+              top.achVer='v2';
+            }
             const topTeam=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country||'KR',S.lang);
+            const ydLvBadge=top.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);background:var(--primary-light);padding:1px 5px;border-radius:4px;margin-left:4px">LV.'+(top.level-2)+'</span>':'';
             const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
-            const ydBadgeBlock=ydStreakBadge?'<div style="display:flex;align-items:center;justify-content:center;min-width:28px;align-self:stretch">'+ydStreakBadge+'</div>':'';
+            const ydAchBadge=(top.achVer==='v2'&&top.achCount>0)?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+top.achCount+'</span>':'';
+            const ydBadgeBlock=(ydStreakBadge||ydAchBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+ydAchBadge+'</div>':'';
             hYd.innerHTML=[
               '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등':"Yesterday's #1")+'</div>',
               '<div class="rank-row" style="padding:6px 0">',
               '<div class="rank-pos medal">🥇</div>',
-              '<div class="rank-info"><div class="rank-nick">'+top.nick+'</div>',
+              '<div class="rank-info"><div class="rank-nick">'+top.nick+ydLvBadge+'</div>',
               '<div class="rank-country">'+topTeam+'</div></div>',
               ydBadgeBlock,
               '<div class="rank-right"><div class="rank-score">'+top.score.toLocaleString()+'</div>',
