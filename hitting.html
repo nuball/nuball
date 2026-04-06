@@ -979,7 +979,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="mhdr"><span class="mtitle" id="roomResultTitle">🏆 결과</span><button class="mclose" onclick="closeRoomResult()">✕</button></div>
     <div class="mbody" style="text-align:center">
       <div id="roomResultBody" style="margin-bottom:18px"></div>
-      <button class="btn-p" onclick="copyRoomResult()" id="roomResultCopyBtn" style="margin-bottom:10px">📋 결과 복사</button>
+      <button class="btn-p" onclick="copyRoomResult()" id="roomResultCopyBtn" style="margin-bottom:6px">📋 결과 복사</button>
+      <div id="roomCopyMsg" style="font-size:12px;font-weight:800;color:var(--primary);min-height:18px;margin-bottom:6px"></div>
       <button class="btn-p" onclick="closeRoomResult()" style="background:var(--bg2);border-color:var(--border);color:var(--text)" id="roomResultCloseBtn">닫기</button>
     </div>
   </div>
@@ -2775,7 +2776,6 @@ const ACHIEVEMENTS=[
   {id:'lv_explorer',  cat:'도전',    icon:'🧭', ko:'전 레벨 탐험',   en:'Level Explorer',   descKo:'LV1, LV2, LV3 모두 한 번씩 클리어했어요',          descEn:'Cleared each of LV1, LV2, and LV3 once',           cond:'auto'},
   {id:'no_forfeit',   cat:'도전',    icon:'🛡', ko:'끝까지 버텨',    en:'Never Quit',       descKo:'포기 없이 3게임을 완주했어요',                    descEn:'Completed 3 games without forfeiting',             cond:'auto'},
   {id:'no_forfeit7',  cat:'도전',    icon:'🔱', ko:'포기는 없다',    en:'Never Give Up',    descKo:'포기 없이 7일 연속 플레이했어요',                  descEn:'Played 7 days in a row without forfeiting',        cond:'auto'},
-  {id:'together_clear',cat:'도전',   icon:'🤝', ko:'같이하기 클리어',en:'Together Clear',   descKo:'같이하기에서 처음으로 클리어했어요',               descEn:'Cleared a Play Together game for the first time',  cond:'auto'},
   // ── 희귀 ──
   {id:'solo_hr',      cat:'희귀',    icon:'⚾', ko:'솔로홈런',       en:'Solo HR',          descKo:'LV1을 첫 스윙에 홈런으로 클리어했어요',           descEn:'Cleared LV1 with a HR on the first swing',         cond:'auto'},
   {id:'two_run',      cat:'희귀',    icon:'⚾', ko:'투런홈런',       en:'Two-Run HR',       descKo:'LV2를 첫 스윙에 홈런으로 클리어했어요',           descEn:'Cleared LV2 with a HR on the first swing',         cond:'auto'},
@@ -2904,7 +2904,11 @@ async function checkRankingAchievements(){
     const allEntries=Object.entries(allData);
     // 통합 1위: 최소 2명 이상일 때만
     if(!S.achievements['rank1_all']&&allEntries.length>=2){
-      const sorted=allEntries.sort((a,b)=>b[1].score-a[1].score||(b[1].level||0)-(a[1].level||0));
+      const sorted=[...allEntries].sort((a,b)=>{
+        if(b[1].score!==a[1].score)return b[1].score-a[1].score;
+        if((b[1].atBats||0)!==(a[1].atBats||0))return (b[1].atBats||0)-(a[1].atBats||0);
+        return (a[1].ts||0)-(b[1].ts||0);
+      });
       if(sorted[0][0]===S.uid){registerAchievement('rank1_all');showAchievementPopup('rank1_all');}
     }
     // LV별 1위: 해당 레벨 최소 2명 이상일 때만
@@ -2913,7 +2917,11 @@ async function checkRankingAchievements(){
       if(S.achievements[id])continue;
       const lvEntries=allEntries
         .filter(([uid,d])=>d.level===lv)
-        .sort((a,b)=>b[1].score-a[1].score);
+        .sort((a,b)=>{
+          if(b[1].score!==a[1].score)return b[1].score-a[1].score;
+          if((b[1].atBats||0)!==(a[1].atBats||0))return (b[1].atBats||0)-(a[1].atBats||0);
+          return (a[1].ts||0)-(b[1].ts||0);
+        });
       if(lvEntries.length>=2&&lvEntries[0][0]===S.uid){
         registerAchievement(id);showAchievementPopup(id);
       }
@@ -3293,7 +3301,7 @@ function showRoomResult(elapsed,attempts,type,score){
   const resultLabel=ko?(typeLabelKo[type]||'성공'):(typeLabelEn[type]||'Success');
   const won=(type==='hr'||type==='hit'||type==='walk');
   // 같이하기 클리어 업적
-  if(won&&!S.achievements['together_clear']){
+  if(false&&!S.achievements['together_clear']){
     S.achievements['together_clear']=S.today;
     saveExtra();
     setTimeout(()=>showAchievementPopup('together_clear'),400);
@@ -3345,15 +3353,17 @@ function copyRoomResult(){
   const numEmoji=['','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣'];
   const answerStr=_roomAnswer?_roomAnswer.map(n=>numEmoji[n]||n).join(''):'';
   const lines=[
-    `🏏 ${ko?'누볼 히팅 같이하기':'NUBALL HITTING Play Together'} ${lvLabel[_roomLevel]||''}`,
+    `🏏 ${ko?'누볼 히팅':'NUBALL HITTING'} ${lvLabel[_roomLevel]||''}`,
     `${ko?'정답':'Answer'}: ${answerStr}`,
     `${ko?'시도':'Tries'}: ${attempts}${ko?'번':''}`,
     `${ko?'점수':'Score'}: ${score.toLocaleString()}pt`,
     `⏱️ ${m}:${s2}`
   ];
-  navigator.clipboard?.writeText(lines.join('\n'))
-    .then(()=>alert(ko?'결과가 복사됐어요!':'Result copied!'));
+  const doFeedback=()=>{const el=document.getElementById('roomCopyMsg');if(el){el.textContent=ko?'✓ 복사 완료!':'✓ Copied!';setTimeout(()=>el.textContent='',2000);}};
+  if(navigator.clipboard){navigator.clipboard.writeText(lines.join('\n')).then(doFeedback).catch(()=>{_fallbackRoomCopy(lines.join('\n'),doFeedback);});}
+  else{_fallbackRoomCopy(lines.join('\n'),doFeedback);}
 }
+function _fallbackRoomCopy(text,cb){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');cb();}catch(e){}document.body.removeChild(ta);}
 
 function checkRoomUrl(){
   const params=new URLSearchParams(location.search);

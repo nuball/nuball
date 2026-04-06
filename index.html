@@ -450,13 +450,17 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="lvl-cards" id="lvlCards"></div>
 
     <!-- ── 누볼 시리즈 예고 버튼 ── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;margin-bottom:12px">
-      <a href="https://nuball.app/hitting" style="text-decoration:none;background:var(--bg2);border:1.5px solid var(--primary);border-radius:var(--r);padding:8px 10px;display:flex;align-items:center;justify-content:space-between;transition:all .15s" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--bg2)'">
-        <span style="font-size:13px;font-weight:900;color:var(--text)">🏏 누볼 히팅</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px;margin-bottom:12px">
+      <a href="https://nuball.app/hitting" style="text-decoration:none;background:var(--bg2);border:1.5px solid var(--primary);border-radius:var(--r);padding:8px 8px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;transition:all .15s" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--bg2)'">
+        <span style="font-size:12px;font-weight:900;color:var(--text)">🏏 누볼 히팅</span>
         <span style="font-size:10px;font-weight:800;color:#dc2626;background:#fee2e2;border-radius:4px;padding:2px 6px">이동</span>
       </a>
-      <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 10px;display:flex;align-items:center;justify-content:space-between;opacity:0.5;cursor:not-allowed;user-select:none">
-        <span style="font-size:13px;font-weight:900;color:var(--muted)">🔒 누볼 피칭</span>
+      <div style="background:var(--bg2);border:1.5px solid #7c3aed;border-radius:var(--r);padding:8px 8px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;opacity:0.6;cursor:not-allowed;user-select:none">
+        <span style="font-size:12px;font-weight:900;color:var(--text)">⚔️ 누볼 배틀</span>
+        <span style="font-size:10px;font-weight:800;color:#7c3aed;background:#ede9fe;border-radius:4px;padding:2px 6px">개발 중</span>
+      </div>
+      <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 8px;display:flex;flex-direction:row;align-items:center;justify-content:space-between;opacity:0.5;cursor:not-allowed;user-select:none">
+        <span style="font-size:12px;font-weight:900;color:var(--muted)">🔒 누볼 피칭</span>
         <span style="font-size:10px;font-weight:800;color:var(--muted);background:var(--border);border-radius:4px;padding:2px 6px">개발 중</span>
       </div>
     </div>
@@ -895,7 +899,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="mhdr"><span class="mtitle" id="roomResultTitle">🏆 결과</span><button class="mclose" onclick="closeRoomResult()">✕</button></div>
     <div class="mbody" style="text-align:center">
       <div id="roomResultBody" style="margin-bottom:18px"></div>
-      <button class="btn-p" onclick="copyRoomResult()" id="roomResultCopyBtn" style="margin-bottom:10px">📋 결과 복사</button>
+      <button class="btn-p" onclick="copyRoomResult()" id="roomResultCopyBtn" style="margin-bottom:6px">📋 결과 복사</button>
+      <div id="roomCopyMsg" style="font-size:12px;font-weight:800;color:var(--primary);min-height:18px;margin-bottom:6px"></div>
       <button class="btn-p" onclick="closeRoomResult()" style="background:var(--bg2);border-color:var(--border);color:var(--text)" id="roomResultCloseBtn">닫기</button>
     </div>
   </div>
@@ -2401,9 +2406,11 @@ function copyRoomResult(){
     `${ko?'합계':'Total'}: ${total}pt`,
     `⏱️ ${m}:${s2}`
   ];
-  navigator.clipboard?.writeText(lines.join('\n'))
-    .then(()=>alert(ko?'결과가 복사됐어요!':'Result copied!'));
+  const doFeedback=()=>{const el=document.getElementById('roomCopyMsg');if(el){el.textContent=ko?'✓ 복사 완료!':'✓ Copied!';setTimeout(()=>el.textContent='',2000);}};
+  if(navigator.clipboard){navigator.clipboard.writeText(lines.join('\n')).then(doFeedback).catch(()=>{_fallbackRoomCopy(lines.join('\n'),doFeedback);});}
+  else{_fallbackRoomCopy(lines.join('\n'),doFeedback);}
 }
+function _fallbackRoomCopy(text,cb){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');cb();}catch(e){}document.body.removeChild(ta);}
 
 function checkRoomUrl(){
   const params=new URLSearchParams(location.search);
@@ -2489,14 +2496,19 @@ function renderAchievements(){
 function copyResult(){
   const ko=S.lang==='ko';
   const lvMap={3:'LV.1',4:'LV.2',5:'LV.3'};
+  const typeIcon={hr:'🏠',hit:'⚾',walk:'4️⃣',strikeout:'❌',beomta:'❌',forfeit:'🏳'};
   const lines=S.scores.map((g,i)=>{
+    const icon=typeIcon[g.won?'hit':'forfeit']||'⚾';
     const vrTag=g.vr?'📹 ':'';
-    const result=g.won?'⚾ x'+g.attempts+'  '+g.score.toLocaleString()+'pts':'🏳  0pts';
-    return 'GAME '+(i+1)+' '+lvMap[g.level]+'\n'+vrTag+result;
+    return vrTag+icon+'  '+lvMap[g.level]+'  '+(g.score>0?'+'+g.score.toLocaleString():'0')+(ko?'점':' pts');
   });
-  const header='⚾ NUBALL - play baseball  '+S.today;
-  const total=(ko?'합산':'Total')+': '+S.totalScore.toLocaleString()+' PTS';
-  const text=header+'\n\n'+lines.join('\n')+'\n\n'+total+'\nnuball.app';
+  const atBats=S.scores.filter(g=>g.type!=='walk').length;
+  const wins=S.scores.filter(g=>g.won).length;
+  const avg=atBats>0?(wins/atBats).toFixed(3).replace(/^0/,''):'—';
+  const statLine=ko?atBats+'타석 · 타율 '+avg:atBats+' AB · AVG '+avg;
+  const header=ko?'⚾ 누볼  '+S.today:'⚾ NUBALL  '+S.today;
+  const total=ko?'합산 '+S.totalScore.toLocaleString()+' PTS':'Total '+S.totalScore.toLocaleString()+' PTS';
+  const text=[header,'',lines.join('\n'),'',total,statLine,'','nuball.app'].join('\n');
   if(navigator.clipboard){
     navigator.clipboard.writeText(text).then(()=>{
       const el=document.getElementById('copyResultMsg');
@@ -2748,9 +2760,19 @@ async function renderRankList(){
           dateStrs.push(d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate());
         }
         // 모든 날짜 병렬 조회
-        const snaps=await Promise.all(
-          dateStrs.map(dStr=>window._fbGet(window._fbRef(window._fbDb,'rankings/'+dStr)))
-        );
+        // 주간 데이터 최대 2회 재시도
+        let snaps=null;
+        for(let attempt=0;attempt<2;attempt++){
+          try{
+            snaps=await Promise.all(
+              dateStrs.map(dStr=>window._fbGet(window._fbRef(window._fbDb,'rankings/'+dStr)))
+            );
+            break;
+          }catch(retryErr){
+            if(attempt===0)await new Promise(r=>setTimeout(r,500));
+            else throw retryErr;
+          }
+        }
         const userMap={};
         snaps.forEach(daySnap=>{
           if(!daySnap.exists())return;
@@ -2761,7 +2783,6 @@ async function renderRankList(){
               userMap[uid]={id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,achCount:d2.achCount||0,team:d2.team||null,league:d2.league||null,weekScore:0};
             }
             userMap[uid].weekScore+=(d2.score||0);
-            // 최신 정보로 갱신
             if(d2.nick)userMap[uid].nick=d2.nick;
             if(d2.streak)userMap[uid].streak=d2.streak;
             if(d2.achCount)userMap[uid].achCount=d2.achCount;
