@@ -2675,6 +2675,15 @@ async function renderRankList(){
   const listEl=document.getElementById('rankList');
   listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+
     (S.lang==='ko'?'불러오는 중...':'Loading...')+'</div>';
+
+  // Firebase 준비 대기 (최대 3초)
+  if(!window._fbReady){
+    let waited=0;
+    while(!window._fbReady&&waited<3000){
+      await new Promise(r=>setTimeout(r,100));
+      waited+=100;
+    }
+  }
   // 모달 타이틀 업데이트
   const ko=S.lang==='ko';
   const titleEl=document.querySelector('#rankingModal .mtitle');
