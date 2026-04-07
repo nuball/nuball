@@ -2673,7 +2673,9 @@ async function registerRanking(){
 let _rankTab=0;
 let _rankPeriod='daily';
 let _rankSeq=0;
+let _rankAutoLoad=null;
 function setRankPeriod(p){
+  if(_rankAutoLoad){clearTimeout(_rankAutoLoad);_rankAutoLoad=null;}
   _rankPeriod=p;
   ['daily','weekly'].forEach(k=>{
     const el=document.getElementById('ptab_'+k);
@@ -2891,7 +2893,8 @@ function openModal(id){
     _rankTab=0;_rankPeriod='daily';
     [0,1,2,3].forEach(i=>{const t=document.getElementById('rtab'+i);if(t)t.classList.toggle('active',i===0);});
     ['daily','weekly'].forEach(k=>{const t=document.getElementById('ptab_'+k);if(t)t.classList.toggle('active',k==='daily');});
-    renderRankList();
+    if(_rankAutoLoad)clearTimeout(_rankAutoLoad);
+    _rankAutoLoad=setTimeout(()=>{_rankAutoLoad=null;renderRankList();},300);
   }
   if(id==='statsModal')renderStats();
 }
