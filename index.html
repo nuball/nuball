@@ -2797,12 +2797,20 @@ async function renderRankList(){
     if(period==='weekly')rEl.textContent=ko?'주간 랭킹 · 매주 월요일 00시 초기화 · '+timeUntilNextMonday()+' 남음':'Weekly · Resets every Monday · '+timeUntilNextMonday()+' left';
     else rEl.textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
   }
-  // iOS에서 innerHTML 변경 후 스크롤이 아래로 내려가는 버그 수정
-  // requestAnimationFrame으로 레이아웃 완료 후 리셋
-  requestAnimationFrame(()=>{
-    const rankMbox=document.querySelector('#rankingModal .mbox');
-    if(rankMbox){rankMbox.scrollTop=0;}
-  });
+  // iOS 스크롤 리셋 (강제 reflow + 다중 시도)
+  const _resetRankScroll=()=>{
+    const rm=document.querySelector('#rankingModal .mbox');
+    if(!rm)return;
+    rm.style.overflow='hidden';
+    rm.offsetHeight; // force reflow
+    rm.style.overflow='';
+    rm.scrollTop=0;
+    rm.scrollTo&&rm.scrollTo(0,0);
+  };
+  _resetRankScroll();
+  requestAnimationFrame(_resetRankScroll);
+  setTimeout(_resetRankScroll,50);
+  setTimeout(_resetRankScroll,150);
 }
 
 /* ── MODALS ── */
@@ -2841,7 +2849,7 @@ function setupScrollFade(mbox){
 function openModal(id){
   const el=document.getElementById(id);el.classList.add('open');
   // 모달 열릴 때 스크롤 최상단
-  const mbox=el.querySelector('.mbox');if(mbox&&id!=='rankingModal'){mbox.scrollTop=0;setupScrollFade(mbox);}else if(mbox){requestAnimationFrame(()=>{mbox.scrollTop=0;});}
+  const mbox=el.querySelector('.mbox');if(mbox&&id!=='rankingModal'){mbox.scrollTop=0;setupScrollFade(mbox);}else if(mbox){const _r=()=>{mbox.style.overflow='hidden';mbox.offsetHeight;mbox.style.overflow='';mbox.scrollTop=0;mbox.scrollTo&&mbox.scrollTo(0,0);};_r();requestAnimationFrame(_r);}
   const mb=el.querySelector('.mbody');if(mb){mb.scrollTop=0;}
   if(id==='teamModal'){selectLeague(S.league||'KBO');}
   if(id==='rankingModal'){
