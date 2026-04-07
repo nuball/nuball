@@ -2851,14 +2851,7 @@ function openModal(id){
   if(id==='statsModal')renderStats();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-let _lastMboxTouch=0;
-document.addEventListener('touchstart',e=>{
-  if(e.target.closest('.mbox'))_lastMboxTouch=Date.now();
-},{passive:true});
-document.addEventListener('click',e=>{
-  if(Date.now()-_lastMboxTouch<600)return;
-  if(e.target.classList.contains('ov')&&e.target.id!=='kakaoGuideModal'&&e.target.id!=='rankingModal')e.target.classList.remove('open');
-});
+// backdrop click 모달 닫기 비활성화 (테스트)
 
 /* ── VIEW MODE ── */
 function setVM(mode){
