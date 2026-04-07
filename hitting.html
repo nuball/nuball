@@ -3908,7 +3908,7 @@ function openModal(id){
   if(id==='statsModal')renderStats();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.addEventListener('mousedown',e=>{if(e.target.classList.contains('ov')&&e.target.id!=='kakaoGuideModal')e.target.classList.remove('open');});
+document.addEventListener('click',e=>{if(e.target.classList.contains('ov')&&e.target.id!=='kakaoGuideModal')e.target.classList.remove('open');});
 
 /* ── VIEW MODE ── */
 function setVM(mode){
