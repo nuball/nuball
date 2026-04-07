@@ -373,8 +373,6 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 <script defer src="/_vercel/insights/script.js"></script>
 <meta name="naver-site-verification" content="e2b352f537c368f6ad65a517362b1f7cd7060b9c" />
 <meta name="google-site-verification" content="m95igLZdGdyJCJQwOamMESIsd5bahFFuWcjO1KhW1uM" />
-<script src="//cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
 </head>
 <body>
 <div id="app">
@@ -1378,9 +1376,8 @@ async function requestPushPermission(){
 /* ── PWA 설치 ── */
 let _pwaPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();
+  // e.preventDefault() 제거 - Chrome 투명 오버레이 버그 방지
   _pwaPrompt=e;
-  // 알림 모달 열려있으면 버튼 표시
   const btn=document.getElementById('pwaInstallBtn');
   if(btn)btn.style.display='block';
 });
@@ -2694,9 +2691,6 @@ function setRankTab(n){
 }
 
 async function renderRankList(){
-  // 디버그: 현재 열린 모달 표시
-  const openOvs=[...document.querySelectorAll('.ov.open')].map(e=>e.id).join(', ');
-  console.log('[RankList] period:'+_rankPeriod+' openModals:'+openOvs);
   const mySeq=++_rankSeq;
   const period=_rankPeriod; // 현재 period를 로컬에 캡처 (실행 중 변경 무시)
   const tab=_rankTab;
