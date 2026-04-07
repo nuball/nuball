@@ -1440,7 +1440,7 @@ async function init(){
     saveRankings();
   }
   applyTheme();applyLang();buildCountrySelect();
-  detectCC().then(cc=>{S.country=cc;buildCountrySelect()});
+  detectCC().then(cc=>{ const saved=localStorage.getItem('nb_country'); S.country=saved||cc; if(!saved) localStorage.setItem('nb_country',cc); buildCountrySelect(); });
   renderHome();
   if(S.game){renderGame();document.getElementById('numberInput').focus();}
   // 카운트다운 타이머
@@ -2558,6 +2558,7 @@ async function registerFromStats(){
   }
   localStorage.setItem('nb_nick',nick);
   const country=document.getElementById('statsCountrySelect').value;
+  if(country) localStorage.setItem('nb_country',country);
   // 등록 진행
   statsBtn.disabled=true;
   statsBtn.textContent=ko?'등록 중...':'Saving...';
@@ -3261,6 +3262,11 @@ function dismissBattleModal(){
   const m = document.getElementById('battleOpenModal');
   if(m) m.style.display='none';
 }
+
+// nb_country 변경 시 실시간 반영
+window.addEventListener('storage', function(e){
+  if(e.key==='nb_country' && e.newValue){ S.country=e.newValue; buildCountrySelect(); }
+});
 </script>
 </body>
 </html>

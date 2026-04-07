@@ -1084,7 +1084,7 @@ function loadLocal(){
   S.nick = sharedNick || battleNick;
   S.color  = ls('nbb_color');
   S.icon    = ls('nbb_icon') || null;
-  S.country = ls('nbb_country') || 'KR';
+  S.country = ls('nb_country') || ls('nbb_country') || 'KR'; // nb_country(공통 키) 우선
   S.lang   = ls('nbb_lang') || 'ko';
   S.dailyAttempts = parseInt(ls('nbb_att')||'0');
   S.lastDate = ls('nbb_date');
@@ -1101,13 +1101,19 @@ function saveLocal(){
   else          localStorage.removeItem('nbb_icon');
 }
 
-// 다른 탭에서 닉네임 변경 시 실시간 반영
+// 다른 탭에서 닉네임/국가 변경 시 실시간 반영
 window.addEventListener('storage', e=>{
   if(e.key==='nb_nick' && e.newValue && e.newValue !== S.nick){
     S.nick = e.newValue;
     lss('nbb_nick', S.nick);
     renderUserBadge();
-    updateMyTerritories(); // Firebase 영토 데이터도 갱신
+    updateMyTerritories();
+  }
+  if(e.key==='nb_country' && e.newValue && e.newValue !== S.country){
+    S.country = e.newValue;
+    lss('nbb_country', S.country);
+    const cs = document.getElementById('countrySelect');
+    if(cs) cs.value = S.country;
   }
 });
 function ls(k){ return localStorage.getItem(k); }
@@ -2794,6 +2800,7 @@ async function saveProfile(){
   S.nick=nick;
   S.country = document.getElementById('countrySelect')?.value || S.country || '';
   lss('nbb_country', S.country);
+  lss('nb_country', S.country); // 공통 키에도 저장 → 누볼/히팅 연동
   saveLocal();
   renderUserBadge();
   document.getElementById('profileClose').style.display='flex';
@@ -2819,7 +2826,7 @@ async function checkNickDuplicate(nick){
 
 function openProfileModal(){
   document.getElementById('nickInput').value = S.nick || ls('nb_nick') || '';
-  S.country = S.country || ls('nbb_country') || 'KR';
+  S.country = ls('nb_country') || ls('nbb_country') || S.country || 'KR';
   const cs = document.getElementById('countrySelect');
   if(cs) cs.value = S.country || 'KR';
   buildColorPicker();
@@ -2951,7 +2958,8 @@ async function confirmOnboard(){
 
   S.nick = nick;
   S.color = _onboardColor;
-  lss('nb_nick', nick);  // 누볼 공통 키에도 저장
+  lss('nb_nick', nick);
+  if(_onboardColor){ lss('nb_country', S.country||'KR'); } // 공통 국가 키 저장
   saveLocal();
   closeModal('onboardModal');
   renderUserBadge();
