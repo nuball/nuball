@@ -1746,7 +1746,7 @@ function clickRegion(regionId, regionName){
     btn.textContent = '🔄 갱신하기';
     btn.disabled = isExhausted;
     btn.style.opacity = isExhausted ? '0.4' : '';
-    btn.onclick = isExhausted ? null : ()=>{ closeModal('regionInfoModal'); S._renewMode=true; openLevelModal(null); };
+    btn.onclick = isExhausted ? null : ()=>{ closeModal('regionInfoModal'); S._renewMode=true; openLevelModal(t); };
   } else {
     document.getElementById('riOther').style.display = 'block';
     document.getElementById('riOtherIcon').innerHTML = makeIconEl(t.ownerIcon||null, t.ownerColor, 40);
@@ -2072,29 +2072,43 @@ function openLevelModal(territory){
 
   document.getElementById('levelModalTitle').textContent = S.currentRegion.name;
 
-  document.getElementById('levelModalDesc').innerHTML = t
-    ? `현재 점령 점수: <span style="color:var(--primary);font-weight:900;font-family:'DM Mono',monospace">${scoreLabel(t.score||0)}</span><br><small style="color:var(--muted)">이 점수 이상이어야 뺏을 수 있어요</small>`
-    : `빈 지역이에요. 레벨을 선택하고 도전하세요!`;
-
   const LVL_DESC = {
     1: '⚡ 실수하면 점수가 확 깎여요',
     2: '⚖️ 난이도와 점수의 균형',
     3: '🛡️ 실수해도 점수가 덜 깎여요',
   };
 
-  document.getElementById('levelBtns').innerHTML = [1,2,3].map(lv=>{
-    const digits = LEVEL_DIGITS[lv];
-    const maxScore = calcScore(lv, 1);
-    const needBeat = t ? scoreLabel(t.score||0) : null;
-    return `<button class="lvl-btn" onclick="selectLevel(${lv})">
+  if(t){
+    // 기존 영토: 수비자 레벨 고정 (자릿수 불일치 버그 방지)
+    const defLv = t.level || 1;
+    const defDigits = LEVEL_DIGITS[defLv];
+    const maxScore = calcScore(defLv, 1);
+    document.getElementById('levelModalDesc').innerHTML =
+      `현재 점령 점수: <span style="color:var(--primary);font-weight:900;font-family:'DM Mono',monospace">${scoreLabel(t.score||0)}</span><br><small style="color:var(--muted)">이 점수 이상이어야 뺏을 수 있어요 · 수비 레벨 Lv.${defLv} · ${defDigits}자리</small>`;
+    document.getElementById('levelBtns').innerHTML = `<button class="lvl-btn" onclick="selectLevel(${defLv})" style="border-color:var(--primary)">
       <div class="lvl-btn-top">
-        <span class="lvl-btn-num">Lv.${lv}</span>
-        <span class="lvl-btn-digits">${digits}자리</span>
+        <span class="lvl-btn-num">Lv.${defLv}</span>
+        <span class="lvl-btn-digits">${defDigits}자리</span>
         <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">최대 ${scoreLabel(maxScore)}</span>
       </div>
-      <div class="lvl-btn-desc">${LVL_DESC[lv]}</div>
+      <div class="lvl-btn-desc">${LVL_DESC[defLv]}</div>
     </button>`;
-  }).join('');
+  } else {
+    // 빈 지역: 레벨 자유 선택
+    document.getElementById('levelModalDesc').innerHTML = `빈 지역이에요. 레벨을 선택하고 도전하세요!`;
+    document.getElementById('levelBtns').innerHTML = [1,2,3].map(lv=>{
+      const digits = LEVEL_DIGITS[lv];
+      const maxScore = calcScore(lv, 1);
+      return `<button class="lvl-btn" onclick="selectLevel(${lv})">
+        <div class="lvl-btn-top">
+          <span class="lvl-btn-num">Lv.${lv}</span>
+          <span class="lvl-btn-digits">${digits}자리</span>
+          <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">최대 ${scoreLabel(maxScore)}</span>
+        </div>
+        <div class="lvl-btn-desc">${LVL_DESC[lv]}</div>
+      </button>`;
+    }).join('');
+  }
 
   openModal('levelModal');
 }
