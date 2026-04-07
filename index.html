@@ -454,9 +454,9 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <a href="https://nuball.app/hitting" style="text-decoration:none;background:var(--bg2);border:1.5px solid var(--primary);border-radius:var(--r);padding:8px 6px;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--bg2)'">
         <span style="font-size:12px;font-weight:900;color:var(--text);text-align:center">🏏 누볼 히팅</span>
       </a>
-      <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 6px;display:flex;align-items:center;justify-content:center;opacity:0.5;cursor:not-allowed;user-select:none">
-        <span style="font-size:12px;font-weight:900;color:var(--muted);text-align:center">🔒 누볼 배틀</span>
-      </div>
+      <a href="https://nuball.app/battle" style="text-decoration:none;background:var(--bg2);border:1.5px solid var(--primary);border-radius:var(--r);padding:8px 6px;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--bg2)'">
+        <span style="font-size:12px;font-weight:900;color:var(--text);text-align:center">⚔️ 누볼 배틀</span>
+      </a>
       <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 6px;display:flex;align-items:center;justify-content:center;opacity:0.5;cursor:not-allowed;user-select:none">
         <span style="font-size:12px;font-weight:900;color:var(--muted);text-align:center">🔒 누볼 피칭</span>
       </div>
@@ -3238,5 +3238,29 @@ init();
   </div>
 </div>
 
+
+<!-- ── 누볼 배틀 오픈 모달 ── -->
+<div id="battleOpenModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--card);border-radius:16px;max-width:320px;width:100%;padding:28px 22px 22px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+    <div style="font-size:36px;margin-bottom:10px">⚔️</div>
+    <div style="font-size:11px;font-weight:800;color:var(--primary);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">NEW</div>
+    <div style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:8px">누볼 배틀 오픈!</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">숫자야구로 영토를 점령해보세요! 🗺️</div>
+    <a href="https://nuball.app/battle" style="display:block;text-decoration:none;background:var(--primary);color:#fff;border-radius:10px;padding:12px;font-size:14px;font-weight:800;margin-bottom:8px;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">⚔️ 전장으로!</a>
+    <button onclick="dismissBattleModal()" style="width:100%;background:none;border:none;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;padding:8px;font-family:inherit">그만보기</button>
+  </div>
+</div>
+<script>
+(function(){
+  if(localStorage.getItem('nb_battle_open_dismissed')) return;
+  const m = document.getElementById('battleOpenModal');
+  if(m){ m.style.display='flex'; }
+})();
+function dismissBattleModal(){
+  localStorage.setItem('nb_battle_open_dismissed','1');
+  const m = document.getElementById('battleOpenModal');
+  if(m) m.style.display='none';
+}
+</script>
 </body>
 </html>
