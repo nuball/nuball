@@ -2673,15 +2673,13 @@ async function registerRanking(){
 let _rankTab=0;
 let _rankPeriod='daily';
 let _rankSeq=0;
-let _rankAutoLoad=null;
+
 function setRankPeriod(p){
-  if(_rankAutoLoad){clearTimeout(_rankAutoLoad);_rankAutoLoad=null;}
   _rankPeriod=p;
   ['daily','weekly'].forEach(k=>{
     const el=document.getElementById('ptab_'+k);
     if(el)el.classList.toggle('active',k===p);
   });
-  // 주간/월간은 어제1등 숨기기
   const ydEl=document.getElementById('yesterdayTop');
   if(ydEl)ydEl.style.display=p==='daily'?'block':'none';
   renderRankList();
@@ -2694,85 +2692,61 @@ function setRankTab(n){
 
 async function renderRankList(){
   const mySeq=++_rankSeq;
+  const period=_rankPeriod; // 현재 period를 로컬에 캡처 (실행 중 변경 무시)
+  const tab=_rankTab;
   const listEl=document.getElementById('rankList');
   if(!listEl)return;
   const ko=S.lang==='ko';
   listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+(ko?'불러오는 중...':'Loading...')+'</div>';
-  await _doRenderRankList(mySeq);
-}
 
-async function _doRenderRankList(mySeq){
-  const listEl=document.getElementById('rankList');
-  const ko=S.lang==='ko';
+  // 모달 타이틀
   const titleEl=document.querySelector('#rankingModal .mtitle');
-  if(titleEl){
-    const titles={daily:ko?'🏆 일간 랭킹':'🏆 Daily Ranking',weekly:ko?'🏆 주간 랭킹':'🏆 Weekly Ranking'};
-    titleEl.textContent=titles[_rankPeriod]||titles.daily;
-  }
-  // 주간/월간이면 어제1등 숨기기
+  if(titleEl)titleEl.textContent=period==='weekly'?(ko?'🏆 주간 랭킹':'🏆 Weekly Ranking'):(ko?'🏆 일간 랭킹':'🏆 Daily Ranking');
   const ydEl=document.getElementById('yesterdayTop');
-  if(ydEl)ydEl.style.display=(_rankPeriod==='daily'&&ydEl.innerHTML)?'block':'none';
+  if(ydEl)ydEl.style.display=(period==='daily'&&ydEl.innerHTML)?'block':'none';
 
-  // 어제 1등 조회 (일간 탭에서만)
-  const ydObj=nowKST();ydObj.setUTCDate(ydObj.getUTCDate()-1);
-  const ydStr=ydObj.getUTCFullYear()+'-'+(ydObj.getUTCMonth()+1)+'-'+ydObj.getUTCDate();
-  if(ydEl&&window._fbReady&&_rankPeriod==='daily'){
+  // 어제 1등 (일간만)
+  if(period==='daily'&&ydEl&&window._fbReady){
     try{
+      const ydObj=nowKST();ydObj.setUTCDate(ydObj.getUTCDate()-1);
+      const ydStr=ydObj.getUTCFullYear()+'-'+(ydObj.getUTCMonth()+1)+'-'+ydObj.getUTCDate();
       const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(10));
       const ydSnap=await window._fbGet(ydQ);
+      if(mySeq!==_rankSeq)return;
       if(ydSnap.exists()){
         let candidates=[];
-        ydSnap.forEach(ch=>{const d=ch.val();candidates.push({uid:ch.key,nick:d.nick,score:d.score,country:d.country,streak:d.streak||0,achCount:d.achCount||0,achVer:d.achVer||'',team:d.team||null,ts:d.ts||0});});
+        ydSnap.forEach(ch=>{const d=ch.val();candidates.push({uid:ch.key,nick:d.nick,score:d.score,country:d.country,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,achVer:d.achVer||'',team:d.team||null,ts:d.ts||0});});
         const maxScore=Math.max(...candidates.map(c=>c.score));
-        const topCandidates=candidates.filter(c=>c.score===maxScore);
-        topCandidates.sort((a,b)=>a.ts-b.ts);
-        let top=topCandidates[0]||null;
-        if(top){
-          // 오늘 랭킹에서 uid로 실시간 streak/achCount 조회
+        candidates=candidates.filter(c=>c.score===maxScore);
+        candidates.sort((a,b)=>a.ts-b.ts);
+        const top=candidates[0];
+        if(top&&mySeq===_rankSeq){
           try{
             const todayRef=window._fbRef(window._fbDb,'rankings/'+S.dayId+'/'+top.uid);
             const todaySnap=await window._fbGet(todayRef);
-            if(todaySnap.exists()){
-              const td=todaySnap.val();
-              if(td.streak)top.streak=td.streak;
-              if(td.achCount&&td.achVer==='v2'){top.achCount=td.achCount;top.achVer='v2';}
-            }
+            if(mySeq!==_rankSeq)return;
+            if(todaySnap.exists()){const td=todaySnap.val();if(td.streak)top.streak=td.streak;if(td.achCount&&td.achVer==='v2'){top.achCount=td.achCount;top.achVer='v2';}}
           }catch(e2){}
-          // 만약 본인 자신이라면 로컬 데이터 우선
-          if(top.uid===S.uid){
-            top.streak=S.streak||top.streak;
-            top.achCount=Object.keys(S.achievements).length;
-            top.achVer='v2';
-          }
+          if(top.uid===S.uid){top.streak=S.streak||top.streak;top.achCount=Object.keys(S.achievements).length;top.achVer='v2';}
           const topCountry=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country,S.lang);
           const ydLvBadge=top.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);background:var(--primary-light);padding:1px 5px;border-radius:4px;margin-left:4px">LV.'+(top.level-2)+'</span>':'';
           const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
           const ydAchBadge=(top.achVer==='v2'&&top.achCount>0)?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+top.achCount+'</span>':'';
           const ydBadgeBlock=(ydStreakBadge||ydAchBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+ydAchBadge+'</div>':'';
-          ydEl.innerHTML=[
-            '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등':"Yesterday's #1")+'</div>',
-            '<div class="rank-row" style="border-bottom:none;padding:8px 0">',
-            '<div class="rank-pos medal">🥇</div>',
-            '<div class="rank-info"><div class="rank-nick">'+top.nick+ydLvBadge+'</div>',
-            '<div class="rank-country">'+topCountry+'</div></div>',
-            ydBadgeBlock,
-            '<div class="rank-score">'+top.score.toLocaleString()+'</div>',
-            '</div>'
-          ].join('');
+          ydEl.innerHTML=['<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등':"Yesterday's #1")+'</div>','<div class="rank-row" style="border-bottom:none;padding:8px 0">','<div class="rank-pos medal">🥇</div>','<div class="rank-info"><div class="rank-nick">'+top.nick+ydLvBadge+'</div>','<div class="rank-country">'+topCountry+'</div></div>',ydBadgeBlock,'<div class="rank-score">'+top.score.toLocaleString()+'</div>','</div>'].join('');
           ydEl.style.display='block';
         }else{ydEl.style.display='none';}
       }else{ydEl.style.display='none';}
-    }catch(e){ydEl.style.display='none';}
+    }catch(e){if(ydEl)ydEl.style.display='none';}
   }
 
+  // 메인 데이터 fetch
   let entries=[];
-
-  // Firebase에서 랭킹 가져오기
   if(window._fbReady){
     try{
-      if(_rankPeriod==='weekly'){
-        // rankings_weekly/weekId 단일 노드 조회 (히팅과 동일한 방식)
+      if(period==='weekly'){
         const weekSnap=await window._fbGet(window._fbRef(window._fbDb,'rankings_weekly/'+getWeekId()));
+        if(mySeq!==_rankSeq)return;
         if(weekSnap.exists()){
           weekSnap.forEach(child=>{
             const d2=child.val();
@@ -2781,74 +2755,51 @@ async function _doRenderRankList(mySeq){
           entries.sort((a,b)=>b.score-a.score);
         }
       }else{
-        // 일간
-        const q=window._fbQuery(
-          window._fbRef(window._fbDb,'rankings/'+S.dayId),
-          window._fbOrderByChild('score'),
-          window._fbLimitToLast(300)
-        );
+        const q=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+S.dayId),window._fbOrderByChild('score'),window._fbLimitToLast(300));
         const snap=await window._fbGet(q);
+        if(mySeq!==_rankSeq)return;
         if(snap.exists()){
-          snap.forEach(child=>{
-            const d=child.val();
-            entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,day:d.day,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,league:d.league||null});
-          });
+          snap.forEach(child=>{const d=child.val();entries.push({id:child.key,nick:d.nick,country:d.country,score:d.score,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null});});
           entries.sort((a,b)=>b.score-a.score||(b.level||0)-(a.level||0));
           S.rankings=entries;saveRankings();
         }
       }
     }catch(e){
-      console.warn('Firebase read failed',e);
-      if(_rankPeriod==='daily'){
-        entries=[...S.rankings];
-      }else{
-        // 주간 실패 시 재시도 버튼 표시
-        listEl.innerHTML='<div style="text-align:center;padding:24px 16px"><p style="color:var(--muted);font-size:13px;margin-bottom:12px">'+(S.lang==='ko'?'불러오기 실패. 네트워크를 확인해주세요.':'Failed to load. Check your network.')+'</p><button onclick="renderRankList()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:800;cursor:pointer">'+(S.lang==='ko'?'다시 시도':'Retry')+'</button></div>';
-        return;
-      }
+      console.warn('rank fetch failed',e);
+      if(period==='daily')entries=[...S.rankings];
     }
   }else{
-    if(_rankPeriod==='daily')entries=[...S.rankings];
+    if(period==='daily')entries=[...S.rankings];
   }
 
-  // 최신 호출만 렌더링 (이전 호출이면 중단)
   if(mySeq!==_rankSeq)return;
 
-  // 탭 필터링
+  // 렌더링
   const lvMap={1:3,2:4,3:5};
-  const filtered=_rankTab===0?entries:entries.filter(r=>r.level===lvMap[_rankTab]);
-
+  const filtered=tab===0?entries:entries.filter(r=>r.level===lvMap[tab]);
   const medals=['🥇','🥈','🥉'];
   if(!filtered.length){
-    listEl.innerHTML='<p style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">'+
-      (S.lang==='ko'?'아직 등록된 참가자가 없습니다':'No participants yet')+'</p>';
+    listEl.innerHTML='<p style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">'+(ko?'아직 등록된 참가자가 없습니다':'No participants yet')+'</p>';
   }else{
-    listEl.innerHTML=filtered.slice(0,(_rankPeriod==='daily'?50:50)).map((r,i)=>{
+    listEl.innerHTML=filtered.slice(0,50).map((r,i)=>{
       const rank=i+1,isMe=r.id===S.uid;
       const lvBadge=r.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);margin-left:4px;background:var(--primary-light);padding:1px 5px;border-radius:4px">LV.'+(r.level-2)+'</span>':'';
       const rStreak=r.id===S.uid?(S.streak||0):(r.streak||0);
       const rAch=r.id===S.uid?(Object.keys(S.achievements).length):(r.achCount||0);
-      const streakBadge=(rStreak>0)?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+rStreak+'</span>':'';
-      const achBadge=(rAch>0)?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+rAch+'</span>':'';
+      const streakBadge=rStreak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+rStreak+'</span>':'';
+      const achBadge=rAch>0?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+rAch+'</span>':'';
       const badgeBlock=(streakBadge||achBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+streakBadge+achBadge+'</div>':'';
-      return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
-        '<div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div>'+
-        '<div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+(_rankTab===0?lvBadge:'')+'</div>'+
-        '<div class="rank-country">'+(r.id===S.uid&&S.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+S.team:r.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+r.team:ccLabel(r.country,S.lang))+'</div></div>'+
-        badgeBlock+
-        '<div class="rank-score">'+r.score.toLocaleString()+'</div></div>';
+      return '<div class="rank-row'+(isMe?' my-row':'')+'"><div class="rank-pos'+(rank<=3?' medal':'')+'">'+( rank<=3?medals[rank-1]:rank)+'</div><div class="rank-info"><div class="rank-nick">'+r.nick+(isMe?' 👈':'')+(tab===0?lvBadge:'')+'</div><div class="rank-country">'+(r.id===S.uid&&S.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+S.team:r.team?(r.country?ccLabel(r.country,S.lang).split(' ')[0]+' ':'')+r.team:ccLabel(r.country,S.lang))+'</div></div>'+badgeBlock+'<div class="rank-score">'+r.score.toLocaleString()+'</div></div>';
     }).join('');
   }
   const rEl=document.getElementById('rankResetEl');
   if(rEl){
-    if(_rankPeriod==='weekly')rEl.textContent=ko?'주간 랭킹 · 매주 월요일 00시 초기화 · '+timeUntilNextMonday()+' 남음':'Weekly · Resets every Monday · '+timeUntilNextMonday()+' left';
+    if(period==='weekly')rEl.textContent=ko?'주간 랭킹 · 매주 월요일 00시 초기화 · '+timeUntilNextMonday()+' 남음':'Weekly · Resets every Monday · '+timeUntilNextMonday()+' left';
     else rEl.textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
   }
-  // 렌더링 후 스크롤 맨 위로 강제 리셋
   const rankMbox=document.querySelector('#rankingModal .mbox');
   if(rankMbox)rankMbox.scrollTop=0;
 }
-
 
 /* ── MODALS ── */
 function openAchModal(){renderAchievements();openModal('achModal');}
@@ -2893,8 +2844,7 @@ function openModal(id){
     _rankTab=0;_rankPeriod='daily';
     [0,1,2,3].forEach(i=>{const t=document.getElementById('rtab'+i);if(t)t.classList.toggle('active',i===0);});
     ['daily','weekly'].forEach(k=>{const t=document.getElementById('ptab_'+k);if(t)t.classList.toggle('active',k==='daily');});
-    if(_rankAutoLoad)clearTimeout(_rankAutoLoad);
-    _rankAutoLoad=setTimeout(()=>{_rankAutoLoad=null;renderRankList();},300);
+    renderRankList();
   }
   if(id==='statsModal')renderStats();
 }
