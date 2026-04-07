@@ -1078,7 +1078,10 @@ const S = {
 // ── LOCAL STORAGE ──
 function loadLocal(){
   S.userId = ls('nubol_uid') || ls('nbb_uid'); // 누볼 공통 UID 우선
-  S.nick   = ls('nbb_nick') || ls('nb_nick'); // nuball 공통 닉네임 우선
+  // nb_nick(누볼/히팅 공통 키) 우선 → 최신 닉네임 반영
+  const sharedNick = ls('nb_nick');
+  const battleNick = ls('nbb_nick');
+  S.nick = sharedNick || battleNick;
   S.color  = ls('nbb_color');
   S.icon    = ls('nbb_icon') || null;
   S.country = ls('nbb_country') || 'KR';
@@ -1104,6 +1107,7 @@ window.addEventListener('storage', e=>{
     S.nick = e.newValue;
     lss('nbb_nick', S.nick);
     renderUserBadge();
+    updateMyTerritories(); // Firebase 영토 데이터도 갱신
   }
 });
 function ls(k){ return localStorage.getItem(k); }
