@@ -2730,9 +2730,9 @@ async function renderRankList(){
             const todayRef=window._fbRef(window._fbDb,'rankings/'+S.dayId+'/'+top.uid);
             const todaySnap=await window._fbGet(todayRef);
             if(mySeq!==_rankSeq)return;
-            if(todaySnap.exists()){const td=todaySnap.val();if(td.streak)top.streak=td.streak;if(td.achCount&&td.achVer==='v2'){top.achCount=td.achCount;top.achVer='v2';}}
+            if(todaySnap.exists()){const td=todaySnap.val();if(td.nick)top.nick=td.nick;if(td.streak)top.streak=td.streak;if(td.achCount&&td.achVer==='v2'){top.achCount=td.achCount;top.achVer='v2';}}
           }catch(e2){}
-          if(top.uid===S.uid){top.streak=S.streak||top.streak;top.achCount=Object.keys(S.achievements).length;top.achVer='v2';}
+          if(top.uid===S.uid){top.nick=S.nick||top.nick;top.streak=S.streak||top.streak;top.achCount=Object.keys(S.achievements).length;top.achVer='v2';}
           const topCountry=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country,S.lang);
           const ydLvBadge=top.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);background:var(--primary-light);padding:1px 5px;border-radius:4px;margin-left:4px">LV.'+(top.level-2)+'</span>':'';
           const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';

@@ -3739,6 +3739,7 @@ async function renderRankList(){
             const todaySnap=await window._fbGet(todayRef);
             if(todaySnap.exists()){
               const td=todaySnap.val();
+              if(td.nick)top.nick=td.nick;
               if(td.streak)top.streak=td.streak;
               if(td.achCount&&td.achVer==='v2'){top.achCount=td.achCount;top.achVer='v2';}
             }
@@ -4489,6 +4490,7 @@ async function renderHRankList(){
               const todaySnap=await window._fbGet(todayRef);
               if(todaySnap.exists()){
                 const td=todaySnap.val();
+                if(td.nick)top.nick=td.nick;
                 if(td.streak)top.streak=td.streak;
                 if(td.achCount&&td.achVer==='v2'){top.achCount=td.achCount;top.achVer='v2';}
               }
