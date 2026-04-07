@@ -667,10 +667,11 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 80px}
           <div class="score-prev-val" id="gameScoreDisplay" style="font-size:40px">1,000</div>
         </div>
         <div class="att-bar"><div class="att-bar-fill" id="attBarFill" style="width:0%"></div></div>
-        <input class="num-input" type="text" inputmode="numeric" id="battleInput"
+        <input class="num-input" type="text" inputmode="numeric" id="battleInput" enterkeyhint="done"
           enterkeyhint="go" placeholder="••••" autocomplete="off" oninput="onBattleInput(this)"
-          onkeydown="if(event.key==='Enter')submitGuess()"
-          onkeyup="if(event.key==='Enter')submitGuess()">
+          onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next')submitGuess()"
+          onkeyup="if(event.key==='Enter'||event.key==='Go'||event.key==='Next')submitGuess()"
+          onsearch="submitGuess()">
         <div id="inputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:8px;opacity:0;transition:opacity .2s"></div>
         <button class="btn-p" onclick="submitGuess()" id="confirmBtn">확인</button>
         <div class="hint-strip" id="hintStrip"></div>
@@ -785,6 +786,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 80px}
         <div style="font-size:11px;color:var(--muted);margin-top:4px">이 점수보다 높게 맞춰야 점령할 수 있어요</div>
       </div>
       <!-- 액션 버튼 -->
+      <div id="riExhaustedMsg" style="display:none;font-size:11px;color:var(--lose);font-weight:700;text-align:center;margin-top:8px;padding:6px 10px;background:rgba(220,38,38,.06);border-radius:8px"></div>
       <button class="btn-p" id="riActionBtn" onclick="" style="margin-top:0"></button>
     </div>
   </div>
@@ -1701,19 +1703,7 @@ function setMapView(mode){
 // ── CLICK REGION ──
 function clickRegion(regionId, regionName){
   if(!S.nick || !S.color){ openProfileModal(); return; }
-  if(S.dailyAttempts >= MAX_DAILY){
-    // 자정까지 남은 시간
-    const now = new Date();
-    const midnight = new Date(now);
-    midnight.setHours(24,0,0,0);
-    const diff = midnight - now;
-    const hh = String(Math.floor(diff/3600000)).padStart(2,'0');
-    const mm = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-    const resetEl = document.getElementById('limitResetTime');
-    if(resetEl) resetEl.textContent = `${hh}:${mm} 후 초기화`;
-    openModal('limitModal');
-    return;
-  }
+  const isExhausted = S.dailyAttempts >= MAX_DAILY;
 
   const t = S.territories[regionId];
   S.currentRegion = {id: regionId, name: regionName};
@@ -1729,13 +1719,24 @@ function clickRegion(regionId, regionName){
 
   const btn = document.getElementById('riActionBtn');
 
+  // 자정까지 남은 시간 계산 (소진 시 표시용)
+  let exhaustedMsg = '';
+  if(isExhausted){
+    const now2 = new Date(), mid = new Date(now2);
+    mid.setHours(24,0,0,0);
+    const diff2 = mid - now2;
+    const hh2 = String(Math.floor(diff2/3600000)).padStart(2,'0');
+    const mm2 = String(Math.floor((diff2%3600000)/60000)).padStart(2,'0');
+    exhaustedMsg = `오늘 도전 횟수를 모두 사용했어요 · ${hh2}:${mm2} 후 초기화`;
+  }
+
   if(!t){
-    // 빈 지역
     document.getElementById('riEmpty').style.display = 'block';
     btn.textContent = '⚔️ 점령하기';
-    btn.onclick = ()=>{ closeModal('regionInfoModal'); openLevelModal(null); };
+    btn.disabled = isExhausted;
+    btn.style.opacity = isExhausted ? '0.4' : '';
+    btn.onclick = isExhausted ? null : ()=>{ closeModal('regionInfoModal'); openLevelModal(null); };
   } else if(t.ownerId === S.userId){
-    // 내 영토
     const remain = EXPIRE_MS - (Date.now() - t.capturedAt);
     const days = Math.floor(remain / 86400000);
     const hrs  = Math.floor((remain % 86400000) / 3600000);
@@ -1743,16 +1744,22 @@ function clickRegion(regionId, regionName){
     document.getElementById('riMineScore').textContent = (t.score||0).toLocaleString() + 'pts';
     document.getElementById('riMineExpiry').textContent = `만료까지 ${days}일 ${hrs}시간`;
     btn.textContent = '🔄 갱신하기';
-    btn.onclick = ()=>{ closeModal('regionInfoModal'); S._renewMode=true; openLevelModal(null); };
+    btn.disabled = isExhausted;
+    btn.style.opacity = isExhausted ? '0.4' : '';
+    btn.onclick = isExhausted ? null : ()=>{ closeModal('regionInfoModal'); S._renewMode=true; openLevelModal(null); };
   } else {
-    // 타인 영토
     document.getElementById('riOther').style.display = 'block';
     document.getElementById('riOtherIcon').innerHTML = makeIconEl(t.ownerIcon||null, t.ownerColor, 40);
     document.getElementById('riOtherNick').textContent = t.ownerNick || '?';
     document.getElementById('riOtherScore').textContent = (t.score||0).toLocaleString() + 'pts';
     btn.textContent = '⚔️ 점령하기';
-    btn.onclick = ()=>{ closeModal('regionInfoModal'); openLevelModal(t); };
+    btn.disabled = isExhausted;
+    btn.style.opacity = isExhausted ? '0.4' : '';
+    btn.onclick = isExhausted ? null : ()=>{ closeModal('regionInfoModal'); openLevelModal(t); };
   }
+  // 소진 안내 문구
+  const exhaustEl = document.getElementById('riExhaustedMsg');
+  if(exhaustEl){ exhaustEl.textContent = exhaustedMsg; exhaustEl.style.display = isExhausted ? 'block' : 'none'; }
 
   openModal('regionInfoModal');
 }
@@ -2140,6 +2147,12 @@ function showScreen(name){
 }
 
 function backToHome(){
+  // 게임 중 시도가 1회 이상이면 기회 소진 (포기)
+  if(S.game && S.game.logs && S.game.logs.length > 0){
+    S.dailyAttempts++;
+    saveLocal();
+    renderAttemptBar();
+  }
   S.currentRegion=null;
   S.currentTerritory=null;
   cancelHoldForfeit();
@@ -2158,10 +2171,6 @@ function startHoldForfeit(ev){
   const btn = document.getElementById('backBtn');
   btn.classList.add('holding');
   _forfeitTimer = setTimeout(()=>{
-    // 포기 시 기회 1회 소진
-    S.dailyAttempts++;
-    saveLocal();
-    renderAttemptBar();
     backToHome();
   }, FORFEIT_HOLD_MS);
 }
