@@ -1470,6 +1470,13 @@ async function init(){
     _hss.classList.add('hidden');
   }
   checkRoomUrl();
+  // Firebase WebSocket 워밍업 — 첫 주간 랭킹 로드 시 연결 지연 방지
+  if(window._fbReady&&S.uid){
+    try{
+      const todayRef=window._fbRef(window._fbDb,'rankings/'+S.dayId+'/'+S.uid);
+      window._fbGet(todayRef).catch(()=>{});
+    }catch(e){}
+  }
   // 도메인 이전 공지 (nuball.vercel.app에서만)
   if(location.hostname.includes('vercel.app')&&!localStorage.getItem('nb_migrate_closed')){
     const ko=S.lang==='ko';
