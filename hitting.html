@@ -463,14 +463,15 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="lvl-cards" id="lvlCards"></div>
 
     <!-- ── 누볼 시리즈 ── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;margin-bottom:12px">
-      <a href="https://nuball.app" style="text-decoration:none;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 10px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:13px;font-weight:900;color:var(--text)">⚾ <span id="seriesNuball">누볼</span></span>
-        <span id="seriesNuballBadge" style="font-size:10px;font-weight:800;color:#16a34a;background:#dcfce7;border-radius:4px;padding:2px 6px">이동</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px;margin-bottom:12px">
+      <a href="https://nuball.app" style="text-decoration:none;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 6px;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--bg2)'">
+        <span style="font-size:12px;font-weight:900;color:var(--text);text-align:center">⚾ <span id="seriesNuball">누볼</span></span>
       </a>
-      <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 10px;display:flex;align-items:center;justify-content:space-between;opacity:0.5;cursor:not-allowed;user-select:none">
-        <span style="font-size:13px;font-weight:900;color:var(--muted)">🔒 <span id="seriesPitching">누볼 피칭</span></span>
-        <span id="seriesPitchingBadge" style="font-size:10px;font-weight:800;color:var(--muted);background:var(--border);border-radius:4px;padding:2px 6px">개발 중</span>
+      <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 6px;display:flex;align-items:center;justify-content:center;opacity:0.5;cursor:not-allowed;user-select:none">
+        <span style="font-size:12px;font-weight:900;color:var(--muted);text-align:center">🔒 누볼 배틀</span>
+      </div>
+      <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:8px 6px;display:flex;align-items:center;justify-content:center;opacity:0.5;cursor:not-allowed;user-select:none">
+        <span style="font-size:12px;font-weight:900;color:var(--muted);text-align:center">🔒 <span id="seriesPitching">누볼 피칭</span></span>
       </div>
     </div>
     <!-- ── 시각 튜토리얼 ── -->
@@ -979,9 +980,9 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
     <div class="mhdr"><span class="mtitle" id="roomResultTitle">🏆 결과</span><button class="mclose" onclick="closeRoomResult()">✕</button></div>
     <div class="mbody" style="text-align:center">
       <div id="roomResultBody" style="margin-bottom:18px"></div>
-      <button class="btn-p" onclick="copyRoomResult()" id="roomResultCopyBtn" style="margin-bottom:6px">📋 결과 복사</button>
-      <div id="roomCopyMsg" style="font-size:12px;font-weight:800;color:var(--primary);min-height:18px;margin-bottom:6px"></div>
-      <button class="btn-p" onclick="closeRoomResult()" style="background:var(--bg2);border-color:var(--border);color:var(--text)" id="roomResultCloseBtn">닫기</button>
+      <button class="btn-p" onclick="copyRoomResult()" id="roomResultCopyBtn" style="margin-bottom:8px">📋 결과 복사</button>
+      <button class="btn-p" onclick="closeRoomResult()" style="background:var(--bg2);border-color:var(--border);color:var(--text);margin-bottom:4px" id="roomResultCloseBtn">닫기</button>
+      <div id="roomCopyMsg" style="font-size:12px;font-weight:800;color:var(--primary);min-height:18px"></div>
     </div>
   </div>
 </div>
