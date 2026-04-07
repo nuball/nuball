@@ -2849,7 +2849,14 @@ function openModal(id){
   if(id==='statsModal')renderStats();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-document.addEventListener('click',e=>{if(e.target.classList.contains('ov')&&e.target.id!=='kakaoGuideModal')e.target.classList.remove('open');});
+let _touchInMbox=false;
+document.addEventListener('touchstart',e=>{
+  _touchInMbox=!!e.target.closest('.mbox');
+},{passive:true});
+document.addEventListener('click',e=>{
+  if(_touchInMbox){_touchInMbox=false;return;}
+  if(e.target.classList.contains('ov')&&e.target.id!=='kakaoGuideModal')e.target.classList.remove('open');
+});
 
 /* ── VIEW MODE ── */
 function setVM(mode){
