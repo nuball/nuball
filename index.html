@@ -2682,16 +2682,10 @@ function setRankTab(n){
   renderRankList();
 }
 
-let _rankDebounce=null;
-function renderRankList(){
-  if(_rankDebounce)clearTimeout(_rankDebounce);
-  _rankDebounce=setTimeout(_doRenderRankList,80);
-}
-async function _doRenderRankList(){
+async function renderRankList(){
   const listEl=document.getElementById('rankList');
   listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+
     (S.lang==='ko'?'불러오는 중...':'Loading...')+'</div>';
-
   // 모달 타이틀 업데이트
   const ko=S.lang==='ko';
   const titleEl=document.querySelector('#rankingModal .mtitle');
@@ -2711,18 +2705,33 @@ async function _doRenderRankList(){
       const ydQ=window._fbQuery(window._fbRef(window._fbDb,'rankings/'+ydStr),window._fbOrderByChild('score'),window._fbLimitToLast(10));
       const ydSnap=await window._fbGet(ydQ);
       if(ydSnap.exists()){
-        // 최고점 찾기 → 동점이면 먼저 등록한(ts 작은) 사람이 1등
         let candidates=[];
-        ydSnap.forEach(ch=>{const d=ch.val();candidates.push({uid:ch.key,nick:d.nick,score:d.score,country:d.country,level:d.level||0,streak:d.streak||0,achCount:d.achCount||0,team:d.team||null,ts:d.ts||0});});
+        ydSnap.forEach(ch=>{const d=ch.val();candidates.push({uid:ch.key,nick:d.nick,score:d.score,country:d.country,streak:d.streak||0,achCount:d.achCount||0,achVer:d.achVer||'',team:d.team||null,ts:d.ts||0});});
         const maxScore=Math.max(...candidates.map(c=>c.score));
         const topCandidates=candidates.filter(c=>c.score===maxScore);
         topCandidates.sort((a,b)=>a.ts-b.ts);
         let top=topCandidates[0]||null;
         if(top){
+          // 오늘 랭킹에서 uid로 실시간 streak/achCount 조회
+          try{
+            const todayRef=window._fbRef(window._fbDb,'rankings/'+S.dayId+'/'+top.uid);
+            const todaySnap=await window._fbGet(todayRef);
+            if(todaySnap.exists()){
+              const td=todaySnap.val();
+              if(td.streak)top.streak=td.streak;
+              if(td.achCount&&td.achVer==='v2'){top.achCount=td.achCount;top.achVer='v2';}
+            }
+          }catch(e2){}
+          // 만약 본인 자신이라면 로컬 데이터 우선
+          if(top.uid===S.uid){
+            top.streak=S.streak||top.streak;
+            top.achCount=Object.keys(S.achievements).length;
+            top.achVer='v2';
+          }
           const topCountry=top.team?(top.country?ccLabel(top.country,S.lang).split(' ')[0]+' ':'')+top.team:ccLabel(top.country,S.lang);
           const ydLvBadge=top.level?'<span style="font-size:9px;font-weight:800;color:var(--primary);background:var(--primary-light);padding:1px 5px;border-radius:4px;margin-left:4px">LV.'+(top.level-2)+'</span>':'';
           const ydStreakBadge=top.streak>0?'<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+top.streak+'</span>':'';
-          const ydAchBadge=top.achCount>0?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+top.achCount+'</span>':'';
+          const ydAchBadge=(top.achVer==='v2'&&top.achCount>0)?'<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+top.achCount+'</span>':'';
           const ydBadgeBlock=(ydStreakBadge||ydAchBadge)?'<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+ydStreakBadge+ydAchBadge+'</div>':'';
           ydEl.innerHTML=[
             '<div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+(ko?'어제 1등':"Yesterday's #1")+'</div>',
@@ -2742,33 +2751,23 @@ async function _doRenderRankList(){
 
   let entries=[];
 
+  // Firebase에서 랭킹 가져오기
   if(window._fbReady){
     try{
       if(_rankPeriod==='weekly'){
-        // Firebase 미준비 시 최대 2초 대기 (1회 한정, race condition 없이)
-        if(!window._fbReady){await new Promise(r=>setTimeout(r,500));if(!window._fbReady)await new Promise(r=>setTimeout(r,1500));}
-        // 이번주 월~오늘 날짜 목록 생성 (KST 기준 — Firebase 저장 형식과 동일)
-        const todayKST=nowKST();
-        const dow=todayKST.getUTCDay()||7;
+        // 이번주 월~오늘 날짜 목록 생성
+        const today=new Date();
+        const dow=today.getDay()||7;
         const dateStrs=[];
         for(let i=1;i<=dow;i++){
-          const d=new Date(todayKST.getTime()-(dow-i)*86400000);
-          dateStrs.push(d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate());
+          const d=new Date(today);
+          d.setDate(today.getDate()-(dow-i));
+          dateStrs.push(d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate());
         }
         // 모든 날짜 병렬 조회
-        // 주간 데이터 최대 2회 재시도
-        let snaps=null;
-        for(let attempt=0;attempt<2;attempt++){
-          try{
-            snaps=await Promise.all(
-              dateStrs.map(dStr=>window._fbGet(window._fbRef(window._fbDb,'rankings/'+dStr)))
-            );
-            break;
-          }catch(retryErr){
-            if(attempt===0)await new Promise(r=>setTimeout(r,500));
-            else throw retryErr;
-          }
-        }
+        const snaps=await Promise.all(
+          dateStrs.map(dStr=>window._fbGet(window._fbRef(window._fbDb,'rankings/'+dStr)))
+        );
         const userMap={};
         snaps.forEach(daySnap=>{
           if(!daySnap.exists())return;
@@ -2779,6 +2778,7 @@ async function _doRenderRankList(){
               userMap[uid]={id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,achCount:d2.achCount||0,team:d2.team||null,league:d2.league||null,weekScore:0};
             }
             userMap[uid].weekScore+=(d2.score||0);
+            // 최신 정보로 갱신
             if(d2.nick)userMap[uid].nick=d2.nick;
             if(d2.streak)userMap[uid].streak=d2.streak;
             if(d2.achCount)userMap[uid].achCount=d2.achCount;
@@ -2843,6 +2843,7 @@ async function _doRenderRankList(){
     else rEl.textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
   }
 }
+
 
 /* ── MODALS ── */
 function openAchModal(){renderAchievements();openModal('achModal');}
