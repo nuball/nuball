@@ -2842,6 +2842,9 @@ async function _doRenderRankList(mySeq){
     if(_rankPeriod==='weekly')rEl.textContent=ko?'주간 랭킹 · 매주 월요일 00시 초기화 · '+timeUntilNextMonday()+' 남음':'Weekly · Resets every Monday · '+timeUntilNextMonday()+' left';
     else rEl.textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
   }
+  // 렌더링 후 스크롤 맨 위로 강제 리셋
+  const rankMbox=document.querySelector('#rankingModal .mbox');
+  if(rankMbox)rankMbox.scrollTop=0;
 }
 
 
