@@ -1827,7 +1827,7 @@ function onResultClose(){
   document.getElementById('gameScreen').style.display='none';
   document.getElementById('homeScreen').classList.remove('hidden');
   S.game=null;renderHome();
-  if(S.consumed>=1){setTimeout(()=>openModal('statsModal'),300);}
+  if(S.consumed>=1){_statsAutoTimer=setTimeout(()=>{_statsAutoTimer=null;openModal('statsModal');},300);}
 }
 function goHome(){onResultClose()}
 
@@ -2673,6 +2673,7 @@ async function registerRanking(){
 let _rankTab=0;
 let _rankPeriod='daily';
 let _rankSeq=0;
+let _statsAutoTimer=null;
 
 function setRankPeriod(p){
   _rankPeriod=p;
@@ -2834,6 +2835,8 @@ function setupScrollFade(mbox){
   setTimeout(updateFade,50);
 }
 function openModal(id){
+  // 다른 모달 열릴 때 statsModal 자동 오픈 취소
+  if(id!=='statsModal'&&_statsAutoTimer){clearTimeout(_statsAutoTimer);_statsAutoTimer=null;}
   const el=document.getElementById(id);el.classList.add('open');
   // 모달 열릴 때 스크롤 최상단
   const mbox=el.querySelector('.mbox');if(mbox&&id!=='rankingModal'){mbox.scrollTop=0;setupScrollFade(mbox);}else if(mbox){mbox.scrollTop=0;requestAnimationFrame(()=>{mbox.scrollTop=0;mbox.scrollTo&&mbox.scrollTo(0,0);});}
