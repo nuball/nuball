@@ -66,14 +66,13 @@ html{-webkit-text-size-adjust:100%}
 body{font-family:'Plus Jakarta Sans','Noto Sans KR',sans-serif;font-size:15px;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;line-height:1.6;transition:background .2s,color .2s}
 
 /* ── HEADER ── */
-.hdr{position:sticky;top:0;z-index:40;border-bottom:1px solid var(--border);background:rgba(255,255,255,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.dark .hdr{background:rgba(13,17,23,.96)}
-.hdr-inner{max-width:580px;margin:0 auto;padding:0 16px;height:62px;display:flex;align-items:center;position:relative}
-.hdr-logo{position:absolute;left:50%;transform:translateX(-50%);cursor:default;user-select:none;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.1}
+.hdr{position:sticky;top:0;z-index:40;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--bg) 95%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.hdr-inner{max-width:560px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;position:relative}
+.hdr-logo{position:absolute;left:50%;transform:translateX(-50%);cursor:default;user-select:none;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1}
 .hdr-side{display:flex;align-items:center;gap:4px;flex:1}
 .hdr-side.right{justify-content:flex-end}
 .logo-main{font-size:24px;font-weight:900;letter-spacing:-1px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif}
-.logo-battle{font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#7c3aed;font-family:'Plus Jakarta Sans',sans-serif;margin-top:2px;display:block}
+.logo-battle{font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#7c3aed;font-family:'Plus Jakarta Sans',sans-serif;display:block;text-align:center;width:100%}
 
 .ibtn{width:36px;height:36px;border:none;background:transparent;color:var(--muted);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s}
 .ibtn:hover{background:var(--bg2);color:var(--text)}
@@ -417,6 +416,11 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 80px}
   <!-- ── HOME SCREEN ── -->
   <div id="homeScreen">
 
+    <!-- 스트릭 + 같이하기 -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
+      <div id="battleStreakBadge" style="display:none"><span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800"></span></div>
+      <button style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:not-allowed;font-family:inherit;border:1.5px solid var(--border);background:var(--bg2);color:var(--muted);opacity:0.5;pointer-events:none">🤝 <span>같이하기</span></button>
+    </div>
     <!-- Attempt Counter -->
     <div class="balls-row" id="attemptIcons"></div>
     <div style="text-align:center;font-size:11px;color:var(--muted);font-weight:600;margin-top:-8px;margin-bottom:14px" id="attemptReset"></div>
@@ -1068,7 +1072,7 @@ const LEVEL_DIGITS = {1:3, 2:4, 3:5};
 const EXPIRE_MS = 30 * 24 * 60 * 60 * 1000; // 30일
 
 const S = {
-  userId: null, nick: null, color: null, icon: null, country: null,
+  userId: null, nick: null, color: null, icon: null, country: null, streak: 0,
   lang: 'ko',
   dailyAttempts: 0, lastDate: null,
   territories: {},
@@ -1645,12 +1649,25 @@ function renderRankModal(){
   }
 }
 
+// ── STREAK BADGE ──
+function renderStreakBadge(){
+  const badge = document.getElementById('battleStreakBadge');
+  if(!badge) return;
+  const streak = S.streak || 0;
+  if(streak > 0){
+    badge.style.display = 'block';
+    badge.querySelector('span').textContent = '🔥 ' + streak + '일 연속';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
 // ── ATTEMPT BAR ──
 function renderAttemptBar(){
   const remain = MAX_DAILY - S.dailyAttempts;
   document.getElementById('attemptIcons').innerHTML =
     Array.from({length:MAX_DAILY},(_,i)=>
-      `<span class="ball-ico${i>=remain?' used':''}">⚔️</span>`
+      `<span class="ball-ico${i<S.dailyAttempts?' used':''}">⚔️</span>`
     ).join('');
 
   // 자정까지 남은 시간 계산
