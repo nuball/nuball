@@ -2742,14 +2742,14 @@ async function renderRankList(){
       if(_rankPeriod==='weekly'){
         // Firebase 미준비 시 최대 2초 대기 (1회 한정, race condition 없이)
         if(!window._fbReady){await new Promise(r=>setTimeout(r,500));if(!window._fbReady)await new Promise(r=>setTimeout(r,1500));}
-        // 이번주 월~오늘 날짜 목록 생성 (KST 기준)
-        const today=nowKST();
-        const dow=today.getUTCDay()||7;
+        // 이번주 월~오늘 날짜 목록 생성 (로컬 시간 기준, 히팅과 동일)
+        const today=new Date();
+        const dow=today.getDay()||7;
         const dateStrs=[];
         for(let i=1;i<=dow;i++){
-          const d=nowKST();
-          d.setUTCDate(today.getUTCDate()-(dow-i));
-          dateStrs.push(d.getUTCFullYear()+'-'+(d.getUTCMonth()+1)+'-'+d.getUTCDate());
+          const d=new Date(today);
+          d.setDate(today.getDate()-(dow-i));
+          dateStrs.push(d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate());
         }
         // 모든 날짜 병렬 조회
         // 주간 데이터 최대 2회 재시도
