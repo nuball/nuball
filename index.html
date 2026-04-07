@@ -2854,7 +2854,7 @@ document.addEventListener('touchstart',e=>{
 },{passive:true});
 document.addEventListener('click',e=>{
   if(Date.now()-_lastMboxTouch<600)return;
-  if(e.target.classList.contains('ov')&&e.target.id!=='kakaoGuideModal')e.target.classList.remove('open');
+  if(e.target.classList.contains('ov')&&e.target.id!=='kakaoGuideModal'&&e.target.id!=='rankingModal')e.target.classList.remove('open');
 });
 
 /* ── VIEW MODE ── */
