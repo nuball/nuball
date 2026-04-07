@@ -2881,7 +2881,7 @@ function setupScrollFade(mbox){
 function openModal(id){
   const el=document.getElementById(id);el.classList.add('open');
   // 모달 열릴 때 스크롤 최상단
-  const mbox=el.querySelector('.mbox');if(mbox){mbox.scrollTop=0;setupScrollFade(mbox);}
+  const mbox=el.querySelector('.mbox');if(mbox&&id!=='rankingModal'){mbox.scrollTop=0;setupScrollFade(mbox);}else if(mbox){mbox.scrollTop=0;}
   const mb=el.querySelector('.mbody');if(mb){mb.scrollTop=0;}
   if(id==='teamModal'){selectLeague(S.league||'KBO');}
   if(id==='rankingModal'){
