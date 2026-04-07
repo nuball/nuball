@@ -2771,10 +2771,28 @@ async function renderRankList(){
           d.setDate(today.getDate()-(dow-i));
           dateStrs.push(d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate());
         }
-        // 모든 날짜 병렬 조회
-        const snaps=await Promise.all(
-          dateStrs.map(dStr=>window._fbGet(window._fbRef(window._fbDb,'rankings/'+dStr)))
-        );
+        // 타임아웃 래퍼 (모바일 연결 지연 대비)
+        const fbGetWithTimeout=(ref,ms=6000)=>Promise.race([
+          window._fbGet(ref),
+          new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))
+        ]);
+        // 최대 2회 시도
+        let snaps=null;
+        for(let attempt=0;attempt<2;attempt++){
+          try{
+            snaps=await Promise.all(
+              dateStrs.map(dStr=>fbGetWithTimeout(window._fbRef(window._fbDb,'rankings/'+dStr),6000))
+            );
+            break;
+          }catch(retryErr){
+            if(attempt===0){
+              // 첫 실패 시 1초 대기 후 재시도 (Firebase 연결 확립 대기)
+              await new Promise(r=>setTimeout(r,1000));
+            }else{
+              throw retryErr;
+            }
+          }
+        }
         const userMap={};
         snaps.forEach(daySnap=>{
           if(!daySnap.exists())return;
@@ -2813,7 +2831,13 @@ async function renderRankList(){
       }
     }catch(e){
       console.warn('Firebase read failed',e);
-      if(_rankPeriod==='daily')entries=[...S.rankings];
+      if(_rankPeriod==='daily'){
+        entries=[...S.rankings];
+      }else{
+        // 주간 실패 시 재시도 버튼 표시
+        listEl.innerHTML='<div style="text-align:center;padding:24px 16px"><p style="color:var(--muted);font-size:13px;margin-bottom:12px">'+(S.lang==='ko'?'불러오기 실패. 네트워크를 확인해주세요.':'Failed to load. Check your network.')+'</p><button onclick="renderRankList()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:800;cursor:pointer">'+(S.lang==='ko'?'다시 시도':'Retry')+'</button></div>';
+        return;
+      }
     }
   }else{
     if(_rankPeriod==='daily')entries=[...S.rankings];
