@@ -2848,12 +2848,12 @@ function openModal(id){
   if(id==='statsModal')renderStats();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
-let _touchInMbox=false;
+let _lastMboxTouch=0;
 document.addEventListener('touchstart',e=>{
-  _touchInMbox=!!e.target.closest('.mbox');
+  if(e.target.closest('.mbox'))_lastMboxTouch=Date.now();
 },{passive:true});
 document.addEventListener('click',e=>{
-  if(_touchInMbox){_touchInMbox=false;return;}
+  if(Date.now()-_lastMboxTouch<600)return;
   if(e.target.classList.contains('ov')&&e.target.id!=='kakaoGuideModal')e.target.classList.remove('open');
 });
 
