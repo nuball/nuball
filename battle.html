@@ -668,8 +668,9 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 80px}
         </div>
         <div class="att-bar"><div class="att-bar-fill" id="attBarFill" style="width:0%"></div></div>
         <input class="num-input" type="text" inputmode="numeric" id="battleInput"
-          placeholder="••••" autocomplete="off" oninput="onBattleInput(this)"
-          onkeydown="if(event.key==='Enter')submitGuess()">
+          enterkeyhint="go" placeholder="••••" autocomplete="off" oninput="onBattleInput(this)"
+          onkeydown="if(event.key==='Enter')submitGuess()"
+          onkeyup="if(event.key==='Enter')submitGuess()">
         <div id="inputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:8px;opacity:0;transition:opacity .2s"></div>
         <button class="btn-p" onclick="submitGuess()" id="confirmBtn">확인</button>
         <div class="hint-strip" id="hintStrip"></div>
@@ -1119,7 +1120,14 @@ window.addEventListener('storage', e=>{
 function ls(k){ return localStorage.getItem(k); }
 function lss(k,v){ localStorage.setItem(k,String(v)); }
 function genId(){ return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2); }
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+function todayStr(){
+  const d = new Date();
+  // UTC가 아닌 로컬 시간 기준으로 날짜 계산 (한국 자정에 리셋)
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 
 // ── FIREBASE ──
 function fbReady(cb){ window._fbReady ? cb() : window.addEventListener('fbReady',cb); }
@@ -2149,7 +2157,13 @@ function startHoldForfeit(ev){
   }
   const btn = document.getElementById('backBtn');
   btn.classList.add('holding');
-  _forfeitTimer = setTimeout(()=>{ backToHome(); }, FORFEIT_HOLD_MS);
+  _forfeitTimer = setTimeout(()=>{
+    // 포기 시 기회 1회 소진
+    S.dailyAttempts++;
+    saveLocal();
+    renderAttemptBar();
+    backToHome();
+  }, FORFEIT_HOLD_MS);
 }
 
 function cancelHoldForfeit(){
