@@ -1111,9 +1111,9 @@ window.addEventListener('storage', e=>{
   }
   if(e.key==='nb_country' && e.newValue && e.newValue !== S.country){
     S.country = e.newValue;
-    lss('nbb_country', S.country);
+    lss('nbb_country', e.newValue);
     const cs = document.getElementById('countrySelect');
-    if(cs) cs.value = S.country;
+    if(cs) cs.value = e.newValue;
   }
 });
 function ls(k){ return localStorage.getItem(k); }

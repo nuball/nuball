@@ -2356,8 +2356,12 @@ function buildCountrySelect(){
     const sel=document.getElementById(id);
     if(!sel)return;
     const cur=sel.value||S.country;
-    sel.innerHTML=CC.map(x=>'<option value="'+x.c+'"'+(x.c===cur?' selected':'')+'>'
-      +x.f+' '+(S.lang==='ko'?x.ko:x.en)+'</option>').join('');
+    sel.innerHTML=CC.map(x=>'<option value="'+x.c+'"'+(x.c===cur?' selected':'')+'>'+x.f+' '+(S.lang==='ko'?x.ko:x.en)+'</option>').join('');
+    // 드롭다운 변경 즉시 nb_country에 저장 → 배틀과 동기화
+    sel.onchange = function(){
+      S.country = this.value;
+      localStorage.setItem('nb_country', this.value);
+    };
   });
 }
 
