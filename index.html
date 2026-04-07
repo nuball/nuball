@@ -2797,16 +2797,7 @@ async function renderRankList(){
     if(period==='weekly')rEl.textContent=ko?'주간 랭킹 · 매주 월요일 00시 초기화 · '+timeUntilNextMonday()+' 남음':'Weekly · Resets every Monday · '+timeUntilNextMonday()+' left';
     else rEl.textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
   }
-  // iOS 스크롤 리셋
-  const _resetRankScroll=()=>{
-    const rm=document.querySelector('#rankingModal .mbox');
-    if(!rm)return;
-    rm.scrollTop=0;
-    rm.scrollTo&&rm.scrollTo(0,0);
-  };
-  _resetRankScroll();
-  requestAnimationFrame(_resetRankScroll);
-  setTimeout(_resetRankScroll,100);
+
 }
 
 /* ── MODALS ── */
