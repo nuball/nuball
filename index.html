@@ -2665,6 +2665,7 @@ async function registerRanking(){
 
 let _rankTab=0; // 0=통합, 1=LV1, 2=LV2, 3=LV3
 let _rankPeriod='daily'; // daily/weekly
+let _rankSeq=0; // 렌더 순번 — 최신 호출만 화면에 반영
 function setRankPeriod(p){
   _rankPeriod=p;
   ['daily','weekly'].forEach(k=>{
@@ -2683,6 +2684,7 @@ function setRankTab(n){
 }
 
 async function renderRankList(){
+  const mySeq=++_rankSeq; // 이 호출의 순번
   const listEl=document.getElementById('rankList');
   listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+
     (S.lang==='ko'?'불러오는 중...':'Loading...')+'</div>';
@@ -2807,6 +2809,9 @@ async function renderRankList(){
   }else{
     if(_rankPeriod==='daily')entries=[...S.rankings];
   }
+
+  // 최신 호출이 아니면 렌더 중단 (race condition 방지)
+  if(mySeq!==_rankSeq)return;
 
   // 탭 필터링
   const lvMap={1:3,2:4,3:5};
