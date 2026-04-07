@@ -685,7 +685,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <div class="mbody">
         <div style="display:flex;gap:4px;margin-bottom:8px">
           <button class="rank-tab active" id="hrtab_daily" onclick="setHRankPeriod('daily')" style="font-size:11px">일간</button>
-          <button class="rank-tab" id="hrtab_weekly" onclick="setHRankPeriod('weekly')" style="font-size:11px">주간</button>
+          <button class="rank-tab" id="hrtab_weekly" onclick="setHRankPeriod('weekly')" style="font-size:11px">월간</button>
         </div>
         <div id="hYesterdayTop" style="display:none;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)"></div>
         <div style="display:flex;gap:4px;margin-bottom:12px">
@@ -763,7 +763,7 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
       <!-- 기간 탭 -->
       <div style="display:flex;gap:6px;margin-bottom:10px">
         <button class="league-tab active" id="ptab_daily" onclick="setRankPeriod('daily')">일간</button>
-        <button class="league-tab" id="ptab_weekly" onclick="setRankPeriod('weekly')">주간</button>
+        <button class="league-tab" id="ptab_weekly" onclick="setRankPeriod('weekly')">월간</button>
       </div>
       <div id="yesterdayTop" style="display:none;margin-bottom:4px;padding-bottom:8px;border-bottom:1px solid var(--border)"></div>
       <div class="rank-tabs">
@@ -1128,7 +1128,7 @@ en:{
 const t=k=>MSGS[S.lang][k]||k;
 
 /* ── STATE ── */
-const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',dayId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false,hitVrUsedToday:'',streak:0,personalBest:{3:null,4:null,5:null},achievements:{},registeredScore:0,noForfeitDays:[],team:null,league:null,weekAtBats:0,weekWins:0};
+const S={uid:null,country:'KR',lang:'ko',dark:false,today:'',dayId:'',consumed:0,scores:[],totalScore:0,registered:false,game:null,vm:'list',rankings:[],stats:{total:0,wins:0,streak:0,best:0,dist:{}},vrUsed:false,vrUsedThisGame:false,hitVrUsedToday:'',streak:0,personalBest:{3:null,4:null,5:null},achievements:{},registeredScore:0,noForfeitDays:[],team:null,league:null,weekAtBats:0,weekWins:0,monthAtBats:0,monthWins:0};
 
 /* ── UTILS ── */
 function mulberry32(seed){return()=>{let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
@@ -2256,9 +2256,9 @@ async function init(){
   // 주간 타석/타율 초기 로드
   if(window._fbReady&&S.uid){
     try{
-      const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
+      const weekPath=HITTING_RANK_PATH+'_monthly/'+getMonthId()+'/'+S.uid;
       window._fbGet(window._fbRef(window._fbDb,weekPath)).then(snap=>{
-        if(snap.exists()){const d=snap.val();S.weekAtBats=d.weekAtBats||0;S.weekWins=d.weekWins||0;}
+        if(snap.exists()){const d=snap.val();S.weekAtBats=d.monthAtBats||0;S.weekWins=d.monthWins||0;}
       }).catch(()=>{});
     }catch(e){}
   }else{
@@ -2266,9 +2266,9 @@ async function init(){
     setTimeout(()=>{
       if(window._fbReady&&S.uid){
         try{
-          const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
+          const weekPath=HITTING_RANK_PATH+'_monthly/'+getMonthId()+'/'+S.uid;
           window._fbGet(window._fbRef(window._fbDb,weekPath)).then(snap=>{
-            if(snap.exists()){const d=snap.val();S.weekAtBats=d.weekAtBats||0;S.weekWins=d.weekWins||0;}
+            if(snap.exists()){const d=snap.val();S.weekAtBats=d.monthAtBats||0;S.weekWins=d.monthWins||0;}
           }).catch(()=>{});
         }catch(e){}
       }
@@ -2302,7 +2302,7 @@ function applyLang(){
   const e=id=>document.getElementById(id);
   if(e('menuLbl1'))e('menuLbl1').textContent=ko?'나의 랭킹':'Ranking';
   if(e('ptab_daily'))e('ptab_daily').textContent=ko?'일간':'Daily';
-  if(e('ptab_weekly'))e('ptab_weekly').textContent=ko?'주간':'Weekly';
+  if(e('ptab_weekly'))e('ptab_weekly').textContent=ko?'월간':'Monthly';
   if(e('menuLbl2'))e('menuLbl2').textContent=ko?'통계·공유':'Stats & Share';
   if(e('menuLbl3'))e('menuLbl3').textContent=ko?'문의·후원':'Contact & Support';
   if(e('menuLbl4'))e('menuLbl4').textContent=ko?'게임 방법':'How to Play';
@@ -2337,7 +2337,7 @@ function applyLang(){
   if(e('takeBtnLbl'))e('takeBtnLbl').textContent=ko?'지켜보기':'Take';
   if(e('swingBtnLbl'))e('swingBtnLbl').textContent=ko?'스윙':'Swing';
   if(e('hrtab_daily'))e('hrtab_daily').textContent=ko?'일간':'Daily';
-  if(e('hrtab_weekly'))e('hrtab_weekly').textContent=ko?'주간':'Weekly';
+  if(e('hrtab_weekly'))e('hrtab_weekly').textContent=ko?'월간':'Monthly';
   if(e('hrtab_all'))e('hrtab_all').textContent=ko?'통합':'All';
   if(e('hrtab_lv1'))e('hrtab_lv1').textContent='LV.1';
   if(e('hrtab_lv2'))e('hrtab_lv2').textContent='LV.2';
@@ -3529,7 +3529,7 @@ async function autoUpdateAtBats(){
       await window._fbSet(dayRef,{...daySnap.val(),atBats,wins,streak:S.streak||0,achCount,achVer:'v2'});
     }
     // 주간
-    const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
+    const weekPath=HITTING_RANK_PATH+'_monthly/'+getMonthId()+'/'+S.uid;
     const wSnap=await window._fbGet(window._fbRef(window._fbDb,weekPath));
     if(wSnap.exists()){
       const wd=wSnap.val();
@@ -3537,12 +3537,12 @@ async function autoUpdateAtBats(){
       const winDays=wd.winDays||{};
       const prevAb=abDays[S.today]||0;
       const prevWin=winDays[S.today]||0;
-      const weekAtBats=Math.max(0,(wd.weekAtBats||0)+(atBats-prevAb));
-      const weekWins=Math.max(0,(wd.weekWins||0)+(wins-prevWin));
+      const monthAtBats=Math.max(0,(wd.monthAtBats||0)+(atBats-prevAb));
+      const monthWins=Math.max(0,(wd.monthWins||0)+(wins-prevWin));
       abDays[S.today]=atBats;
       winDays[S.today]=wins;
-      S.weekAtBats=weekAtBats;S.weekWins=weekWins;
-      await window._fbSet(window._fbRef(window._fbDb,weekPath),{...wd,weekAtBats,weekWins,abDays,winDays,streak:S.streak||0});
+      S.weekAtBats=monthAtBats;S.weekWins=monthWins;
+      await window._fbSet(window._fbRef(window._fbDb,weekPath),{...wd,monthAtBats,monthWins,abDays,winDays,streak:S.streak||0});
     }
   }catch(e){console.warn('autoUpdateAtBats failed',e);}
 }
@@ -3604,7 +3604,7 @@ async function registerFromStats(){
       await window._fbSet(window._fbRef(window._fbDb,path),entry);
       // 히팅 주간 랭킹 누적
       try{
-        const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
+        const weekPath=HITTING_RANK_PATH+'_monthly/'+getMonthId()+'/'+S.uid;
         const wSnap=await window._fbGet(window._fbRef(window._fbDb,weekPath));
         const todayStr2=S.today;
         if(wSnap.exists()){
@@ -3616,23 +3616,22 @@ async function registerFromStats(){
           const prevWinDays=wd.winDays||{};
           const prevAb=prevAbDays[todayStr2]||0;
           const prevWin=prevWinDays[todayStr2]||0;
-          const weekAtBats=(wd.weekAtBats||0)+(atBats-prevAb);
-          const weekWins=(wd.weekWins||0)+(wins-prevWin);
+          const monthAtBats2=(wd.monthAtBats||0)+(atBats-prevAb);
+          const monthWins2=(wd.monthWins||0)+(wins-prevWin);
           prevAbDays[todayStr2]=atBats;
           prevWinDays[todayStr2]=wins;
           if(bestScore>prevTodayBest){
-            const weekTotal=(wd.weekTotal||0)+(bestScore-prevTodayBest);
+            const monthTotal=(wd.monthTotal||0)+(bestScore-prevTodayBest);
             prevDays[todayStr2]=bestScore;
-            await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:weekTotal,weekTotal,days:prevDays,weekAtBats:Math.max(0,weekAtBats),weekWins:Math.max(0,weekWins),abDays:prevAbDays,winDays:prevWinDays});
+            await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:monthTotal,monthTotal,days:prevDays,monthAtBats:Math.max(0,monthAtBats2),monthWins:Math.max(0,monthWins2),abDays:prevAbDays,winDays:prevWinDays});
           }else{
-            // 점수 갱신 없어도 타석/타율은 업데이트
-            await window._fbSet(window._fbRef(window._fbDb,weekPath),{...wd,weekAtBats:Math.max(0,weekAtBats),weekWins:Math.max(0,weekWins),abDays:prevAbDays,winDays:prevWinDays,streak:S.streak||0,nick,team:S.team||null});
+            await window._fbSet(window._fbRef(window._fbDb,weekPath),{...wd,monthAtBats:Math.max(0,monthAtBats2),monthWins:Math.max(0,monthWins2),abDays:prevAbDays,winDays:prevWinDays,streak:S.streak||0,nick,team:S.team||null});
           }
         }else{
           const days={};days[todayStr2]=bestScore;
           const abDays={};abDays[todayStr2]=atBats;
           const winDays={};winDays[todayStr2]=wins;
-          await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:bestScore,weekTotal:bestScore,days,weekAtBats:atBats,weekWins:wins,abDays,winDays});
+          await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:bestScore,monthTotal:bestScore,days,monthAtBats:atBats,monthWins:wins,abDays,winDays});
         }
       }catch(e){console.warn('weekly reg failed',e);}
       // 등록 완료
@@ -3711,7 +3710,7 @@ async function renderRankList(){
   const ko=S.lang==='ko';
   const titleEl=document.querySelector('#rankingModal .mtitle');
   if(titleEl){
-    const titles={daily:ko?'🏆 일간 랭킹':'🏆 Daily Ranking',weekly:ko?'🏆 주간 랭킹':'🏆 Weekly Ranking'};
+    const titles={daily:ko?'🏆 일간 랭킹':'🏆 Daily Ranking',weekly:ko?'🏆 월간 랭킹':'🏆 Monthly Ranking'};
     titleEl.textContent=titles[_rankPeriod]||titles.daily;
   }
   // 주간/월간이면 어제1등 숨기기
@@ -3861,7 +3860,7 @@ async function renderRankList(){
   }
   const rEl=document.getElementById('rankResetEl');
   if(rEl){
-    if(_rankPeriod==='weekly')rEl.textContent=ko?'주간 랭킹 · 매주 월요일 00시 초기화 · '+timeUntilNextMonday()+' 남음':'Weekly · Resets every Monday · '+timeUntilNextMonday()+' left';
+    if(_rankPeriod==='weekly')rEl.textContent=ko?'월간 랭킹 · 매월 1일 00시 초기화 · '+timeUntilNextMonth()+' 남음':'Monthly · Resets 1st of month · '+timeUntilNextMonth()+' left';
     else rEl.textContent=t('resetInfo')+' · '+timeUntilMidnight()+' '+t('resetLeft');
   }
 }
@@ -4416,18 +4415,18 @@ async function renderHRankList(){
   listEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+(ko?'불러오는 중...':'Loading...')+'</div>';
   const titleEl=document.getElementById('hRankTitle');
   const lvLabel=_hRankLevel===0?(ko?'통합':'All'):('LV.'+_hRankLevel);
-  if(titleEl)titleEl.textContent='🏏 '+(_hRankPeriod==='daily'?(ko?`히팅 일간 랭킹 · ${lvLabel}`:`Hitting Daily · ${lvLabel}`):(ko?`히팅 주간 랭킹 · ${lvLabel}`:`Hitting Weekly · ${lvLabel}`));
+  if(titleEl)titleEl.textContent='🏏 '+(_hRankPeriod==='daily'?(ko?`히팅 일간 랭킹 · ${lvLabel}`:`Hitting Daily · ${lvLabel}`):(ko?`히팅 월간 랭킹 · ${lvLabel}`:`Hitting Monthly · ${lvLabel}`));
   const levelDigits={1:3,2:4,3:5}[_hRankLevel]||0;
   let entries=[];
   if(window._fbReady){
     try{
       if(_hRankPeriod==='weekly'){
-        const snaps=await Promise.all([window._fbGet(window._fbRef(window._fbDb,HITTING_RANK_PATH+'_weekly/'+getWeekId()))]);
+        const snaps=await Promise.all([window._fbGet(window._fbRef(window._fbDb,HITTING_RANK_PATH+'_monthly/'+getMonthId()))]);
         const weekSnap=snaps[0];
         if(weekSnap.exists()){
           weekSnap.forEach(child=>{
             const d2=child.val();const uid=child.key;
-            entries.push({id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,achCount:d2.achCount||0,achVer:d2.achVer||'',team:d2.team||null,league:d2.league||null,score:d2.weekTotal||d2.score||0,atBats:d2.weekAtBats||0,wins:d2.weekWins||0});
+            entries.push({id:uid,nick:d2.nick,country:d2.country,level:d2.level||0,streak:d2.streak||0,achCount:d2.achCount||0,achVer:d2.achVer||'',team:d2.team||null,league:d2.league||null,score:d2.monthTotal||d2.score||0,atBats:d2.monthAtBats||0,wins:d2.monthWins||0});
           });
           entries.sort((a,b)=>{
             if(b.score!==a.score)return b.score-a.score;
@@ -4546,7 +4545,7 @@ async function renderHRankList(){
     }).join('');
   }
   const rEl=document.getElementById('hRankResetEl');
-  if(rEl)rEl.textContent=_hRankPeriod==='weekly'?(ko?'주간 · 매주 월요일 초기화':'Weekly · Resets Monday'):(ko?'일간 · 매일 자정 초기화 · '+timeUntilMidnight()+' 남음':'Daily · '+timeUntilMidnight()+' left');
+  if(rEl)rEl.textContent=_hRankPeriod==='weekly'?(ko?'월간 · 매월 1일 초기화 · '+timeUntilNextMonth()+' 남음':'Monthly · Resets 1st of month · '+timeUntilNextMonth()+' left'):(ko?'일간 · 매일 자정 초기화 · '+timeUntilMidnight()+' 남음':'Daily · '+timeUntilMidnight()+' left');
 }
 
 /* 히팅 랭킹 등록 */
@@ -4558,13 +4557,13 @@ async function registerHittingRanking(nick,country){
   try{
     await window._fbSet(window._fbRef(window._fbDb,HITTING_RANK_PATH+'/'+S.dayId+'/'+S.uid),entry);
     // 주간 누적
-    const weekPath=HITTING_RANK_PATH+'_weekly/'+getWeekId()+'/'+S.uid;
+    const weekPath=HITTING_RANK_PATH+'_monthly/'+getMonthId()+'/'+S.uid;
     const wSnap=await window._fbGet(window._fbRef(window._fbDb,weekPath));
     const todayStr2=S.today;
     if(wSnap.exists()){
       const wd=wSnap.val();const prevDays=wd.days||{};const prevBest=prevDays[todayStr2]||0;
-      if(bestScore>prevBest){const weekTotal=(wd.weekTotal||0)+(bestScore-prevBest);prevDays[todayStr2]=bestScore;await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:weekTotal,weekTotal,days:prevDays});}
-    }else{const days={};days[todayStr2]=bestScore;await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:bestScore,weekTotal:bestScore,days});}
+      if(bestScore>prevBest){const monthTotal=(wd.monthTotal||0)+(bestScore-prevBest);prevDays[todayStr2]=bestScore;await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:monthTotal,monthTotal,days:prevDays});}
+    }else{const days={};days[todayStr2]=bestScore;await window._fbSet(window._fbRef(window._fbDb,weekPath),{...entry,score:bestScore,monthTotal:bestScore,days});}
   }catch(e){console.warn('Hitting rank save failed',e);}
 }
 
