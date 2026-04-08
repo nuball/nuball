@@ -1405,7 +1405,7 @@ function renderMap(){
       const t = S.territories[rId(d)];
       return t ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.9)';
     })
-    .style('stroke-width','2.5px')
+    .style('stroke-width','1px')
     .style('stroke-linejoin','round')
     .text(d=>{
       // 너무 작은 지역은 이름 생략
@@ -1499,7 +1499,7 @@ function renderMap(){
       .attr('pointer-events', 'none')
       .style('paint-order', 'stroke')
       .style('stroke', dokdoTerr ? 'rgba(0,0,0,.3)' : (document.body.classList.contains('dark') ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.9)'))
-      .style('stroke-width', '2px')
+      .style('stroke-width', '1px')
       .text('독도');
 
     // 이벤트 핸들러 — S는 외부 state 객체
