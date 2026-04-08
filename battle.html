@@ -1278,20 +1278,9 @@ function renderMap(){
     });
   svg.call(zoom).on('dblclick.zoom', null);
 
-  // 핀치줌 감지: 두 손가락이면 클릭 차단
-  let _isPinching = false;
-  let _pinchEndTime = 0;
-  svg.on('touchstart.pinch', function(ev){
-    if(ev.touches && ev.touches.length >= 2){
-      _isPinching = true;
-    }
-  });
-  svg.on('touchend.pinch', function(ev){
-    if(_isPinching){
-      _pinchEndTime = Date.now();
-      _isPinching = false;
-    }
-  });
+  // 멀티터치(핀치줌) 감지 플래그
+  let _hadMultiTouch = false;
+  let _multiTouchEnd = 0;
 
   // 독도는 projection 좌표 오류로 SVG 전체를 덮으므로 별도 처리
   const mainlandFeatures = cleanedFeatures.filter(f => f.properties.name !== '독도');
@@ -1322,7 +1311,8 @@ function renderMap(){
       if(ev.defaultPrevented) return;
       clickRegion(rId(d), rNameEn(d));
     })
-    .on('touchend',(ev,d)=>{ ev.preventDefault(); if(_isPinching || Date.now()-_pinchEndTime < 400) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(rId(d), rNameEn(d)); })
+    .on('touchstart',(ev,d)=>{ if(ev.touches.length >= 2){ _hadMultiTouch = true; _multiTouchEnd = 0; } else if(ev.touches.length === 1){ _hadMultiTouch = false; } })
+    .on('touchend',(ev,d)=>{ ev.preventDefault(); if(_hadMultiTouch){ _multiTouchEnd = Date.now(); return; } if(Date.now()-_multiTouchEnd < 500) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(rId(d), rNameEn(d)); })
     .on('mouseenter',(ev,d)=>{
       const t = S.territories[rId(d)];
       const nameEl = document.getElementById('mapHoverName');
@@ -1495,7 +1485,8 @@ function renderMap(){
     // 이벤트 핸들러 — S는 외부 state 객체
     dokdoG
       .on('click', ()=> clickRegion(dokdoId, '독도'))
-      .on('touchend', (ev)=>{ ev.preventDefault(); if(_isPinching || Date.now()-_pinchEndTime < 400) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(dokdoId, '독도'); })
+      .on('touchstart', (ev)=>{ if(ev.touches.length >= 2){ _hadMultiTouch = true; _multiTouchEnd = 0; } else if(ev.touches.length === 1){ _hadMultiTouch = false; } })
+      .on('touchend', (ev)=>{ ev.preventDefault(); if(_hadMultiTouch){ _multiTouchEnd = Date.now(); return; } if(Date.now()-_multiTouchEnd < 500) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(dokdoId, '독도'); })
       .on('mouseenter', ()=>{
         const t = S.territories[dokdoId];
         document.getElementById('mapHoverName').textContent = '독도';
