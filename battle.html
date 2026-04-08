@@ -1899,8 +1899,8 @@ function confirmNotifOff(){
   localStorage.removeItem('nb_notif');
   localStorage.removeItem('nb_fcm_token');
   updateNotifBtn(false);
-  if(S.uid&&window._fbReady){
-    try{window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),null);}catch(e){}
+  if(S.userId&&window._fbReady){
+    try{window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.userId),null);}catch(e){}
   }
 }
 function updateNotifModal(ko){
@@ -1932,7 +1932,10 @@ function updateNotifModal(ko){
     }
     if(allowBtn)allowBtn.style.display='none';return;
   }
-  if(isPC)return;
+  if(isPC){
+    if(allowBtn){allowBtn.style.display='';allowBtn.textContent=ko?'알림 받기':'Get Alerts';}
+    return;
+  }
   if(_pwaPrompt){if(pwaBox)pwaBox.style.display='block';if(pwaBtn)pwaBtn.style.display='block';if(allowBtn)allowBtn.textContent=ko?'알림만 받기':'Alerts Only';}
 }
 function updateNotifModalForIOS(ko,isStandalone){
@@ -1965,8 +1968,8 @@ function initNotifState(){
           vapidKey:'BIzE3xwfKk4TN_xXKZWdWa7s4Ay2pgPB9fYAnmnxs8fcHUhZ2cWy0YNS9rM0TRQ84CZPyzMweajxH46_NLUQwUs',
           serviceWorkerRegistration:reg
         });
-        if(token&&S.uid&&window._fbReady){
-          await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),{token,lang:S.lang,ts:Date.now()});
+        if(token&&S.userId&&window._fbReady){
+          await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.userId),{token,lang:S.lang,ts:Date.now()});
           localStorage.setItem('nb_fcm_token',token);
           localStorage.setItem('nb_notif','1');
           updateNotifBtn(true);
@@ -1998,7 +2001,7 @@ async function requestPushPermission(){
       });
       if(token){
         localStorage.setItem('nb_fcm_token',token);
-        if(S.uid&&window._fbReady){try{await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.uid),{token,lang:S.lang,ts:Date.now()});}catch(fbErr){}}
+        if(S.userId&&window._fbReady){try{await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.userId),{token,lang:S.lang,ts:Date.now()});}catch(fbErr){}}
         localStorage.setItem('nb_notif','1');
         updateNotifBtn(true);
         closeModal('notifInfoModal');
