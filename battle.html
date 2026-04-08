@@ -1402,7 +1402,8 @@ function renderMap(){
     })
     .attr('font-size', d=>{
       if(rName(d)==='울릉군'||rName(d)==='독도') return '5px';
-      // 지역 크기에 따라 7~8px 고정 (좁은 지역만 작게)
+      if(rId(d)==='31120') return '2px'; // 구리시 강제 2px
+      if(rId(d)==='31200') return '4px'; // 남양주시 4px
       const bounds = pathGen.bounds(d);
       const bw = bounds[1][0] - bounds[0][0];
       const bh = bounds[1][1] - bounds[0][1];
@@ -1426,10 +1427,12 @@ function renderMap(){
       const bw = bounds[1][0] - bounds[0][0];
       const bh = bounds[1][1] - bounds[0][1];
       const minDim = Math.min(bw, bh);
-      if(minDim < 4) return '';
-      // 긴 이름은 짧게: '시'/'군'/'구' 앞 2글자만
       const name = rName(d);
-      return name.replace(/특별자치시$|특별자치도$|광역시$|특별시$|특례시$|[시군구]$/, '');
+      const shortName = name.replace(/특별자치시$|특별자치도$|광역시$|특별시$|특례시$|[시군구]$/, '');
+      // 구리시는 작아도 표시
+      if(rId(d) === '31120') return shortName;
+      if(minDim < 4) return '';
+      return shortName;
     })
     .on('click',(ev,d)=>{
       if(ev.defaultPrevented) return;
