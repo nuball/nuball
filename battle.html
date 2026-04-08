@@ -1092,6 +1092,7 @@ function loadLocal(){
   S.color  = ls('nbb_color');
   S.icon    = ls('nbb_icon') || null;
   S.country = ls('nb_country') || ls('nbb_country') || 'KR'; // nb_country(공통 키) 우선
+  S.streak  = parseInt(ls('nbb_streak')||'0') || 0;
   S.lang   = ls('nbb_lang') || 'ko';
   S.dailyAttempts = parseInt(ls('nbb_att')||'0');
   S.lastDate = ls('nbb_date');
@@ -1104,6 +1105,7 @@ function saveLocal(){
   if(S.userId){ lss('nbb_uid', S.userId); lss('nubol_uid', S.userId); } // 공통 UID 저장
   if(S.nick){   lss('nbb_nick', S.nick); lss('nb_nick', S.nick); } // 공통 키에도 저장
   if(S.color)   lss('nbb_color',S.color);
+  lss('nbb_streak', S.streak||0);
   if(S.icon)    lss('nbb_icon', S.icon);
   else          localStorage.removeItem('nbb_icon');
 }
@@ -1649,6 +1651,20 @@ function renderRankModal(){
   }
 }
 
+
+// ── 스트릭 업데이트 (하루 1번 시도만 해도 카운트) ──
+function updateDailyStreak(){
+  const today2 = todayStr();
+  const lastPlay = ls('nbb_lastPlay');
+  if(lastPlay === today2) return; // 오늘 이미 카운트됨
+  const ydObj = new Date(); ydObj.setDate(ydObj.getDate()-1);
+  const yesterday = ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
+  if(lastPlay === yesterday) S.streak = (S.streak||0) + 1;
+  else S.streak = 1;
+  lss('nbb_lastPlay', today2);
+  saveLocal();
+  renderStreakBadge();
+}
 // ── STREAK BADGE ──
 function renderStreakBadge(){
   const badge = document.getElementById('battleStreakBadge');
@@ -2183,6 +2199,7 @@ function backToHome(){
     S.dailyAttempts++;
     saveLocal();
     renderAttemptBar();
+    updateDailyStreak(); // 실패/포기도 스트릭 카운트
   }
   S.currentRegion=null;
   S.currentTerritory=null;
@@ -2452,6 +2469,8 @@ async function captureWithRandomNumber(){
     score: myScore,
     capturedAt: Date.now(),
   });
+
+  updateDailyStreak(); // 점령 성공 시 스트릭
 
   const ko = S.lang !== 'en';
   const name = S.currentRegion.name;
@@ -3036,7 +3055,7 @@ function init(){
   applyTheme();
   setLang(S.lang || 'ko');
   renderAttemptBar();
-  showScreen('home');
+  renderStreakBadge();
   checkFirstVisit();
   initMap();
   loadTerritories();
