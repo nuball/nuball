@@ -2027,8 +2027,8 @@ async function requestPushPermission(){
         alert(ko?'구독 신청되었어요! 매일 아침 알림을 보내드릴게요 ⚔️':'Subscribed! We will send NUBALL BATTLE reminders every morning ⚔️');
       }
     }else{closeModal('notifInfoModal');}
+  }catch(e){console.warn('Push permission failed',e);}
 }
-let _pwaPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{
   _pwaPrompt=e;
   const btn=document.getElementById('pwaInstallBtn');
