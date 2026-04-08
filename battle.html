@@ -1742,6 +1742,19 @@ function renderStreakBadge(){
   }
 }
 
+
+function shrinkRegionBox(){
+  const box = document.getElementById('gameRegionBox');
+  if(!box) return;
+  const inner = box.querySelector('div');
+  if(!inner) return;
+  let fs = 13;
+  inner.style.fontSize = fs + 'px';
+  while(inner.scrollWidth > box.clientWidth - 16 && fs > 8){
+    fs -= 0.5;
+    inner.style.fontSize = fs + 'px';
+  }
+}
 // ── ATTEMPT BAR ──
 function renderAttemptBar(){
   const remain = MAX_DAILY - S.dailyAttempts;
@@ -2268,6 +2281,7 @@ function startGame(territory, level){
   document.getElementById('hintStrip') && (document.getElementById('hintStrip').style.display='none');
   updateScoreDisplay();
   showScreen('game');
+  setTimeout(shrinkRegionBox, 50);
   // 입력 초기화
   const inp = document.getElementById('battleInput');
   if(inp){ inp.value=''; inp.maxLength=digits; inp.placeholder='•'.repeat(digits); }
@@ -2428,8 +2442,8 @@ function onSetInput(el){
 
 // ── INPUT HANDLER ──
 function onBattleInput(el){
+  if(!S.game || !S.game.level) return;
   const digits = LEVEL_DIGITS[S.game.level];
-  // 숫자만, 최대 digits자리
   let val = el.value.replace(/[^1-9]/g,'').slice(0, digits);
   el.value = val;
   document.getElementById('confirmBtn').disabled = val.length < digits;
@@ -2464,6 +2478,9 @@ function submitGuess(){
   document.getElementById('confirmBtn').disabled = true;
 
   renderLogs();
+  // 최신 시도(상단)가 보이도록 스크롤
+  const logEl = document.getElementById('logList');
+  if(logEl) logEl.scrollIntoView({behavior:'smooth', block:'start'});
   updateScoreDisplay();
   const cnt = S.game.logs.length;
   document.getElementById('attCount').textContent = `${cnt}번 시도`;
