@@ -451,6 +451,12 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 80px}
         </div>
         <div class="tt-status" id="ttStatus"></div>
       </div>
+      <!-- 지도 새로고침 버튼 -->
+      <button onclick="loadTerritories()" title="지도 새로고침"
+        style="position:absolute;bottom:18px;right:18px;width:32px;height:32px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;box-shadow:var(--sh);transition:all .2s;z-index:10"
+        onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+        🔄
+      </button>
     </div><!-- /map-wrap -->
 
     <!-- ── 누볼 시리즈 버튼 ── -->
@@ -1227,7 +1233,14 @@ function renderMap(){
         return Math.abs(a/2);
       });
       const total = areas.reduce((s,v)=>s+v, 0);
-      const filtered = g.coordinates.filter((_,i) => areas[i]/total >= 0.03);
+      const filtered = g.coordinates.filter((coords,i) => {
+        if(areas[i]/total < 0.03) return false;
+        // 경도 125.5° 미만 폴리곤 제거 (인천 서해 고립 섬 등)
+        const pts2 = coords[0];
+        const avgLng = pts2.reduce((s,p)=>s+p[0],0)/pts2.length;
+        if(avgLng < 125.5) return false;
+        return true;
+      });
       if(filtered.length === 0){
         const maxIdx = areas.indexOf(Math.max(...areas));
         filtered.push(g.coordinates[maxIdx]);
