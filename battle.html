@@ -1968,8 +1968,17 @@ function initNotifState(){
           vapidKey:'BIzE3xwfKk4TN_xXKZWdWa7s4Ay2pgPB9fYAnmnxs8fcHUhZ2cWy0YNS9rM0TRQ84CZPyzMweajxH46_NLUQwUs',
           serviceWorkerRegistration:reg
         });
-        if(token&&S.userId&&window._fbReady){
-          await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.userId),{token,lang:S.lang,ts:Date.now()});
+        if(token){
+          const uid2 = S.userId || localStorage.getItem('nubol_uid');
+          if(uid2){
+            try{
+              await fetch(`https://nuball-default-rtdb.firebaseio.com/fcm_tokens/${uid2}.json`,{
+                method:'PUT',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({token,lang:S.lang||'ko',ts:Date.now()})
+              });
+            }catch(e2){}
+          }
           localStorage.setItem('nb_fcm_token',token);
           localStorage.setItem('nb_notif','1');
           updateNotifBtn(true);
@@ -2001,7 +2010,17 @@ async function requestPushPermission(){
       });
       if(token){
         localStorage.setItem('nb_fcm_token',token);
-        if(S.userId&&window._fbReady){try{await window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.userId),{token,lang:S.lang,ts:Date.now()});}catch(fbErr){}}
+        // 누볼 공용 DB(send-notifications.js가 읽는 곳)에 REST API로 저장
+        const uid = S.userId || localStorage.getItem('nubol_uid');
+        if(uid){
+          try{
+            await fetch(`https://nuball-default-rtdb.firebaseio.com/fcm_tokens/${uid}.json`,{
+              method:'PUT',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({token,lang:S.lang||'ko',ts:Date.now()})
+            });
+          }catch(fetchErr){console.warn('FCM token save to nuball DB failed:',fetchErr);}
+        }
         localStorage.setItem('nb_notif','1');
         updateNotifBtn(true);
         closeModal('notifInfoModal');
