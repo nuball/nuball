@@ -3055,6 +3055,8 @@ function init(){
   applyTheme();
   setLang(S.lang || 'ko');
   renderAttemptBar();
+  // 오늘 이미 시도한 기록이 있으면 스트릭 자동 반영
+  if(S.dailyAttempts > 0) updateDailyStreak();
   renderStreakBadge();
   checkFirstVisit();
   initMap();
