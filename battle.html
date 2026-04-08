@@ -1965,7 +1965,7 @@ function initNotifState(){
         const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
         await navigator.serviceWorker.ready;
         const token=await window._fbGetToken(window._fbMessaging,{
-          vapidKey:'BIzE3xwfKk4TN_xXKZWdWa7s4Ay2pgPB9fYAnmnxs8fcHUhZ2cWy0YNS9rM0TRQ84CZPyzMweajxH46_NLUQwUs',
+          vapidKey:'BL9EAQ2sD3MMDsC2Ll2HEC4YywP0HY6NOHJBoHVIxmp2gwsXBErqZrQZ4uUuEHNr4IfWzB280xrISBn4JFeL01M',
           serviceWorkerRegistration:reg
         });
         if(token){
@@ -1996,25 +1996,18 @@ async function waitForFCM(timeout=5000){
 }
 async function requestPushPermission(){
   const ko=S.lang==='ko';
-  alert('[DEBUG1] requestPushPermission 시작\nNotification: '+('Notification' in window)+'\nSW: '+('serviceWorker' in navigator));
   if(!('Notification' in window)||!('serviceWorker' in navigator))return;
   if(Notification.permission==='denied'){updateNotifModal(ko);return;}
   try{
-    alert('[DEBUG2] waitForFCM 호출\nMessaging: '+(!!window._fbMessaging)+'\nGetToken: '+(!!window._fbGetToken));
     await waitForFCM();
-    alert('[DEBUG3] SW 등록 시도');
-    const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
     await navigator.serviceWorker.ready;
-    alert('[DEBUG4] 권한 요청\n현재 권한: '+Notification.permission);
     const perm=await Notification.requestPermission();
-    alert('[DEBUG5] 권한 결과: '+perm);
     if(perm==='granted'){
-      alert('[DEBUG6] 토큰 요청 시도');
-      const token=await window._fbGetToken(window._fbMessaging,{
-        vapidKey:'BIzE3xwfKk4TN_xXKZWdWa7s4Ay2pgPB9fYAnmnxs8fcHUhZ2cWy0YNS9rM0TRQ84CZPyzMweajxH46_NLUQwUs',
+            const token=await window._fbGetToken(window._fbMessaging,{
+        vapidKey:'BL9EAQ2sD3MMDsC2Ll2HEC4YywP0HY6NOHJBoHVIxmp2gwsXBErqZrQZ4uUuEHNr4IfWzB280xrISBn4JFeL01M',
         serviceWorkerRegistration:reg
       });
-      alert('[DEBUG7] 토큰: '+(token?token.substring(0,30)+'...':'null'));
       if(token){
         localStorage.setItem('nb_fcm_token',token);
         // 누볼 공용 DB(send-notifications.js가 읽는 곳)에 REST API로 저장
@@ -2034,7 +2027,6 @@ async function requestPushPermission(){
         alert(ko?'구독 신청되었어요! 매일 아침 알림을 보내드릴게요 ⚔️':'Subscribed! We will send NUBALL BATTLE reminders every morning ⚔️');
       }
     }else{closeModal('notifInfoModal');}
-  }catch(e){alert('[DEBUG ERR] '+e.message+'\n'+e.stack?.substring(0,200));console.warn('Push permission failed',e);}
 }
 let _pwaPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{
