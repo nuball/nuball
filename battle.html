@@ -1278,20 +1278,19 @@ function renderMap(){
     });
   svg.call(zoom).on('dblclick.zoom', null);
 
-  // 멀티터치(핀치줌) 감지 플래그
-  let _hadMultiTouch = false;
-  let _multiTouchEnd = 0;
-  // SVG 전체 레벨에서도 감지 (빈 공간 + 지역 혼합 터치 케이스)
-  svg.on('touchstart.multidetect', function(ev){
-    if(ev.touches && ev.touches.length >= 2){
-      _hadMultiTouch = true;
-      _multiTouchEnd = 0;
-    }
+  // 제스처 중 최대 터치 수 추적 (SVG 전체 레벨)
+  let _maxTouches = 0;
+  let _gestureBlocked = false;
+  svg.on('touchstart.tracktouch', function(ev){
+    const n = ev.touches ? ev.touches.length : 1;
+    if(n > _maxTouches) _maxTouches = n;
+    if(_maxTouches >= 2) _gestureBlocked = true;
   });
-  svg.on('touchend.multidetect', function(ev){
-    if(_hadMultiTouch && ev.touches && ev.touches.length === 0){
-      _multiTouchEnd = Date.now();
-      _hadMultiTouch = false;
+  svg.on('touchend.tracktouch', function(ev){
+    const n = ev.touches ? ev.touches.length : 0;
+    if(n === 0){
+      // 모든 손가락이 떨어졌을 때 600ms 후 리셋 (path touchend 이후)
+      setTimeout(()=>{ _maxTouches = 0; _gestureBlocked = false; }, 600);
     }
   });
 
@@ -1324,8 +1323,7 @@ function renderMap(){
       if(ev.defaultPrevented) return;
       clickRegion(rId(d), rNameEn(d));
     })
-    .on('touchstart',(ev,d)=>{ if(ev.touches.length >= 2){ _hadMultiTouch = true; _multiTouchEnd = 0; } else if(ev.touches.length === 1){ _hadMultiTouch = false; } })
-    .on('touchend',(ev,d)=>{ ev.preventDefault(); if(_hadMultiTouch){ _multiTouchEnd = Date.now(); return; } if(Date.now()-_multiTouchEnd < 500) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(rId(d), rNameEn(d)); })
+    .on('touchend',(ev,d)=>{ ev.preventDefault(); if(_gestureBlocked) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(rId(d), rNameEn(d)); })
     .on('mouseenter',(ev,d)=>{
       const t = S.territories[rId(d)];
       const nameEl = document.getElementById('mapHoverName');
@@ -1498,8 +1496,7 @@ function renderMap(){
     // 이벤트 핸들러 — S는 외부 state 객체
     dokdoG
       .on('click', ()=> clickRegion(dokdoId, '독도'))
-      .on('touchstart', (ev)=>{ if(ev.touches.length >= 2){ _hadMultiTouch = true; _multiTouchEnd = 0; } else if(ev.touches.length === 1){ _hadMultiTouch = false; } })
-      .on('touchend', (ev)=>{ ev.preventDefault(); if(_hadMultiTouch){ _multiTouchEnd = Date.now(); return; } if(Date.now()-_multiTouchEnd < 500) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(dokdoId, '독도'); })
+      .on('touchend', (ev)=>{ ev.preventDefault(); if(_gestureBlocked) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(dokdoId, '독도'); })
       .on('mouseenter', ()=>{
         const t = S.territories[dokdoId];
         document.getElementById('mapHoverName').textContent = '독도';
