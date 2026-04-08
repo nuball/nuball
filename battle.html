@@ -1290,10 +1290,23 @@ function renderMap(){
   let _gestureBlocked = false;
   let _resetTimer = null;
   const mapEl = document.getElementById('mapContainer');
+  let _touchStartX = 0, _touchStartY = 0, _isDragging = false;
   mapEl.addEventListener('touchstart', function(ev){
     if(ev.touches.length >= 2){
       _gestureBlocked = true;
+      _isDragging = false;
       if(_resetTimer){ clearTimeout(_resetTimer); _resetTimer = null; }
+    } else if(ev.touches.length === 1){
+      _touchStartX = ev.touches[0].clientX;
+      _touchStartY = ev.touches[0].clientY;
+      _isDragging = false;
+    }
+  }, {passive: true, capture: true});
+  mapEl.addEventListener('touchmove', function(ev){
+    if(ev.touches.length === 1){
+      const dx = ev.touches[0].clientX - _touchStartX;
+      const dy = ev.touches[0].clientY - _touchStartY;
+      if(Math.sqrt(dx*dx + dy*dy) > 8) _isDragging = true;
     }
   }, {passive: true, capture: true});
   mapEl.addEventListener('touchend', function(ev){
@@ -1332,7 +1345,7 @@ function renderMap(){
       if(ev.defaultPrevented) return;
       clickRegion(rId(d), rNameEn(d));
     })
-    .on('touchend',(ev,d)=>{ ev.preventDefault(); if(_gestureBlocked) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(rId(d), rNameEn(d)); })
+    .on('touchend',(ev,d)=>{ ev.preventDefault(); if(_gestureBlocked||_isDragging) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(rId(d), rNameEn(d)); })
     .on('mouseenter',(ev,d)=>{
       const t = S.territories[rId(d)];
       const nameEl = document.getElementById('mapHoverName');
@@ -1395,8 +1408,8 @@ function renderMap(){
       const bh = bounds[1][1] - bounds[0][1];
       const minDim = Math.min(bw, bh);
       if(minDim < 10) return '2px';
-      if(minDim < 18) return '5px';
-      return '6px';
+      if(minDim < 18) return '4px';
+      return '5px';
     })
     .attr('font-weight','700')
     .attr('font-family','Noto Sans KR, sans-serif')
@@ -1422,7 +1435,7 @@ function renderMap(){
       if(ev.defaultPrevented) return;
       clickRegion(rId(d), rName(d));
     })
-    .on('touchend',(ev,d)=>{ ev.preventDefault(); document.getElementById('mapTooltip').style.display='none'; clickRegion(rId(d), rNameEn(d)); });
+    .on('touchend',(ev,d)=>{ ev.preventDefault(); if(_gestureBlocked||_isDragging) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(rId(d), rNameEn(d)); });
 
   // ── 독도: 울릉도 기준 우하단에 실제 polygon 형태로 렌더링 ──
   if(dokdoFeature){
@@ -1505,7 +1518,7 @@ function renderMap(){
     // 이벤트 핸들러 — S는 외부 state 객체
     dokdoG
       .on('click', ()=> clickRegion(dokdoId, '독도'))
-      .on('touchend', (ev)=>{ ev.preventDefault(); if(_gestureBlocked) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(dokdoId, '독도'); })
+      .on('touchend', (ev)=>{ ev.preventDefault(); if(_gestureBlocked||_isDragging) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(dokdoId, '독도'); })
       .on('mouseenter', ()=>{
         const t = S.territories[dokdoId];
         document.getElementById('mapHoverName').textContent = '독도';
