@@ -846,8 +846,8 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
         <thead><tr><th data-i18n="level">레벨</th><th data-i18n="maxPt">최고점</th><th data-i18n="minPt">최저점</th><th data-i18n="minAt">최저 기준</th></tr></thead>
         <tbody>
           <tr><td>LV.1 · 3자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th1">9회~</td></tr>
-          <tr><td>LV.2 · 4자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th2">13회~</td></tr>
-          <tr><td>LV.3 · 5자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th3">18회~</td></tr>
+          <tr><td>LV.2 · 4자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th2">20회~</td></tr>
+          <tr><td>LV.3 · 5자리</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td data-i18n="th3">30회~</td></tr>
         </tbody>
       </table>
     </div>
@@ -994,7 +994,7 @@ ko:{
   rule5:'3게임 합산 점수로 일간 랭킹 도전!',
   ruleVR:'비디오판독: 3판 중 1회 사용 가능한 힌트',
   scoreGuide:'점수 기준',level:'레벨',maxPt:'최고점',minPt:'최저점',minAt:'최저 기준',
-  th1:'9회~',th2:'13회~',th3:'18회~',
+  th1:'9회~',th2:'20회~',th3:'30회~',
   noHistory:'첫 번째 추측을 입력하세요',dupAlert:'중복 숫자는 입력할 수 없습니다.',
   zeroAlert:'0은 사용할 수 없습니다.',dupInputAlert:'이미 입력한 숫자입니다.',
   noChance:'오늘의 기회를 모두 사용했습니다!',nickAlert:'닉네임을 입력해주세요.',
@@ -1122,7 +1122,7 @@ function genTarget(uid,dateStr,level,idx){
   return res;
 }
 function calcScore(level,attempts){
-  const cfg={3:{max:1000,min:300,th:9},4:{max:1000,min:300,th:13},5:{max:1000,min:300,th:18}};
+  const cfg={3:{max:1000,min:300,th:9},4:{max:1000,min:300,th:20},5:{max:1000,min:300,th:30}};
   const{max,min,th}=cfg[level];
   if(attempts>=th)return min;
   return Math.max(min,Math.round(max-(attempts-1)*(max-min)/(th-1)));
@@ -1669,7 +1669,7 @@ function saveProgress(){
 /* ── RENDER GAME ── */
 function renderGame(){
   const{level,attempts}=S.game;
-  const cfg={3:{max:1000,th:9},4:{max:1000,th:13},5:{max:1000,th:18}};
+  const cfg={3:{max:1000,th:9},4:{max:1000,th:20},5:{max:1000,th:30}};
   const{max,th}=cfg[level];
   document.getElementById('gameLvlTag').textContent='LEVEL '+(level-2)+' · '+level+t('digitLabel');
   document.getElementById('gameAttEl').textContent=attempts+t('attLabel');
