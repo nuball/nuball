@@ -523,15 +523,15 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 80px}
             <div class="tut-step-desc"><span class="tut-ko">자리수가 많을수록 어려워요 · 시도가 적을수록 고득점!</span><span class="tut-en" style="display:none">More digits = harder to crack · Fewer attempts = higher score!</span></div>
             <div class="tut-row" style="border:0;padding:4px 0">
               <span style="font-size:12px;font-weight:900;color:var(--primary);width:36px;flex-shrink:0">Lv.1</span>
-              <div>⚡ 3자리 · 9회 이상 시 최저 300pts</div>
+              <div>⚡ 실수하면 점수가 확 깎여요</div>
             </div>
             <div class="tut-row" style="border:0;padding:4px 0">
               <span style="font-size:12px;font-weight:900;color:var(--primary);width:36px;flex-shrink:0">Lv.2</span>
-              <div>⚖️ 4자리 · 20회 이상 시 최저 300pts</div>
+              <div>⚖️ 난이도와 점수의 균형</div>
             </div>
             <div class="tut-row" style="border:0;padding:4px 0">
               <span style="font-size:12px;font-weight:900;color:var(--primary);width:36px;flex-shrink:0">Lv.3</span>
-              <div>🛡️ 5자리 · 30회 이상 시 최저 300pts</div>
+              <div>🛡️ 실수해도 점수가 덜 깎여요</div>
             </div>
           </div>
         </div>
@@ -986,9 +986,9 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 80px}
       </div>
       <div class="help-section">
         <div class="help-section-title">🎯 레벨 시스템</div>
-        <div class="help-row"><span style="color:var(--primary);font-weight:900;flex-shrink:0">Lv.1</span><div>⚡ 3자리 · 9회 이상 시 최저 300pts</div></div>
-        <div class="help-row"><span style="color:var(--primary);font-weight:900;flex-shrink:0">Lv.2</span><div>⚖️ 4자리 · 20회 이상 시 최저 300pts</div></div>
-        <div class="help-row"><span style="color:var(--primary);font-weight:900;flex-shrink:0">Lv.3</span><div>🛡️ 5자리 · 30회 이상 시 최저 300pts</div></div>
+        <div class="help-row"><span style="color:var(--primary);font-weight:900;flex-shrink:0">Lv.1</span><div>⚡ 실수하면 점수가 확 깎여요</div></div>
+        <div class="help-row"><span style="color:var(--primary);font-weight:900;flex-shrink:0">Lv.2</span><div>⚖️ 난이도와 점수의 균형</div></div>
+        <div class="help-row"><span style="color:var(--primary);font-weight:900;flex-shrink:0">Lv.3</span><div>🛡️ 실수해도 점수가 덜 깎여요</div></div>
       </div>
       <div class="help-section">
         <div class="help-section-title">⚾ 숫자야구 규칙</div>
@@ -2191,9 +2191,9 @@ function openLevelModal(territory){
   document.getElementById('levelModalTitle').textContent = S.currentRegion.name;
 
   const LVL_DESC = {
-    1: '⚡ 3자리 · 9회 이상 최저 300pts',
-    2: '⚖️ 4자리 · 20회 이상 최저 300pts',
-    3: '🛡️ 5자리 · 30회 이상 최저 300pts',
+    1: '⚡ 실수하면 점수가 확 깎여요',
+    2: '⚖️ 난이도와 점수의 균형',
+    3: '🛡️ 실수해도 점수가 덜 깎여요',
   };
 
   if(t){
