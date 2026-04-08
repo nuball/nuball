@@ -1281,6 +1281,19 @@ function renderMap(){
   // 멀티터치(핀치줌) 감지 플래그
   let _hadMultiTouch = false;
   let _multiTouchEnd = 0;
+  // SVG 전체 레벨에서도 감지 (빈 공간 + 지역 혼합 터치 케이스)
+  svg.on('touchstart.multidetect', function(ev){
+    if(ev.touches && ev.touches.length >= 2){
+      _hadMultiTouch = true;
+      _multiTouchEnd = 0;
+    }
+  });
+  svg.on('touchend.multidetect', function(ev){
+    if(_hadMultiTouch && ev.touches && ev.touches.length === 0){
+      _multiTouchEnd = Date.now();
+      _hadMultiTouch = false;
+    }
+  });
 
   // 독도는 projection 좌표 오류로 SVG 전체를 덮으므로 별도 처리
   const mainlandFeatures = cleanedFeatures.filter(f => f.properties.name !== '독도');
