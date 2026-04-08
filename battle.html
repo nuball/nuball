@@ -1394,7 +1394,7 @@ function renderMap(){
       const bw = bounds[1][0] - bounds[0][0];
       const bh = bounds[1][1] - bounds[0][1];
       const minDim = Math.min(bw, bh);
-      if(minDim < 10) return '4px';
+      if(minDim < 10) return '2px';
       if(minDim < 18) return '5px';
       return '6px';
     })
