@@ -2196,13 +2196,29 @@ function openLevelModal(territory){
     3: '🛡️ 실수해도 점수가 덜 깎여요',
   };
 
-  if(t){
-    // 기존 영토: 수비자 레벨 고정 (자릿수 불일치 버그 방지)
+  if(t && !S._renewMode){
+    // 타인 영토 공격: 레벨 자유 선택 (공격자 레벨로 새 번호 생성)
+    document.getElementById('levelModalDesc').innerHTML =
+      `현재 점령 점수: <span style="color:var(--primary);font-weight:900;font-family:'DM Mono',monospace">${scoreLabel(t.score||0)}</span><br><small style="color:var(--muted)">이 점수 이상이면 점령 가능 · 레벨을 자유롭게 선택하세요</small>`;
+    document.getElementById('levelBtns').innerHTML = [1,2,3].map(lv=>{
+      const digits = LEVEL_DIGITS[lv];
+      const maxScore = calcScore(lv, 1);
+      return `<button class="lvl-btn" onclick="selectLevel(${lv})">
+        <div class="lvl-btn-top">
+          <span class="lvl-btn-num">Lv.${lv}</span>
+          <span class="lvl-btn-digits">${digits}자리</span>
+          <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">최대 ${scoreLabel(maxScore)}</span>
+        </div>
+        <div class="lvl-btn-desc">${LVL_DESC[lv]}</div>
+      </button>`;
+    }).join('');
+  } else if(t && S._renewMode){
+    // 내 땅 갱신: 수비자 레벨 고정
     const defLv = t.level || 1;
     const defDigits = LEVEL_DIGITS[defLv];
     const maxScore = calcScore(defLv, 1);
     document.getElementById('levelModalDesc').innerHTML =
-      `현재 점령 점수: <span style="color:var(--primary);font-weight:900;font-family:'DM Mono',monospace">${scoreLabel(t.score||0)}</span><br><small style="color:var(--muted)">이 점수 이상이어야 뺏을 수 있어요 · 수비 레벨 Lv.${defLv} · ${defDigits}자리</small>`;
+      `현재 점수: <span style="color:var(--primary);font-weight:900;font-family:'DM Mono',monospace">${scoreLabel(t.score||0)}</span><br><small style="color:var(--muted)">더 높은 점수로 갱신해서 점령 기간을 늘려요</small>`;
     document.getElementById('levelBtns').innerHTML = `<button class="lvl-btn" onclick="selectLevel(${defLv})" style="border-color:var(--primary)">
       <div class="lvl-btn-top">
         <span class="lvl-btn-num">Lv.${defLv}</span>
@@ -2241,7 +2257,8 @@ function selectLevel(lv){
 function startGame(territory, level){
   const digits = LEVEL_DIGITS[level];
   S.game = {
-    target: territory ? [...territory.number] : genNumber(digits),
+    // 내 땅 갱신: 기존 수비 번호 유지 / 공격 or 빈 땅: 공격자 레벨로 새 번호 생성
+    target: (territory && S._renewMode) ? [...territory.number] : genNumber(digits),
     logs: [], currentInput: [], level,
   };
   S.currentTerritory = territory || null;
