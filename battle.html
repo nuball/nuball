@@ -3162,8 +3162,10 @@ init();
       <div style="font-size:28px;margin-bottom:12px">🔕</div>
       <div style="font-size:15px;font-weight:900;margin-bottom:10px" id="notifOffTitle">알림을 끄시겠어요?</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:20px" id="notifOffDesc">알림을 끄면 매일 아침 누볼 배틀 알림을 받을 수 없어요.</div>
-      <button class="btn-p" style="background:var(--lose);border-color:var(--lose);margin-bottom:10px;width:100%" onclick="confirmNotifOff()" id="notifOffConfirmBtn">알림 끄기</button>
-      <button class="btn-p" style="margin-bottom:0;width:100%" onclick="closeModal('notifOffModal')" id="notifOffCancelBtn">유지하기</button>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn-p" style="flex:1;background:#fff;border-color:var(--border);color:var(--lose)" onclick="confirmNotifOff()" id="notifOffConfirmBtn">알림 끄기</button>
+        <button class="btn-p" style="flex:1;margin-bottom:0" onclick="closeModal('notifOffModal')" id="notifOffCancelBtn">유지하기</button>
+      </div>
     </div>
   </div>
 </div>
