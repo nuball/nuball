@@ -451,12 +451,18 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 80px}
         </div>
         <div class="tt-status" id="ttStatus"></div>
       </div>
-      <!-- 지도 새로고침 버튼 -->
-      <button onclick="loadTerritories()" title="지도 새로고침"
-        style="position:absolute;bottom:18px;right:18px;width:32px;height:32px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;box-shadow:var(--sh);transition:all .2s;z-index:10"
-        onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
-        🔄
-      </button>
+      <!-- 지도 컨트롤 (줌 + 새로고침) -->
+      <div style="position:absolute;bottom:18px;right:14px;display:flex;flex-direction:column;gap:4px;z-index:10">
+        <button onclick="mapZoom(1.4)" title="확대"
+          style="width:30px;height:30px;border-radius:8px 8px 0 0;background:var(--card);border:1.5px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;font-weight:900;color:var(--text);box-shadow:var(--sh);transition:all .15s;line-height:1"
+          onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--card)'">+</button>
+        <button onclick="mapZoom(1/1.4)" title="축소"
+          style="width:30px;height:30px;border-radius:0 0 8px 8px;background:var(--card);border:1.5px solid var(--border);border-top:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;font-weight:900;color:var(--text);box-shadow:var(--sh);transition:all .15s;line-height:1"
+          onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='var(--card)'">−</button>
+        <button onclick="loadTerritories()" title="새로고침"
+          style="width:30px;height:30px;border-radius:8px;background:var(--card);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;box-shadow:var(--sh);transition:all .15s;margin-top:2px"
+          onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">🔄</button>
+      </div>
     </div><!-- /map-wrap -->
 
     <!-- ── 누볼 시리즈 버튼 ── -->
@@ -1277,6 +1283,8 @@ function renderMap(){
       g.attr('transform', event.transform);
     });
   svg.call(zoom).on('dblclick.zoom', null);
+  window._mapZoom = zoom;
+  window._mapSvg = svg;
 
   // 멀티터치 감지: document 레벨 capture phase (D3보다 먼저 실행)
   let _gestureBlocked = false;
@@ -1624,6 +1632,13 @@ const COUNTRY_LABELS = {
   OTHER:'🌏 기타',
 };
 function countryLabel(code){ if(!code) return ''; return COUNTRY_LABELS[code] || code; }
+
+function mapZoom(factor){
+  const svg = window._mapSvg;
+  const zoom = window._mapZoom;
+  if(!svg || !zoom) return;
+  svg.transition().duration(250).call(zoom.scaleBy, factor);
+}
 function calcRank(){
   const counts = {};
   Object.values(S.territories).forEach(t=>{
