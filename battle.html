@@ -1213,7 +1213,7 @@ function renderMap(){
   if(!S.geoData) return;
   const container = document.getElementById('mapContainer');
   const W = container.clientWidth || 548;
-  const H = Math.round(W * 0.95);
+  const H = Math.round(W * 1.15);
 
   // ── 자잘한 섬 제거: 전체 면적의 3% 미만 폴리곤 제거 ──
   const cleanedFeatures = S.geoData.features.map(f => {
