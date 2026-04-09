@@ -1735,7 +1735,7 @@ async function loadUserBadges(ranked){
   }));
 }
 
-function renderRankModal(){
+async function renderRankModal(){
   const medals = ['🥇','🥈','🥉'];
   function makeBadgeBlock(uid, streak, achCount){
     const s = uid===S.userId ? (S.streak||0) : (streak||0);
