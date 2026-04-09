@@ -2500,9 +2500,9 @@ function submitGuess(){
   document.getElementById('confirmBtn').disabled = true;
 
   renderLogs();
-  // 최신 시도(상단)가 보이도록 스크롤
+  // 최신 시도가 화면 중간쯤 보이도록 스크롤
   const logEl = document.getElementById('logList');
-  if(logEl) logEl.scrollIntoView({behavior:'smooth', block:'start'});
+  if(logEl) logEl.scrollIntoView({behavior:'smooth', block:'center'});
   updateScoreDisplay();
   // 게임 상태 저장 (새로고침 복원용)
   if(S.currentRegion){
