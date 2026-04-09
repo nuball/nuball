@@ -12,6 +12,8 @@
   import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import{getDatabase,ref,set,get,onValue,update}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
   import{getMessaging,getToken}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
+
+  // 배틀 게임 DB (territories, users 등)
   const fbApp=initializeApp({
     apiKey:'AIzaSyC92uNj6Qw-psnEA517G0gglbRXjtUFLZc',
     authDomain:'nuball-battle.firebaseapp.com',
@@ -25,8 +27,19 @@
   window._fbDb=db;
   window._fbRef=ref;window._fbSet=set;window._fbGet=get;
   window._fbOnValue=onValue;window._fbUpdate=update;
+
+  // 누볼 FCM 앱 (알림 발송 서버와 동일한 프로젝트)
+  const nuballApp=initializeApp({
+    apiKey:'AIzaSyBN1kTHhl5auS5Aq_puyVx1l-rqYEXAkTw',
+    authDomain:'nuball.firebaseapp.com',
+    databaseURL:'https://nuball-default-rtdb.firebaseio.com',
+    projectId:'nuball',
+    storageBucket:'nuball.firebasestorage.app',
+    messagingSenderId:'1097850287054',
+    appId:'1:1097850287054:web:33d0b0c26c1ea50493719f'
+  }, 'nuball-fcm');
   try{
-    const messaging=getMessaging(fbApp);
+    const messaging=getMessaging(nuballApp);
     window._fbMessaging=messaging;
     window._fbGetToken=getToken;
   }catch(e){console.warn('FCM init failed',e);}
@@ -1990,7 +2003,7 @@ function initNotifState(){
         const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
         await navigator.serviceWorker.ready;
         const token=await window._fbGetToken(window._fbMessaging,{
-          vapidKey:'BL9EAQ2sD3MMDsC2Ll2HEC4YywP0HY6NOHJBoHVIxmp2gwsXBErqZrQZ4uUuEHNr4IfWzB280xrISBn4JFeL01M',
+          vapidKey:'BIzE3xwfKk4TN_xXKZWdWa7s4Ay2pgPB9fYAnmnxs8fcHUhZ2cWy0YNS9rM0TRQ84CZPyzMweajxH46_NLUQwUs',
           serviceWorkerRegistration:reg
         });
         if(token){
@@ -2030,7 +2043,7 @@ async function requestPushPermission(){
     const perm=await Notification.requestPermission();
     if(perm==='granted'){
             const token=await window._fbGetToken(window._fbMessaging,{
-        vapidKey:'BL9EAQ2sD3MMDsC2Ll2HEC4YywP0HY6NOHJBoHVIxmp2gwsXBErqZrQZ4uUuEHNr4IfWzB280xrISBn4JFeL01M',
+        vapidKey:'BIzE3xwfKk4TN_xXKZWdWa7s4Ay2pgPB9fYAnmnxs8fcHUhZ2cWy0YNS9rM0TRQ84CZPyzMweajxH46_NLUQwUs',
         serviceWorkerRegistration:reg
       });
       if(token){
