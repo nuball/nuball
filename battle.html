@@ -366,6 +366,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
 .back-btn.forfeit:hover{background:rgba(220,38,38,.06)}
 .btn-cancel{width:100%;padding:14px;background:var(--bg2);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
 .btn-cancel:hover{border-color:var(--muted)}
+@keyframes achSlide{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 </style>
 </head>
 <body>
@@ -384,7 +385,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
           <span id="menuLbl1">나의 랭킹</span>
         </button>
-        <button class="hdr-menu-item" style="opacity:.4;cursor:not-allowed;pointer-events:none">
+        <button class="hdr-menu-item" onclick="closeMenu();renderAchievements();openModal('achModal')">
           <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
           <span>나의 업적</span>
         </button>
@@ -1098,6 +1099,7 @@ const EXPIRE_MS = 30 * 24 * 60 * 60 * 1000; // 30일
 
 const S = {
   userId: null, nick: null, color: null, icon: null, country: null, streak: 0,
+  achievements: {}, stats: { totalAttempts:0, totalCaptures:0, capturesByLevel:{1:0,2:0,3:0}, captureStreak:0, maxCaptureStreak:0 },
   lang: 'ko',
   dailyAttempts: 0, lastDate: null,
   territories: {},
@@ -1118,6 +1120,8 @@ function loadLocal(){
   S.icon    = ls('nbb_icon') || null;
   S.country = ls('nb_country') || ls('nbb_country') || 'KR'; // nb_country(공통 키) 우선
   S.streak  = parseInt(ls('nbb_streak')||'0') || 0;
+  try{ const a=ls('nbb_achievements'); if(a) S.achievements=JSON.parse(a); }catch(e){}
+  try{ const st=ls('nbb_stats'); if(st){ const p=JSON.parse(st); S.stats={...S.stats,...p}; } }catch(e){}
   S.lang   = ls('nbb_lang') || 'ko';
   S.dailyAttempts = parseInt(ls('nbb_att')||'0');
   S.lastDate = ls('nbb_date');
@@ -1131,6 +1135,8 @@ function saveLocal(){
   if(S.nick){   lss('nbb_nick', S.nick); lss('nb_nick', S.nick); } // 공통 키에도 저장
   if(S.color)   lss('nbb_color',S.color);
   lss('nbb_streak', S.streak||0);
+  lss('nbb_achievements', JSON.stringify(S.achievements||{}));
+  lss('nbb_stats', JSON.stringify(S.stats||{}));
   // 게임 중이면 상태 저장
   if(S.game && S.game.target && S.currentRegion){
     lss('nbb_game_state', JSON.stringify({
@@ -1794,6 +1800,142 @@ function shrinkRegionBox(){
     inner.style.fontSize = fs + 'px';
   }
 }
+
+/* ── BATTLE ACHIEVEMENTS ── */
+const ACHIEVEMENTS = [
+  // ── 점령 ──
+  {id:'first_capture',  cat:'점령', icon:'⚔️', ko:'첫 발자국',    descKo:'처음으로 영토를 점령했어요'},
+  {id:'capture_seoul',  cat:'점령', icon:'🏛️', ko:'수도점령',     descKo:'서울특별시를 점령했어요'},
+  {id:'capture_busan',  cat:'점령', icon:'🐦', ko:'부산갈매기',   descKo:'부산광역시를 점령했어요'},
+  {id:'capture_daegu',  cat:'점령', icon:'🍎', ko:'대구사과',     descKo:'대구광역시를 점령했어요'},
+  {id:'capture_incheon',cat:'점령', icon:'⚓', ko:'인천상륙',     descKo:'인천광역시를 점령했어요'},
+  {id:'capture_gwangju',cat:'점령', icon:'✊', ko:'광주정신',     descKo:'광주광역시를 점령했어요'},
+  {id:'capture_daejeon',cat:'점령', icon:'🔬', ko:'대전사이언스', descKo:'대전광역시를 점령했어요'},
+  {id:'capture_ulsan',  cat:'점령', icon:'🐋', ko:'울산고래',     descKo:'울산광역시를 점령했어요'},
+  {id:'capture_jeju',   cat:'점령', icon:'🌊', ko:'제주도민',     descKo:'제주시와 서귀포시를 모두 점령했어요'},
+  {id:'capture_metro',  cat:'점령', icon:'🏙️', ko:'광역시장',     descKo:'7대 광역시를 모두 점령했어요'},
+  {id:'capture_10',     cat:'점령', icon:'🗺️', ko:'지역명사',     descKo:'10개 도시를 동시에 점령하고 있어요'},
+  {id:'capture_30',     cat:'점령', icon:'🌏', ko:'영토확장',     descKo:'30개 도시를 동시에 점령하고 있어요'},
+  {id:'capture_50',     cat:'점령', icon:'👑', ko:'전국구',       descKo:'50개 도시를 동시에 점령하고 있어요'},
+  {id:'samguk',         cat:'점령', icon:'⚜️', ko:'삼국통일',     descKo:'경기도, 경상도, 전라도를 각각 1개 이상 점령했어요'},
+  {id:'capture_all',    cat:'점령', icon:'🗾', ko:'전국통일',     descKo:'전국 161개 도시를 모두 점령했어요'},
+  // ── 전투 ──
+  {id:'first_attempt',  cat:'전투', icon:'🗡️', ko:'첫 출전',      descKo:'처음으로 점령에 도전했어요'},
+  {id:'streak_cap3',    cat:'전투', icon:'🔥', ko:'연속공격',     descKo:'3회 연속 점령에 성공했어요'},
+  // ── 스트릭 ──
+  {id:'streak3',        cat:'스트릭', icon:'🔥', ko:'작심삼일',   descKo:'3일 연속으로 배틀을 플레이했어요'},
+  {id:'streak7',        cat:'스트릭', icon:'⚔️', ko:'7의군주',    descKo:'7일 연속으로 배틀을 플레이했어요'},
+  {id:'streak30',       cat:'스트릭', icon:'👑', ko:'강철군주',   descKo:'30일 연속으로 배틀을 플레이했어요'},
+  // ── 점수 ──
+  {id:'lv1_master',     cat:'점수', icon:'🥉', ko:'Lv.1 마스터',  descKo:'Lv.1으로 점령에 10회 성공했어요'},
+  {id:'lv2_master',     cat:'점수', icon:'🥈', ko:'Lv.2 마스터',  descKo:'Lv.2로 점령에 10회 성공했어요'},
+  {id:'lv3_master',     cat:'점수', icon:'🥇', ko:'Lv.3 마스터',  descKo:'Lv.3으로 점령에 10회 성공했어요'},
+  {id:'lv3_first',      cat:'점수', icon:'🎯', ko:'저격수',       descKo:'Lv.3으로 점령에 성공했어요'},
+  {id:'lv3_5',          cat:'점수', icon:'🏹', ko:'스나이퍼',     descKo:'Lv.3으로 점령에 5회 성공했어요'},
+  {id:'score_900',      cat:'점수', icon:'⭐', ko:'명사수',       descKo:'900pts 이상으로 점령에 성공했어요'},
+  {id:'all_clear',      cat:'점수', icon:'💥', ko:'전국통일 완성', descKo:'모든 업적을 달성했어요!'},
+];
+
+function unlockAchievement(id){
+  if(S.achievements[id]) return;
+  const ach = ACHIEVEMENTS.find(a=>a.id===id);
+  if(!ach) return;
+  S.achievements[id] = Date.now();
+  saveLocal();
+  // 팝업
+  const pop = document.createElement('div');
+  pop.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--primary);color:#fff;border-radius:12px;padding:12px 18px;font-size:13px;font-weight:700;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);white-space:nowrap;animation:achSlide .35s ease';
+  pop.innerHTML = '<span style="font-size:20px">'+ach.icon+'</span><div><div style="font-size:10px;opacity:.8;letter-spacing:.5px;margin-bottom:1px">업적 달성!</div><div>'+ach.ko+'</div></div>';
+  document.body.appendChild(pop);
+  setTimeout(()=>{ pop.style.opacity='0'; pop.style.transition='opacity .3s'; setTimeout(()=>pop.remove(),300); }, 2500);
+  // 전체 달성 체크
+  const allDone = ACHIEVEMENTS.filter(a=>a.id!=='all_clear').every(a=>S.achievements[a.id]);
+  if(allDone) setTimeout(()=>unlockAchievement('all_clear'), 500);
+}
+
+function checkAchievements(captureSuccess, level, score, regionId){
+  const myTerritories = Object.entries(S.territories).filter(([,t])=>t.ownerId===S.userId);
+  const myCount = myTerritories.length;
+  const myCodes = myTerritories.map(([id])=>id);
+
+  // ── 전투 ──
+  if(!S.achievements['first_attempt'] && S.stats.totalAttempts >= 1) unlockAchievement('first_attempt');
+  if(!S.achievements['streak_cap3'] && S.stats.captureStreak >= 3) unlockAchievement('streak_cap3');
+
+  // ── 스트릭 ──
+  if(!S.achievements['streak3'] && S.streak >= 3) unlockAchievement('streak3');
+  if(!S.achievements['streak7'] && S.streak >= 7) unlockAchievement('streak7');
+  if(!S.achievements['streak30'] && S.streak >= 30) unlockAchievement('streak30');
+
+  if(!captureSuccess) return;
+
+  // ── 점령 (첫 점령) ──
+  if(!S.achievements['first_capture'] && S.stats.totalCaptures >= 1) unlockAchievement('first_capture');
+
+  // ── 특정 지역 점령 ──
+  const check = (achId, code) => { if(!S.achievements[achId] && myCodes.includes(code)) unlockAchievement(achId); };
+  check('capture_seoul',   '11000');
+  check('capture_busan',   '21000');
+  check('capture_daegu',   '22000');
+  check('capture_incheon', '23000');
+  check('capture_gwangju', '24000');
+  check('capture_daejeon', '25000');
+  check('capture_ulsan',   '26000');
+
+  // 제주도민: 제주시+서귀포시 둘 다
+  if(!S.achievements['capture_jeju'] && myCodes.includes('39010') && myCodes.includes('39020')) unlockAchievement('capture_jeju');
+
+  // 광역시장: 7대 광역시 모두
+  const metros = ['11000','21000','22000','23000','24000','25000','26000'];
+  if(!S.achievements['capture_metro'] && metros.every(c=>myCodes.includes(c))) unlockAchievement('capture_metro');
+
+  // 동시 점령 수
+  if(!S.achievements['capture_10'] && myCount >= 10) unlockAchievement('capture_10');
+  if(!S.achievements['capture_30'] && myCount >= 30) unlockAchievement('capture_30');
+  if(!S.achievements['capture_50'] && myCount >= 50) unlockAchievement('capture_50');
+  if(!S.achievements['capture_all'] && myCount >= 161) unlockAchievement('capture_all');
+
+  // 삼국통일: 경기(31xxx)+경상(37xxx/38xxx)+전라(35xxx/36xxx) 각 1개
+  const hasGyeonggi  = myCodes.some(c=>c.startsWith('31'));
+  const hasGyeongsan = myCodes.some(c=>c.startsWith('37')||c.startsWith('38'));
+  const hasJeolla    = myCodes.some(c=>c.startsWith('35')||c.startsWith('36'));
+  if(!S.achievements['samguk'] && hasGyeonggi && hasGyeongsan && hasJeolla) unlockAchievement('samguk');
+
+  // ── 점수 ──
+  if(!S.achievements['lv1_master'] && S.stats.capturesByLevel[1] >= 10) unlockAchievement('lv1_master');
+  if(!S.achievements['lv2_master'] && S.stats.capturesByLevel[2] >= 10) unlockAchievement('lv2_master');
+  if(!S.achievements['lv3_master'] && S.stats.capturesByLevel[3] >= 10) unlockAchievement('lv3_master');
+  if(!S.achievements['lv3_first'] && S.stats.capturesByLevel[3] >= 1) unlockAchievement('lv3_first');
+  if(!S.achievements['lv3_5'] && S.stats.capturesByLevel[3] >= 5) unlockAchievement('lv3_5');
+  if(!S.achievements['score_900'] && score >= 900) unlockAchievement('score_900');
+}
+
+function renderAchievements(){
+  const el = document.getElementById('achArea');
+  if(!el) return;
+  const cats = [...new Set(ACHIEVEMENTS.map(a=>a.cat))];
+  const total = ACHIEVEMENTS.length;
+  const done = ACHIEVEMENTS.filter(a=>!!S.achievements[a.id]).length;
+  let html = '<div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:14px">'+done+' / '+total+' 달성</div>';
+  for(const cat of cats){
+    const items = ACHIEVEMENTS.filter(a=>a.cat===cat);
+    html += '<div style="font-size:11px;font-weight:800;color:var(--subtle);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">'+cat+'</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">';
+    for(const ach of items){
+      const unlocked = !!S.achievements[ach.id];
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);opacity:'+(unlocked?'1':'.45')+'">'+
+        '<span style="font-size:22px;flex-shrink:0">'+ach.icon+'</span>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:13px;font-weight:800;color:var(--text)">'+ach.ko+'</div>'+
+          '<div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:1px">'+ach.descKo+'</div>'+
+        '</div>'+
+        (unlocked ? '<span style="font-size:16px">✅</span>' : '<span style="font-size:16px;color:var(--border)">🔒</span>')+
+      '</div>';
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
 // ── ATTEMPT BAR ──
 function renderAttemptBar(){
   const remain = MAX_DAILY - S.dailyAttempts;
@@ -2368,9 +2510,12 @@ function backToHome(){
   // 게임 중 시도가 1회 이상이면 기회 소진 (포기)
   if(S.game && S.game.logs && S.game.logs.length > 0){
     S.dailyAttempts++;
+    S.stats.totalAttempts = (S.stats.totalAttempts||0) + 1;
+    S.stats.captureStreak = 0;
     saveLocal();
     renderAttemptBar();
     updateDailyStreak();
+    setTimeout(()=>checkAchievements(false, S.game?.level, 0, null), 300);
   }
   S.currentRegion=null;
   S.currentTerritory=null;
@@ -2597,9 +2742,12 @@ function showFailModal(myScore, prevScore, isRenew){
     }
   }
   S.dailyAttempts++;
+  S.stats.totalAttempts = (S.stats.totalAttempts||0) + 1;
+  S.stats.captureStreak = 0;
   saveLocal();
   renderAttemptBar();
   updateDailyStreak();
+  setTimeout(()=>checkAchievements(false, S.game?.level, 0, null), 300);
   openModal('failModal');
 }
 
@@ -2626,6 +2774,7 @@ function onWin(){
   S._renewMode = false;
 
   S.dailyAttempts++;
+  S.stats.totalAttempts = (S.stats.totalAttempts||0) + 1;
   saveLocal();
   renderAttemptBar();
 
@@ -2661,6 +2810,15 @@ async function captureWithRandomNumber(){
   });
 
   updateDailyStreak();
+
+  // stats 업데이트
+  if(!S.stats.capturesByLevel) S.stats.capturesByLevel = {1:0,2:0,3:0};
+  S.stats.totalCaptures = (S.stats.totalCaptures||0) + 1;
+  S.stats.capturesByLevel[myLevel] = (S.stats.capturesByLevel[myLevel]||0) + 1;
+  S.stats.captureStreak = (S.stats.captureStreak||0) + 1;
+  if(S.stats.captureStreak > (S.stats.maxCaptureStreak||0)) S.stats.maxCaptureStreak = S.stats.captureStreak;
+  saveLocal();
+  setTimeout(()=>checkAchievements(true, myLevel, myScore, S.currentRegion?.id), 300);
 
   const ko = S.lang !== 'en';
   const name = S.currentRegion.name;
@@ -3316,6 +3474,15 @@ init();
 
 
 
+
+
+<!-- 나의 업적 모달 -->
+<div class="ov" id="achModal">
+  <div class="mbox" style="max-width:500px;max-height:85vh;display:flex;flex-direction:column">
+    <div class="mhdr"><span class="mtitle">🏆 나의 업적</span><button class="mclose" onclick="closeModal('achModal')">✕</button></div>
+    <div class="mbody" id="achArea" style="overflow-y:auto;padding:16px 20px"></div>
+  </div>
+</div>
 
 <!-- 배틀 기회 추가 모달 -->
 <div class="ov" id="battleBonusModal">
