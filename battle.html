@@ -2726,6 +2726,7 @@ function renderLogs(){
 
 // ── WIN ──
 function showFailModal(myScore, prevScore, isRenew){
+  localStorage.removeItem('nbb_game_state');
   const ko = S.lang !== 'en';
   const t = document.getElementById('failTitle');
   const d = document.getElementById('failDesc');
@@ -2818,6 +2819,7 @@ async function captureWithRandomNumber(){
   S.stats.captureStreak = (S.stats.captureStreak||0) + 1;
   if(S.stats.captureStreak > (S.stats.maxCaptureStreak||0)) S.stats.maxCaptureStreak = S.stats.captureStreak;
   saveLocal();
+  localStorage.removeItem('nbb_game_state'); // saveLocal이 재저장할 수 있으니 즉시 다시 삭제
   const _capturedRegionId = S.currentRegion?.id;
   const _capturedLevel = myLevel;
   const _capturedScore = myScore;
