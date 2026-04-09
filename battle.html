@@ -1227,7 +1227,9 @@ async function saveUser(){
   if(!S.userId) return;
   fbReady(async ()=>{
     await window._fbSet(window._fbRef(window._fbDb,`users/${S.userId}`),{
-      nick:S.nick, color:S.color, icon:S.icon||null, updatedAt:Date.now()
+      nick:S.nick, color:S.color, icon:S.icon||null, updatedAt:Date.now(),
+      streak: S.streak||0,
+      achCount: Object.keys(S.achievements||{}).length
     });
   });
 }
@@ -1608,7 +1610,7 @@ function calcAreaRank(){
   Object.entries(S.territories).forEach(([rid, t])=>{
     if(!t||!t.ownerId) return;
     const km2 = REGION_AREA_KM2[rid] || 0;
-    if(!userAreas[t.ownerId]) userAreas[t.ownerId]={nick:t.ownerNick,color:t.ownerColor,country:t.ownerCountry||'',area:0};
+    if(!userAreas[t.ownerId]) userAreas[t.ownerId]={nick:t.ownerNick,color:t.ownerColor,country:t.ownerCountry||'',area:0,streak:0,achCount:0};
     userAreas[t.ownerId].area += km2;
   });
   return Object.entries(userAreas)
@@ -1690,7 +1692,7 @@ function calcRank(){
   const counts = {};
   Object.values(S.territories).forEach(t=>{
     if(!t||!t.ownerId) return;
-    if(!counts[t.ownerId]) counts[t.ownerId]={nick:t.ownerNick,color:t.ownerColor,country:t.ownerCountry||'',count:0};
+    if(!counts[t.ownerId]) counts[t.ownerId]={nick:t.ownerNick,color:t.ownerColor,country:t.ownerCountry||'',count:0,streak:0,achCount:0};
     counts[t.ownerId].count++;
   });
   return Object.entries(counts)
@@ -1715,37 +1717,67 @@ function renderLeaderboard(){
       </div>`).join('');
 }
 
-function renderRankModal(){
-  const medals = ['🥇','🥈','🥉'];
-  if(_rankTabMode===2){
-    const ranked = calcAreaRank();
-    document.getElementById('rankList').innerHTML = ranked.length===0
-      ? '<p style="color:var(--subtle);font-size:13px">아직 순위 데이터가 없어요</p>'
-      : ranked.map((r,i)=>`
-        <div class="rank-row${r.uid===S.userId?' my-row':''}">
-          <div class="rank-pos${i<3?' medal':''}">${i<3?medals[i]:i+1}</div>
-          <div class="rank-info">
-            <div class="rank-nick">${r.nick||'?'}${r.uid===S.userId?' 👈':''}</div>
-            <div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:${r.color||'#888'};flex-shrink:0"></div><span>${countryLabel(r.uid===S.userId?S.country:r.country)}</span></div>
-          </div>
-          <div class="rank-score" style="display:flex;align-items:baseline;gap:3px"><span style="font-family:'DM Mono',monospace">${r.area.toLocaleString()}</span><span style="font-size:11px;font-weight:600;color:var(--muted)">km²</span></div>
-        </div>`).join('');
-  } else {
-    const ranked = calcRank();
-    document.getElementById('rankList').innerHTML = ranked.length===0
-      ? '<p style="color:var(--subtle);font-size:13px">아직 순위 데이터가 없어요</p>'
-      : ranked.map((r,i)=>`
-        <div class="rank-row${r.uid===S.userId?' my-row':''}">
-          <div class="rank-pos${i<3?' medal':''}">${i<3?medals[i]:i+1}</div>
-          <div class="rank-info">
-            <div class="rank-nick">${r.nick||'?'}${r.uid===S.userId?' 👈':''}</div>
-            <div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:${r.color||'#888'};flex-shrink:0"></div><span>${countryLabel(r.uid===S.userId?S.country:r.country)}</span></div>
-          </div>
-          <div class="rank-score" style="display:flex;align-items:baseline;gap:3px"><span style="font-family:'DM Mono',monospace">${r.count}</span><span style="font-size:11px;font-weight:600;color:var(--muted)">개 점령</span></div>
-        </div>`).join('');
-  }
+async function loadUserBadges(ranked){
+  if(!window._fbReady) return;
+  const uids = ranked.map(r=>r.uid);
+  await Promise.all(uids.map(async uid=>{
+    try{
+      const snap = await window._fbGet(window._fbRef(window._fbDb,`users/${uid}`));
+      if(snap.exists()){
+        const d = snap.val();
+        const r = ranked.find(r=>r.uid===uid);
+        if(r){
+          r.streak = uid===S.userId ? (S.streak||0) : (d.streak||0);
+          r.achCount = uid===S.userId ? Object.keys(S.achievements||{}).length : (d.achCount||0);
+        }
+      }
+    }catch(e){}
+  }));
 }
 
+function renderRankModal(){
+  const medals = ['🥇','🥈','🥉'];
+  function makeBadgeBlock(uid, streak, achCount){
+    const s = uid===S.userId ? (S.streak||0) : (streak||0);
+    const a = uid===S.userId ? Object.keys(S.achievements||{}).length : (achCount||0);
+    const sb = s>0 ? '<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+s+'</span>' : '';
+    const ab = a>0 ? '<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+a+'</span>' : '';
+    return (sb||ab) ? '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+sb+ab+'</div>' : '';
+  }
+  if(_rankTabMode===2){
+    const ranked = calcAreaRank();
+    await loadUserBadges(ranked);
+    document.getElementById('rankList').innerHTML = ranked.length===0
+      ? '<p style="color:var(--subtle);font-size:13px">아직 순위 데이터가 없어요</p>'
+      : ranked.map((r,i)=>{
+          const badge = makeBadgeBlock(r.uid, r.ownerStreak, r.ownerAchCount);
+          return `<div class="rank-row${r.uid===S.userId?' my-row':''}">
+          <div class="rank-pos${i<3?' medal':''}">${i<3?medals[i]:i+1}</div>
+          <div class="rank-info">
+            <div class="rank-nick">${r.nick||'?'}${r.uid===S.userId?' 👈':''}</div>
+            <div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:${r.color||'#888'};flex-shrink:0"></div><span>${countryLabel(r.uid===S.userId?S.country:r.country)}</span></div>
+          </div>
+          ${badge}
+          <div class="rank-score" style="display:flex;align-items:baseline;gap:3px"><span style="font-family:'DM Mono',monospace">${r.area.toLocaleString()}</span><span style="font-size:11px;font-weight:600;color:var(--muted)">km²</span></div>
+        </div>`;}).join('');
+  } else {
+    const ranked = calcRank();
+    await loadUserBadges(ranked);
+    document.getElementById('rankList').innerHTML = ranked.length===0
+      ? '<p style="color:var(--subtle);font-size:13px">아직 순위 데이터가 없어요</p>'
+      : ranked.map((r,i)=>{
+          const badge = makeBadgeBlock(r.uid, r.ownerStreak, r.ownerAchCount);
+          return `<div class="rank-row${r.uid===S.userId?' my-row':''}">
+          <div class="rank-pos${i<3?' medal':''}">${i<3?medals[i]:i+1}</div>
+          <div class="rank-info">
+            <div class="rank-nick">${r.nick||'?'}${r.uid===S.userId?' 👈':''}</div>
+            <div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:${r.color||'#888'};flex-shrink:0"></div><span>${countryLabel(r.uid===S.userId?S.country:r.country)}</span></div>
+          </div>
+          ${badge}
+          <div class="rank-score" style="display:flex;align-items:baseline;gap:3px"><span style="font-family:'DM Mono',monospace">${r.count}</span><span style="font-size:11px;font-weight:600;color:var(--muted)">개 점령</span></div>
+        </div>`;}).join('');
+  }
+}
 
 // ── 스트릭 업데이트 (하루 1번 시도만 해도 카운트) ──
 function updateDailyStreak(){
@@ -2514,7 +2546,6 @@ function backToHome(){
     S.stats.captureStreak = 0;
     saveLocal();
     renderAttemptBar();
-    updateDailyStreak();
     setTimeout(()=>checkAchievements(false, S.game?.level, 0, null), 300);
   }
   S.currentRegion=null;
@@ -2808,9 +2839,18 @@ async function captureWithRandomNumber(){
     score: myScore,
     capturedAt: Date.now(),
     regionName: S.currentRegion.name,
+    ownerStreak: S.streak||0,
+    ownerAchCount: Object.keys(S.achievements||{}).length,
   });
 
   updateDailyStreak();
+  // streak/achCount Firebase 반영
+  if(S.userId && window._fbReady){
+    window._fbUpdate(window._fbRef(window._fbDb,`users/${S.userId}`),{
+      streak: S.streak||0,
+      achCount: Object.keys(S.achievements||{}).length
+    }).catch(()=>{});
+  }
 
   // stats 업데이트
   if(!S.stats.capturesByLevel) S.stats.capturesByLevel = {1:0,2:0,3:0};
