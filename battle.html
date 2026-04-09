@@ -893,7 +893,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
   <div class="mbox">
     <div class="mhdr">
       <span class="mtitle">내 프로필</span>
-      <button class="mclose" id="profileClose" onclick="closeModal('profileModal')">✕</button>
+      <button class="mclose" id="profileClose" onclick="cancelProfileModal()">✕</button>
     </div>
     <div class="mbody" style="padding:14px 16px">
 
@@ -3090,6 +3090,8 @@ async function checkNickDuplicate(nick){
 }
 
 function openProfileModal(){
+  // 현재 값 백업 (엑스 누를 때 복원용)
+  window._profileBackup = { color: S.color, icon: S.icon };
   document.getElementById('nickInput').value = S.nick || ls('nb_nick') || '';
   S.country = ls('nb_country') || ls('nbb_country') || S.country || 'KR';
   const cs = document.getElementById('countrySelect');
@@ -3098,6 +3100,15 @@ function openProfileModal(){
   buildIconPresets();
   updateIconPreview();
   openModal('profileModal');
+}
+function cancelProfileModal(){
+  // 백업된 값으로 복원
+  if(window._profileBackup){
+    S.color = window._profileBackup.color;
+    S.icon = window._profileBackup.icon;
+    window._profileBackup = null;
+  }
+  closeModal('profileModal');
 }
 
 // ── MODALS ──
@@ -3281,6 +3292,18 @@ function init(){
   initMap();
   loadTerritories();
   initNotifState();
+  // 다른 탭에서 돌아올 때 칼 개수 재로드 (누볼/히팅 보상 반영)
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible'){
+      const att = parseInt(localStorage.getItem('nbb_att')||'0');
+      const date = localStorage.getItem('nbb_date');
+      const today = todayStr();
+      if(date === today && att !== S.dailyAttempts){
+        S.dailyAttempts = att;
+        renderAttemptBar();
+      }
+    }
+  });
 }
 
 init();
