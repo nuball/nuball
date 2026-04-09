@@ -1300,6 +1300,7 @@ function initNotifState(){
   const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
   if(isStandalone&&Notification.permission==='granted'&&localStorage.getItem('nb_notif')==='1'){
     setTimeout(async()=>{
+      if(localStorage.getItem('nb_notif')!=='1') return;
       try{
         await waitForFCM();
         const reg=await navigator.serviceWorker.register('/firebase-messaging-sw.js');
