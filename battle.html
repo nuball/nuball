@@ -2302,6 +2302,16 @@ function startGame(territory, level){
   updateBackBtn();
   renderLogs();
   setTimeout(()=>{ if(inp) inp.focus(); }, 150);
+  // 게임 시작 시 상태 저장
+  if(S.currentRegion){
+    lss('nbb_game_state', JSON.stringify({
+      game: S.game,
+      regionId: S.currentRegion.id,
+      regionName: S.currentRegion.name,
+      territory: S.currentTerritory || null,
+      renewMode: S._renewMode || false
+    }));
+  }
 }
 
 function genNumber(digits){
@@ -2494,6 +2504,16 @@ function submitGuess(){
   const logEl = document.getElementById('logList');
   if(logEl) logEl.scrollIntoView({behavior:'smooth', block:'start'});
   updateScoreDisplay();
+  // 게임 상태 저장 (새로고침 복원용)
+  if(S.currentRegion){
+    lss('nbb_game_state', JSON.stringify({
+      game: S.game,
+      regionId: S.currentRegion.id,
+      regionName: S.currentRegion.name,
+      territory: S.currentTerritory || null,
+      renewMode: S._renewMode || false
+    }));
+  }
   const cnt = S.game.logs.length;
   document.getElementById('attCount').textContent = `${cnt}번 시도`;
   const pct = Math.min(100, cnt/20*100);
