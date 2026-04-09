@@ -1756,6 +1756,18 @@ function updateDailyStreak(){
   saveLocal();
   renderStreakBadge();
 }
+
+function showNotifPrompt(){
+  // 이미 알림 켜져있으면 안 뜸
+  if(localStorage.getItem('nb_notif')==='1' && Notification.permission==='granted') return;
+  // 그만보기 누른 적 있으면 안 뜸
+  if(localStorage.getItem('nbb_notif_dismiss')==='1') return;
+  setTimeout(()=>openModal('notifPromptModal'), 500);
+}
+function dismissNotifPrompt(){
+  localStorage.setItem('nbb_notif_dismiss','1');
+  closeModal('notifPromptModal');
+}
 // ── STREAK BADGE ──
 function renderStreakBadge(){
   const badge = document.getElementById('battleStreakBadge');
@@ -3218,6 +3230,7 @@ async function confirmOnboard(){
   renderUserBadge();
   await saveUser();
   if(btn){ btn.disabled=false; btn.textContent='⚔️ 전장으로!'; }
+  showNotifPrompt();
 }
 function checkFirstVisit(){
   if(!S.userId){ S.userId=genId(); saveLocal(); }
@@ -3264,6 +3277,7 @@ function init(){
   if(S.dailyAttempts > 0) updateDailyStreak();
   renderStreakBadge();
   checkFirstVisit();
+  showNotifPrompt();
   initMap();
   loadTerritories();
   initNotifState();
@@ -3277,6 +3291,20 @@ init();
   © 2025 NUBALL · nuball.app · All rights reserved
 </div>
 
+
+
+<!-- 알림 유도 모달 -->
+<div class="ov" id="notifPromptModal">
+  <div class="mbox" style="max-width:320px">
+    <div class="mbody" style="text-align:center;padding:28px 20px">
+      <div style="font-size:32px;margin-bottom:12px">🔔</div>
+      <div style="font-size:16px;font-weight:900;margin-bottom:12px">알림을 켜주세요!</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">누군가 내 땅을 뺏으면 바로 알려드려요.<br>좌측 상단 🔔 버튼을 켜주세요!</div>
+      <button class="btn-p" style="width:100%;margin-bottom:8px" onclick="closeModal('notifPromptModal');handleNotifBtn()">확인</button>
+      <button onclick="dismissNotifPrompt()" style="width:100%;padding:10px;background:transparent;border:none;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit">그만보기</button>
+    </div>
+  </div>
+</div>
 
 <!-- 알림 설정 모달 -->
 <div class="ov" id="notifInfoModal">
