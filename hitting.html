@@ -1959,6 +1959,12 @@ function handleNotifBtn(){
     if(x)x.textContent=ko2?'유지하기':'Keep On';
     openModal('notifOffModal');
   }else{
+    // 차단된 경우 즉시 차단 안내
+    if(Notification.permission==='denied'){
+      openModal('notifInfoModal');
+      updateNotifModal(ko);
+      return;
+    }
     openModal('notifInfoModal');
     setTimeout(()=>updateNotifModal(ko),50);
   }
