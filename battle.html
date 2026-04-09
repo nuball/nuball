@@ -1937,8 +1937,11 @@ function confirmNotifOff(){
   localStorage.removeItem('nb_notif');
   localStorage.removeItem('nb_fcm_token');
   updateNotifBtn(false);
-  if(S.userId&&window._fbReady){
-    try{window._fbSet(window._fbRef(window._fbDb,'fcm_tokens/'+S.userId),null);}catch(e){}
+  // nuball DB에서 토큰 삭제 (알림 서버가 읽는 곳)
+  const uid = S.userId || localStorage.getItem('nubol_uid');
+  if(uid){
+    fetch(`https://nuball-default-rtdb.firebaseio.com/fcm_tokens/${uid}.json`,{method:'DELETE'})
+      .catch(e=>console.warn('FCM token delete failed',e));
   }
 }
 function updateNotifModal(ko){
