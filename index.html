@@ -1166,7 +1166,7 @@ function seedRankings(){return[]} // 더미 데이터 제거
 // ── 배틀 칼 복구 (누볼/히팅 보상) ──
 function showToast(msg){const t=document.createElement("div");t.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:999;opacity:1;transition:opacity .5s";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity="0";setTimeout(()=>t.remove(),500);},2000);}
 function grantBattleBonus(){
-  const todayStr = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  const d=new Date(); const todayStr=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   const key = 'nbb_att';
   const dateKey = 'nbb_date'; // 배틀과 동일한 날짜 키
   const savedDate = localStorage.getItem(dateKey);
