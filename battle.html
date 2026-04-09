@@ -434,7 +434,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
     <!-- 스트릭 + 같이하기 -->
     <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">
       <div id="battleStreakBadge" style="display:none"><span style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#ff6b00,#ff9500);color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800"></span></div>
-      <button style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:not-allowed;font-family:inherit;border:1.5px solid var(--border);background:var(--bg2);color:var(--muted);opacity:0.5;pointer-events:none">🤝 <span>같이하기</span></button>
+      <button onclick="openModal('battleBonusModal')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;border:1.5px solid #000;background:#000;color:#fff;transition:all .15s">🎁 <span>배틀 추가</span></button>
     </div>
     <!-- Attempt Counter -->
     <div class="balls-row" id="attemptIcons"></div>
@@ -3292,6 +3292,31 @@ init();
 </div>
 
 
+
+
+<!-- 배틀 기회 추가 모달 -->
+<div class="ov" id="battleBonusModal">
+  <div class="mbox" style="max-width:320px">
+    <div class="mhdr"><span class="mtitle">⚔️ 배틀 기회 추가</span><button class="mclose" onclick="closeModal('battleBonusModal')">✕</button></div>
+    <div class="mbody" style="padding:20px">
+      <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px">배틀 기회를 소진했다면 추가할 수 있어요!</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border)">
+          <span style="font-size:13px;font-weight:700;color:var(--text)">⚾ 누볼 — 850점 이상 달성</span>
+          <a href="https://nuball.app" style="font-size:12px;font-weight:800;color:var(--primary);text-decoration:none;padding:4px 10px;border:1.5px solid var(--primary);border-radius:6px;white-space:nowrap">이동</a>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border)">
+          <span style="font-size:13px;font-weight:700;color:var(--text)">🏏 누볼 히팅 — 안타 or 홈런</span>
+          <a href="https://nuball.app/hitting" style="font-size:12px;font-weight:800;color:var(--primary);text-decoration:none;padding:4px 10px;border:1.5px solid var(--primary);border-radius:6px;white-space:nowrap">이동</a>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);opacity:0.5">
+          <span style="font-size:13px;font-weight:700;color:var(--text)">📺 광고 보기</span>
+          <span style="font-size:12px;font-weight:800;color:var(--muted)">준비 중</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- 알림 유도 모달 -->
 <div class="ov" id="notifPromptModal">
