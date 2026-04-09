@@ -1930,6 +1930,27 @@ function loadStats(){
 
 function seedRankings(){return[]} // 더미 데이터 제거
 
+
+// ── 배틀 칼 복구 (누볼/히팅 보상) ──
+function showToast(msg){const t=document.createElement("div");t.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;z-index:999;opacity:1;transition:opacity .5s";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity="0";setTimeout(()=>t.remove(),500);},2000);}
+function grantBattleBonus(){
+  const MAX = 3;
+  const today = new Date();
+  const todayStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  const key = 'nbb_att';
+  const dateKey = 'nbb_att_date';
+  const savedDate = localStorage.getItem(dateKey);
+  let attempts = savedDate === todayStr ? parseInt(localStorage.getItem(key)||'0') : 0;
+  // 칼이 이미 최대면 복구 불필요
+  if(attempts <= 0){
+    console.log('Battle bonus: no attempts to restore');
+    return false;
+  }
+  attempts = Math.max(0, attempts - 1);
+  localStorage.setItem(key, String(attempts));
+  localStorage.setItem(dateKey, todayStr);
+  return true;
+}
 /* ── INIT ── */
 /* ── PUSH 알림 ── */
 function handleNotifBtn(){
@@ -2606,6 +2627,10 @@ function finishHitGame(won,label,type,finalScore){
   }
   const score=finalScore!==undefined?finalScore:(won?_hScore:0);
   const{level,attempts,target}=S.game;
+  // 안타/홈런 시 배틀 칼 복구
+  if(type==='hr'||type==='hit'){
+    if(grantBattleBonus()) showToast('⚔️ 배틀 기회 +1!');
+  }
   localStorage.removeItem('nb_hit_inprog');
   localStorage.removeItem('nb_hit_pitchlogs');
   S.game=null; // 즉시 null로 — 추가 입력 완전 차단
