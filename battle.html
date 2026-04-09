@@ -1818,14 +1818,14 @@ const ACHIEVEMENTS = [
   {id:'capture_30',     cat:'점령', icon:'🌏', ko:'영토확장',     descKo:'30개 도시를 동시에 점령하고 있어요'},
   {id:'capture_50',     cat:'점령', icon:'👑', ko:'전국구',       descKo:'50개 도시를 동시에 점령하고 있어요'},
   {id:'samguk',         cat:'점령', icon:'⚜️', ko:'삼국통일',     descKo:'경기도, 경상도, 전라도를 각각 1개 이상 점령했어요'},
-  {id:'capture_all',    cat:'점령', icon:'🗾', ko:'전국통일',     descKo:'전국 161개 도시를 모두 점령했어요'},
+  {id:'capture_all',    cat:'점령', icon:'🇰🇷', ko:'전국통일',     descKo:'전국 161개 도시를 모두 점령했어요'},
   // ── 전투 ──
   {id:'first_attempt',  cat:'전투', icon:'🗡️', ko:'첫 출전',      descKo:'처음으로 점령에 도전했어요'},
   {id:'streak_cap3',    cat:'전투', icon:'🔥', ko:'연속공격',     descKo:'3회 연속 점령에 성공했어요'},
   // ── 스트릭 ──
-  {id:'streak3',        cat:'스트릭', icon:'🔥', ko:'작심삼일',   descKo:'3일 연속으로 배틀을 플레이했어요'},
-  {id:'streak7',        cat:'스트릭', icon:'⚔️', ko:'7의군주',    descKo:'7일 연속으로 배틀을 플레이했어요'},
-  {id:'streak30',       cat:'스트릭', icon:'👑', ko:'강철군주',   descKo:'30일 연속으로 배틀을 플레이했어요'},
+  {id:'streak3',        cat:'전투', icon:'🔥', ko:'작심삼일',   descKo:'3일 연속으로 배틀을 플레이했어요'},
+  {id:'streak7',        cat:'전투', icon:'⚔️', ko:'7의군주',    descKo:'7일 연속으로 배틀을 플레이했어요'},
+  {id:'streak30',       cat:'전투', icon:'👑', ko:'강철군주',   descKo:'30일 연속으로 배틀을 플레이했어요'},
   // ── 점수 ──
   {id:'lv1_master',     cat:'점수', icon:'🥉', ko:'Lv.1 마스터',  descKo:'Lv.1으로 점령에 10회 성공했어요'},
   {id:'lv2_master',     cat:'점수', icon:'🥈', ko:'Lv.2 마스터',  descKo:'Lv.2로 점령에 10회 성공했어요'},
@@ -2818,7 +2818,9 @@ async function captureWithRandomNumber(){
   S.stats.captureStreak = (S.stats.captureStreak||0) + 1;
   if(S.stats.captureStreak > (S.stats.maxCaptureStreak||0)) S.stats.maxCaptureStreak = S.stats.captureStreak;
   saveLocal();
-  setTimeout(()=>checkAchievements(true, myLevel, myScore, S.currentRegion?.id), 300);
+  const _capturedRegionId = S.currentRegion?.id;
+  const _capturedLevel = myLevel;
+  const _capturedScore = myScore;
 
   const ko = S.lang !== 'en';
   const name = S.currentRegion.name;
@@ -2828,6 +2830,8 @@ async function captureWithRandomNumber(){
   S.game={};
   S._renewMode=false;
   showScreen('home');
+  // territories 업데이트 후 업적 체크 (Firebase 반영 대기)
+  setTimeout(()=>checkAchievements(true, _capturedLevel, _capturedScore, _capturedRegionId), 1500);
   showToast(ko ? `🎉 ${name} 점령! ${myScore.toLocaleString()}pts` : `🎉 ${name} captured! ${myScore.toLocaleString()}pts`);
 }
 
