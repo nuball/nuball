@@ -2590,6 +2590,8 @@ function showFailModal(myScore, prevScore, isRenew){
 }
 
 function onWin(){
+  // 점령 성공 시 즉시 게임 상태 삭제 (새로고침해도 게임화면 복귀 방지)
+  localStorage.removeItem('nbb_game_state');
   const myAttempts = S.game.logs.length;
   const myLevel = S.game.level;
   const myScore = calcScore(myLevel, myAttempts);
