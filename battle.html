@@ -1747,7 +1747,7 @@ function updateDailyStreak(){
   const lastPlay = ls('nbb_lastPlay');
   if(lastPlay === today2) return; // 오늘 이미 카운트됨
   const ydObj = new Date(); ydObj.setDate(ydObj.getDate()-1);
-  const yesterday = ydObj.getFullYear()+'-'+(ydObj.getMonth()+1)+'-'+ydObj.getDate();
+  const yesterday = ydObj.getFullYear()+'-'+String(ydObj.getMonth()+1).padStart(2,'0')+'-'+String(ydObj.getDate()).padStart(2,'0');
   if(lastPlay === yesterday) S.streak = (S.streak||0) + 1;
   else S.streak = 1;
   lss('nbb_lastPlay', today2);
