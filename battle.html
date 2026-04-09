@@ -2356,7 +2356,7 @@ function backToHome(){
     S.dailyAttempts++;
     saveLocal();
     renderAttemptBar();
-    updateDailyStreak(); // 실패/포기도 스트릭 카운트
+    updateDailyStreak();
   }
   S.currentRegion=null;
   S.currentTerritory=null;
@@ -2585,6 +2585,7 @@ function showFailModal(myScore, prevScore, isRenew){
   S.dailyAttempts++;
   saveLocal();
   renderAttemptBar();
+  updateDailyStreak();
   openModal('failModal');
 }
 
@@ -2642,12 +2643,14 @@ async function captureWithRandomNumber(){
     capturedAt: Date.now(),
   });
 
-  updateDailyStreak(); // 점령 성공 시 스트릭
+  updateDailyStreak();
 
   const ko = S.lang !== 'en';
   const name = S.currentRegion.name;
+  localStorage.removeItem('nbb_game_state');
   S.currentRegion=null;
   S.currentTerritory=null;
+  S.game={};
   S._renewMode=false;
   showScreen('home');
   showToast(ko ? `🎉 ${name} 점령! ${myScore.toLocaleString()}pts` : `🎉 ${name} captured! ${myScore.toLocaleString()}pts`);
