@@ -685,9 +685,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 80px}
         <div class="att-bar"><div class="att-bar-fill" id="attBarFill" style="width:0%"></div></div>
         <input class="num-input" type="text" inputmode="numeric" id="battleInput" enterkeyhint="done"
           enterkeyhint="go" placeholder="••••" autocomplete="off" oninput="onBattleInput(this)"
-          onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next')submitGuess()"
-          onkeyup="if(event.key==='Enter'||event.key==='Go'||event.key==='Next')submitGuess()"
-          onsearch="submitGuess()">
+          onkeydown="if(event.key==='Enter'||event.key==='Go'||event.key==='Next'){event.preventDefault();submitGuess()}">
         <div id="inputAlert" style="font-size:12px;font-weight:700;color:var(--lose);text-align:center;min-height:18px;margin-bottom:8px;opacity:0;transition:opacity .2s"></div>
         <button class="btn-p" onclick="submitGuess()" id="confirmBtn">확인</button>
         <div class="hint-strip" id="hintStrip"></div>
@@ -1118,6 +1116,18 @@ function saveLocal(){
   if(S.nick){   lss('nbb_nick', S.nick); lss('nb_nick', S.nick); } // 공통 키에도 저장
   if(S.color)   lss('nbb_color',S.color);
   lss('nbb_streak', S.streak||0);
+  // 게임 중이면 상태 저장
+  if(S.game && S.game.target && S.currentRegion){
+    lss('nbb_game_state', JSON.stringify({
+      game: S.game,
+      regionId: S.currentRegion.id,
+      regionName: S.currentRegion.name,
+      territory: S.currentTerritory || null,
+      renewMode: S._renewMode || false
+    }));
+  } else {
+    localStorage.removeItem('nbb_game_state');
+  }
   if(S.icon)    lss('nbb_icon', S.icon);
   else          localStorage.removeItem('nbb_icon');
 }
@@ -2319,6 +2329,8 @@ function backToHome(){
   }
   S.currentRegion=null;
   S.currentTerritory=null;
+  S.game={};
+  localStorage.removeItem('nbb_game_state');
   cancelHoldForfeit();
   showScreen('home');
 }
@@ -3174,6 +3186,31 @@ function init(){
   applyTheme();
   setLang(S.lang || 'ko');
   renderAttemptBar();
+  // 게임 중이었으면 복원
+  const savedGame = ls('nbb_game_state');
+  if(savedGame){
+    try{
+      const gs = JSON.parse(savedGame);
+      if(gs && gs.game && gs.game.target && gs.regionId){
+        S.game = gs.game;
+        S.currentRegion = {id: gs.regionId, name: gs.regionName};
+        S.currentTerritory = gs.territory || null;
+        S._renewMode = gs.renewMode || false;
+        showScreen('game');
+        // UI 복원
+        document.getElementById('gameRegionName').textContent = gs.regionName;
+        document.getElementById('gameLevelBadge').textContent = `LEVEL ${gs.game.level} · ${LEVEL_DIGITS[gs.game.level]}자리`;
+        document.getElementById('gameOwnerInfo').textContent = gs.territory ? gs.territory.ownerNick : '중립지';
+        const inp = document.getElementById('battleInput');
+        if(inp){ inp.value=''; inp.maxLength=LEVEL_DIGITS[gs.game.level]; inp.placeholder='•'.repeat(LEVEL_DIGITS[gs.game.level]); }
+        renderLogs();
+        updateScoreDisplay();
+        updateBackBtn();
+        setTimeout(shrinkRegionBox, 50);
+
+      }
+    }catch(e){ localStorage.removeItem('nbb_game_state'); }
+  }
   // 오늘 이미 시도한 기록이 있으면 스트릭 자동 반영
   if(S.dailyAttempts > 0) updateDailyStreak();
   renderStreakBadge();
