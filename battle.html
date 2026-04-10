@@ -1775,7 +1775,7 @@ async function renderRankModal(){
             <div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:${r.color||'#888'};flex-shrink:0"></div><span>${countryLabel(r.uid===S.userId?S.country:r.country)}</span></div>
           </div>
           ${badge}
-          <div class="rank-score" style="display:flex;align-items:baseline;gap:3px"><span style="font-family:'DM Mono',monospace">${r.area.toLocaleString()}</span><span style="font-size:11px;font-weight:600;color:var(--muted)">km²</span></div>
+          <div class="rank-score" style="display:flex;align-items:baseline;gap:3px;margin-left:auto"><span style="font-family:'DM Mono',monospace">${r.area.toLocaleString()}</span><span style="font-size:11px;font-weight:600;color:var(--muted)">km²</span></div>
         </div>`;}).join('');
   } else {
     const ranked = calcRank();
@@ -1791,7 +1791,7 @@ async function renderRankModal(){
             <div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:${r.color||'#888'};flex-shrink:0"></div><span>${countryLabel(r.uid===S.userId?S.country:r.country)}</span></div>
           </div>
           ${badge}
-          <div class="rank-score" style="display:flex;align-items:baseline;gap:3px"><span style="font-family:'DM Mono',monospace">${r.count}</span><span style="font-size:11px;font-weight:600;color:var(--muted)">개 점령</span></div>
+          <div class="rank-score" style="display:flex;align-items:baseline;gap:3px;margin-left:auto"><span style="font-family:'DM Mono',monospace">${r.count}</span><span style="font-size:11px;font-weight:600;color:var(--muted)">개 점령</span></div>
         </div>`;}).join('');
   }
 }
