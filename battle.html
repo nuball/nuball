@@ -2583,6 +2583,7 @@ function openLevelModal(territory){
 
 function selectLevel(lv){
   closeModal('levelModal');
+  if(!S.currentRegion){ return; } // 안전 체크
   const t = S.territories[S.currentRegion.id];
   startGame(t, lv);
 }
@@ -2648,6 +2649,8 @@ function backToHome(){
     S.stats.captureStreak = 0;
     saveLocal();
     renderAttemptBar();
+    // 포기 시 오늘 플레이 기록만 남김 (스트릭은 안올림)
+    lss('nbb_lastPlay', todayStr());
     setTimeout(()=>checkAchievements(false, S.game?.level, 0, null), 300);
   }
   S.currentRegion=null;
@@ -3580,6 +3583,10 @@ function init(){
     try{
       const gs = JSON.parse(savedGame);
       if(gs && gs.game && gs.game.target && gs.regionId){
+        // 기회 소진됐으면 복원 안 함
+        if(S.dailyAttempts >= MAX_DAILY){
+          localStorage.removeItem('nbb_game_state');
+        } else {
         S.game = gs.game;
         S.currentRegion = {id: gs.regionId, name: gs.regionName};
         S.currentTerritory = gs.territory || null;
@@ -3595,12 +3602,14 @@ function init(){
         updateScoreDisplay();
         updateBackBtn();
         updateVRBtn();
-      
+        } // end else
       }
     }catch(e){ localStorage.removeItem('nbb_game_state'); }
   }
   // 오늘 이미 시도한 기록이 있으면 스트릭 자동 반영
-  if(S.dailyAttempts > 0) updateDailyStreak();
+  // 오늘 이미 성공/실패로 스트릭이 올라갔으면(nbb_lastPlay=오늘) 중복 호출 안함
+  // 포기만 한 경우엔 nbb_lastPlay가 없으니 호출 안함 (포기는 스트릭 미적용)
+  // → init에서는 updateDailyStreak 호출 제거, 각 게임 결과에서만 호출
   renderStreakBadge();
   checkFirstVisit();
   if(!ls('nbb_game_state')) showNotifPrompt(); // 게임 복원 중엔 알림 모달 안 뜸
