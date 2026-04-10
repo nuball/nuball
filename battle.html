@@ -1793,6 +1793,12 @@ function updateDailyStreak(){
   lss('nbb_lastPlay', today2);
   saveLocal();
   renderStreakBadge();
+  // Firebase users에 streak 즉시 반영
+  if(S.userId && window._fbReady){
+    window._fbUpdate(window._fbRef(window._fbDb,`users/${S.userId}`),{
+      streak: S.streak
+    }).catch(()=>{});
+  }
 }
 
 function showNotifPrompt(){
