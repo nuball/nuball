@@ -1734,22 +1734,23 @@ function renderLeaderboard(){
       </div>`).join('');
 }
 
+let _userBadgeCache = {};
 async function loadUserBadges(ranked){
   if(!window._fbReady) return;
-  const uids = ranked.map(r=>r.uid);
-  await Promise.all(uids.map(async uid=>{
-    try{
-      const snap = await window._fbGet(window._fbRef(window._fbDb,`users/${uid}`));
-      if(snap.exists()){
-        const d = snap.val();
-        const r = ranked.find(r=>r.uid===uid);
-        if(r){
-          r.streak = uid===S.userId ? (S.streak||0) : (d.streak||0);
-          r.achCount = uid===S.userId ? Object.keys(S.achievements||{}).length : (d.achCount||0);
-        }
-      }
-    }catch(e){}
-  }));
+  const uids = ranked.map(r=>r.uid).filter(uid=>!_userBadgeCache[uid]);
+  if(uids.length){
+    await Promise.all(uids.map(async uid=>{
+      try{
+        const snap = await window._fbGet(window._fbRef(window._fbDb,`users/${uid}`));
+        if(snap.exists()) _userBadgeCache[uid] = snap.val();
+      }catch(e){}
+    }));
+  }
+  ranked.forEach(r=>{
+    const d = _userBadgeCache[r.uid] || {};
+    r.streak = r.uid===S.userId ? (S.streak||0) : (d.streak||0);
+    r.achCount = r.uid===S.userId ? Object.keys(S.achievements||{}).length : (d.achCount||0);
+  });
 }
 
 async function renderRankModal(){
@@ -1810,6 +1811,7 @@ function updateDailyStreak(){
   lss('nbb_lastPlay', today2);
   saveLocal();
   renderStreakBadge();
+  if(typeof _userBadgeCache !== 'undefined' && S.userId) _userBadgeCache[S.userId] = {...(_userBadgeCache[S.userId]||{}), streak:S.streak};
   // Firebase users에 streak 즉시 반영
   if(S.userId && window._fbReady){
     window._fbUpdate(window._fbRef(window._fbDb,`users/${S.userId}`),{
@@ -2944,6 +2946,8 @@ async function captureWithRandomNumber(){
   });
 
   updateDailyStreak();
+  // 내 캐시도 업데이트
+  if(typeof _userBadgeCache !== 'undefined') _userBadgeCache[S.userId] = {...(_userBadgeCache[S.userId]||{}), streak:S.streak||0, achCount:Object.keys(S.achievements||{}).length};
   // streak/achCount Firebase 반영
   if(S.userId && window._fbReady){
     window._fbUpdate(window._fbRef(window._fbDb,`users/${S.userId}`),{
