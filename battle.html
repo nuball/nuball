@@ -59,8 +59,8 @@
   --bg:#ffffff;--bg2:#f5f5f5;--border:#e2e2e2;
   --text:#0a0a0a;--muted:#6b7280;--subtle:#c0c0c0;--card:#ffffff;
   --primary:#7c3aed;--primary-h:#6d28d9;--primary-light:rgba(124,58,237,.07);
-  --strike:#7c3aed;--strike-bg:rgba(124,58,237,.08);
-  --ball:#444444;--ball-bg:rgba(10,10,10,.05);
+  --strike:#d97706;--strike-bg:#fef3c7;
+  --ball:#0284c7;--ball-bg:#e0f2fe;
   --win:#16a34a;--lose:#dc2626;
   --sh:0 1px 3px rgba(0,0,0,.07);
   --sh-md:0 4px 12px rgba(0,0,0,.10);
@@ -72,6 +72,7 @@
   --text:#e6edf3;--muted:#8b949e;--subtle:#484f58;--card:#161b22;
   --primary:#a78bfa;--primary-h:#8b5cf6;
   --primary-light:rgba(167,139,250,.18);
+  --strike-bg:rgba(217,119,6,.18);--ball-bg:rgba(2,132,199,.18);
   --sh:0 1px 3px rgba(0,0,0,.4);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -199,7 +200,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
 #setNumScreen{display:none}
 
 .game-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.back-btn{display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:700;color:var(--lose);background:none;border:1.5px solid var(--lose);cursor:pointer;padding:8px 14px;border-radius:8px;transition:all .15s;font-family:inherit;position:relative;overflow:hidden;user-select:none;flex:1}
+.back-btn{display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:700;color:var(--lose);background:none;border:1.5px solid var(--lose);cursor:pointer;padding:8px 10px;border-radius:8px;transition:all .15s;font-family:inherit;position:relative;overflow:hidden;user-select:none;flex:1;white-space:nowrap}
 .back-btn:hover{background:rgba(248,113,113,.07)}
 .game-meta{text-align:right}
 .game-region{font-size:17px;font-weight:900;color:var(--text)}
@@ -367,6 +368,21 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
 .btn-cancel{width:100%;padding:14px;background:var(--bg2);color:var(--text);border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
 .btn-cancel:hover{border-color:var(--muted)}
 @keyframes achSlide{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* ── 비디오판독 ── */
+.vr-btn{display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;font-weight:700;color:var(--ball);background:none;border:1.5px solid var(--ball);cursor:pointer;padding:8px 10px;border-radius:8px;transition:all .15s;font-family:inherit;flex:1;white-space:nowrap}
+.vr-btn:hover{background:color-mix(in srgb,var(--ball) 8%,transparent)}
+.vr-btn:disabled{opacity:.45;cursor:not-allowed}
+.vr-btn.used{color:var(--subtle);border-color:var(--border);background:none}
+.vr-guess-list{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.vr-guess-item{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;background:var(--card)}
+.vr-guess-item:hover{border-color:var(--ball);background:var(--ball-bg)}
+.vr-guess-item.selected{border-color:var(--ball);background:var(--ball-bg)}
+.vr-digit{width:34px;height:38px;border:1.5px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;background:var(--bg2);font-family:'DM Mono',monospace;transition:all .2s}
+.vr-digit.vd-s{background:var(--strike-bg);border-color:var(--strike);color:var(--strike)}
+.vr-digit.vd-b{background:var(--ball-bg);border-color:var(--ball);color:var(--ball)}
+.vr-digit.vd-o{background:var(--bg2);border-color:var(--subtle);color:var(--subtle)}
+.vr-legend{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.vr-leg-item{font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px}
 </style>
 </head>
 <body>
@@ -673,14 +689,8 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
           <span id="backBtnLabel">← 돌아가기</span>
           <div class="btn-forfeit-bar" id="forfeitBar"></div>
         </button>
-        <!-- 지역정보 박스 (돌아가기 버튼 우측) -->
-        <div class="game-region-box" id="gameRegionBox">
-          <div style="display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;flex-wrap:wrap">
-            <span class="game-region-name" id="gameRegionName" style="flex-shrink:0">—</span>
-            <span style="color:var(--subtle);font-size:11px;font-weight:600">·</span>
-            <span class="game-region-sub" id="gameOwnerInfo" style="min-width:0"></span>
-          </div>
-        </div>
+        <!-- 비디오판독 버튼 -->
+        <button class="vr-btn" id="vrBtn" onclick="openVR()">📹 <span id="vrBtnLabel">비디오판독</span></button>
       </div>
       <div class="game-meta">
         <div class="game-lvl-tag" id="gameLevelBadge"></div>
@@ -691,7 +701,12 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
     <div class="game-layout">
       <!-- 왼쪽: 지역정보 + 입력 -->
       <div>
-        <div class="score-prev" style="padding:12px 18px">
+        <div class="score-prev" style="padding:12px 18px;position:relative">
+          <!-- 지역명/닉네임 우측 상단 -->
+          <div style="position:absolute;top:8px;right:12px;text-align:right;max-width:45%">
+            <div id="gameRegionName" style="font-size:11px;font-weight:900;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+            <div id="gameOwnerInfo" style="font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+          </div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
             <span class="score-prev-lbl" style="margin-bottom:0">목표 점수:</span>
             <span id="gameTargetScore" style="font-size:11px;font-weight:900;color:var(--muted);font-family:'DM Mono',monospace">—</span>
@@ -1098,7 +1113,7 @@ const LEVEL_DIGITS = {1:3, 2:4, 3:5};
 const EXPIRE_MS = 30 * 24 * 60 * 60 * 1000; // 30일
 
 const S = {
-  userId: null, nick: null, color: null, icon: null, country: null, streak: 0,
+  userId: null, nick: null, color: null, icon: null, country: null, streak: 0, vrUsed: false,
   achievements: {}, stats: { totalAttempts:0, totalCaptures:0, capturesByLevel:{1:0,2:0,3:0}, captureStreak:0, maxCaptureStreak:0 },
   lang: 'ko',
   dailyAttempts: 0, lastDate: null,
@@ -1120,13 +1135,14 @@ function loadLocal(){
   S.icon    = ls('nbb_icon') || null;
   S.country = ls('nb_country') || ls('nbb_country') || 'KR'; // nb_country(공통 키) 우선
   S.streak  = parseInt(ls('nbb_streak')||'0') || 0;
+  S.vrUsed  = ls('nbb_vr') === '1';
   try{ const a=ls('nbb_achievements'); if(a) S.achievements=JSON.parse(a); }catch(e){}
   try{ const st=ls('nbb_stats'); if(st){ const p=JSON.parse(st); S.stats={...S.stats,...p}; } }catch(e){}
   S.lang   = ls('nbb_lang') || 'ko';
   S.dailyAttempts = parseInt(ls('nbb_att')||'0');
   S.lastDate = ls('nbb_date');
   const today = todayStr();
-  if(S.lastDate !== today){ S.dailyAttempts=0; S.lastDate=today; saveLocal(); }
+  if(S.lastDate !== today){ S.dailyAttempts=0; S.lastDate=today; S.vrUsed=false; saveLocal(); }
 }
 function saveLocal(){
   lss('nbb_att', S.dailyAttempts);
@@ -1135,6 +1151,7 @@ function saveLocal(){
   if(S.nick){   lss('nbb_nick', S.nick); lss('nb_nick', S.nick); } // 공통 키에도 저장
   if(S.color)   lss('nbb_color',S.color);
   lss('nbb_streak', S.streak||0);
+  lss('nbb_vr', S.vrUsed ? '1' : '0');
   lss('nbb_achievements', JSON.stringify(S.achievements||{}));
   lss('nbb_stats', JSON.stringify(S.stats||{}));
   // 게임 중이면 상태 저장
@@ -1974,6 +1991,82 @@ function renderAchievements(){
   }
   el.innerHTML = html;
 }
+
+// ── 비디오판독 ──
+function updateVRBtn(){
+  const btn = document.getElementById('vrBtn');
+  const lbl = document.getElementById('vrBtnLabel');
+  if(!btn) return;
+  if(S.vrUsed){
+    btn.classList.add('used');
+    btn.disabled = true;
+    if(lbl) lbl.textContent = '사용됨';
+  } else {
+    btn.classList.remove('used');
+    btn.disabled = false;
+    if(lbl) lbl.textContent = '비디오판독';
+  }
+}
+
+let _vrSelected = null;
+function openVR(){
+  if(S.vrUsed){ alert('이미 사용했습니다'); return; }
+  if(!S.game || !S.game.logs || !S.game.logs.length){ alert('아직 시도한 숫자가 없습니다'); return; }
+  _vrSelected = null;
+  const logs = S.game.logs;
+  document.getElementById('vrContent').innerHTML =
+    '<p style="font-size:13px;color:var(--muted);margin-bottom:12px">판독할 번호를 선택하세요</p>' +
+    '<div class="vr-guess-list" id="vrGuessList">' +
+    logs.map((l,i)=>
+      '<div class="vr-guess-item" id="vrItem'+i+'" onclick="selectVR('+i+')">' +
+      '<div style="display:flex;gap:4px;flex:1">' +
+      String(l.guess).split('').map(ch=>'<div class="vr-digit">'+ch+'</div>').join('') +
+      '</div>' +
+      '<span style="font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0">S '+l.s+' B '+l.b+'</span>' +
+      '</div>'
+    ).join('') +
+    '</div>' +
+    '<div id="vrConfirmArea"></div>';
+  openModal('vrModal');
+}
+
+function selectVR(idx){
+  _vrSelected = idx;
+  const logs = S.game.logs;
+  logs.forEach((_,i)=>{ const el=document.getElementById('vrItem'+i); if(el) el.classList.remove('selected'); });
+  const sel = document.getElementById('vrItem'+idx);
+  if(sel) sel.classList.add('selected');
+  document.getElementById('vrConfirmArea').innerHTML =
+    '<button class="btn-p" style="margin-top:14px" onclick="confirmVR()">이 번호로 판독 확정</button>';
+}
+
+function confirmVR(){
+  if(_vrSelected === null) return;
+  const logs = S.game.logs;
+  const target = S.game.target;
+  const l = logs[_vrSelected];
+  const digits = String(l.guess).split('').map((ch,ci)=>{
+    const n = parseInt(ch);
+    let cls = 'vr-digit';
+    if(n === target[ci]) cls += ' vd-s';
+    else if(target.includes(n)) cls += ' vd-b';
+    else cls += ' vd-o';
+    return '<div class="'+cls+'">'+ch+'</div>';
+  });
+  document.getElementById('vrGuessList').style.display = 'none';
+  document.getElementById('vrConfirmArea').innerHTML =
+    '<p style="font-size:13px;color:var(--muted);margin-bottom:12px;text-align:center">'+l.guess+'</p>' +
+    '<div style="display:flex;gap:6px;justify-content:center;margin:12px 0">'+digits.join('')+'</div>' +
+    '<div class="vr-legend" style="justify-content:center;margin-top:10px">' +
+      '<span class="vr-leg-item" style="background:var(--strike-bg);color:var(--strike)">⬤ Strike</span>' +
+      '<span class="vr-leg-item" style="background:var(--ball-bg);color:var(--ball)">⬤ Ball</span>' +
+      '<span class="vr-leg-item" style="background:var(--bg2);color:var(--subtle)">⬤ Out</span>' +
+    '</div>' +
+    '<button class="btn-p" style="margin-top:16px" onclick="closeModal(&quot;vrModal&quot;)">확인</button>';
+  S.vrUsed = true;
+  saveLocal();
+  updateVRBtn();
+}
 // ── ATTEMPT BAR ──
 function renderAttemptBar(){
   const remain = MAX_DAILY - S.dailyAttempts;
@@ -2516,6 +2609,7 @@ function startGame(territory, level){
   if(barEl) barEl.style.width='0%';
   updateBackBtn();
   renderLogs();
+  updateVRBtn();
   setTimeout(()=>{ if(inp) inp.focus(); }, 150);
   // 게임 시작 시 상태 저장
   if(S.currentRegion){
@@ -2929,6 +3023,7 @@ function showSetNum(level){
   renderNdBoxes([],'snd', digits);
   renderSetPad();
   showScreen('setnum');
+  updateVRBtn();
   setTimeout(()=>{ if(inp) inp.focus(); }, 150);
 }
 
@@ -3556,6 +3651,22 @@ init();
           <span style="font-size:12px;font-weight:800;color:var(--muted)">준비 중</span>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- 비디오판독 모달 -->
+<div class="ov" id="vrModal">
+  <div class="mbox">
+    <div class="mhdr"><span class="mtitle">📹 비디오판독</span><button class="mclose" onclick="closeModal('vrModal')">✕</button></div>
+    <div class="mbody">
+      <div class="vr-legend">
+        <span class="vr-leg-item" style="background:var(--strike-bg);color:var(--strike)">⬤ Strike</span>
+        <span class="vr-leg-item" style="background:var(--ball-bg);color:var(--ball)">⬤ Ball</span>
+        <span class="vr-leg-item" style="background:var(--bg2);color:var(--subtle)">⬤ Out</span>
+      </div>
+      <div id="vrContent"></div>
     </div>
   </div>
 </div>
