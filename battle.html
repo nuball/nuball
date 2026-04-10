@@ -1759,7 +1759,7 @@ async function renderRankModal(){
     const a = uid===S.userId ? Object.keys(S.achievements||{}).length : (achCount||0);
     const sb = s>0 ? '<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+s+'</span>' : '';
     const ab = a>0 ? '<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+a+'</span>' : '';
-    return (sb||ab) ? '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px">'+sb+ab+'</div>' : '';
+    return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:28px;gap:1px;align-self:stretch">'+sb+ab+'</div>';
   }
   if(_rankTabMode===2){
     const ranked = calcAreaRank();
