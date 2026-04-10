@@ -1784,16 +1784,22 @@ async function renderRankModal(){
     document.getElementById('rankList').innerHTML = ranked.length===0
       ? '<p style="color:var(--subtle);font-size:13px">아직 순위 데이터가 없어요</p>'
       : ranked.map((r,i)=>{
-          const badge = makeBadgeBlock(r.uid, r.streak, r.achCount);
-          return `<div class="rank-row${r.uid===S.userId?' my-row':''}">
-          <div class="rank-pos${i<3?' medal':''}">${i<3?medals[i]:i+1}</div>
-          <div class="rank-info">
-            <div class="rank-nick">${r.nick||'?'}${r.uid===S.userId?' 👈':''}</div>
-            <div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:${r.color||'#888'};flex-shrink:0"></div><span>${countryLabel(r.uid===S.userId?S.country:r.country)}</span></div>
-          </div>
-          ${badge}
-          <div class="rank-score" style="display:flex;align-items:baseline;gap:3px;margin-left:auto"><span style="font-family:'DM Mono',monospace">${r.count}</span><span style="font-size:11px;font-weight:600;color:var(--muted)">개 점령</span></div>
-        </div>`;}).join('');
+          const isMe = r.uid===S.userId;
+          const rStreak = isMe ? (S.streak||0) : (r.streak||0);
+          const rAch = isMe ? Object.keys(S.achievements||{}).length : (r.achCount||0);
+          const sb = rStreak>0 ? '<span style="font-size:9px;color:#ff6b00;font-weight:800;line-height:1.3">🔥'+rStreak+'</span>' : '';
+          const ab = rAch>0 ? '<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+rAch+'</span>' : '';
+          const badge = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:28px;flex-shrink:0;gap:1px">'+sb+ab+'</div>';
+          return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
+            '<div class="rank-pos'+(i<3?' medal':'')+'">'+( i<3?medals[i]:i+1)+'</div>'+
+            '<div class="rank-info">'+
+              '<div class="rank-nick">'+(r.nick||'?')+(isMe?' 👈':'')+'</div>'+
+              '<div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:'+(r.color||'#888')+';flex-shrink:0"></div><span>'+countryLabel(isMe?S.country:r.country)+'</span></div>'+
+            '</div>'+
+            badge+
+            '<div class="rank-score" style="display:flex;align-items:baseline;gap:3px"><span style="font-family:'DM Mono',monospace">'+r.count+'</span><span style="font-size:11px;font-weight:600;color:var(--muted)">개 점령</span></div>'+
+          '</div>';
+        }).join('');
   }
 }
 
