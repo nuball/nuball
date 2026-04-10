@@ -1627,12 +1627,13 @@ function calcAreaRank(){
   Object.entries(S.territories).forEach(([rid, t])=>{
     if(!t||!t.ownerId) return;
     const km2 = REGION_AREA_KM2[rid] || 0;
-    if(!userAreas[t.ownerId]) userAreas[t.ownerId]={nick:t.ownerNick,color:t.ownerColor,country:t.ownerCountry||'',area:0,streak:0,achCount:0};
+    if(!userAreas[t.ownerId]) userAreas[t.ownerId]={nick:t.ownerNick,color:t.ownerColor,country:t.ownerCountry||'',area:0,count:0,streak:0,achCount:0};
     userAreas[t.ownerId].area += km2;
+    userAreas[t.ownerId].count++;
   });
   return Object.entries(userAreas)
     .map(([uid,d])=>({uid,...d}))
-    .sort((a,b)=>b.area-a.area);
+    .sort((a,b)=>b.area-a.area || b.count-a.count);
 }
 
 function renderStatsModal(){
@@ -1707,14 +1708,15 @@ function mapZoom(factor){
 }
 function calcRank(){
   const counts = {};
-  Object.values(S.territories).forEach(t=>{
+  Object.entries(S.territories).forEach(([rid,t])=>{
     if(!t||!t.ownerId) return;
-    if(!counts[t.ownerId]) counts[t.ownerId]={nick:t.ownerNick,color:t.ownerColor,country:t.ownerCountry||'',count:0,streak:0,achCount:0};
+    if(!counts[t.ownerId]) counts[t.ownerId]={nick:t.ownerNick,color:t.ownerColor,country:t.ownerCountry||'',count:0,area:0,streak:0,achCount:0};
     counts[t.ownerId].count++;
+    counts[t.ownerId].area += (REGION_AREA_KM2[rid]||0);
   });
   return Object.entries(counts)
     .map(([uid,d])=>({uid,...d}))
-    .sort((a,b)=>b.count-a.count);
+    .sort((a,b)=>b.count-a.count || b.area-a.area);
 }
 
 function renderLeaderboard(){
