@@ -2896,6 +2896,12 @@ function showFailModal(myScore, prevScore, isRenew){
   renderAttemptBar();
   updateDailyStreak();
   setTimeout(()=>checkAchievements(false, S.game?.level, 0, null), 300);
+  // 게임 상태 정리 후 홈으로 이동, 모달은 홈에서 표시
+  S.currentRegion=null;
+  S.currentTerritory=null;
+  S.game={};
+  S._renewMode=false;
+  showScreen('home');
   openModal('failModal');
 }
 
