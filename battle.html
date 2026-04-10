@@ -725,7 +725,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
       <div>
         <div class="hist-hdr">
           <span class="hist-title">시도 기록</span>
-          <span class="att-count" id="attCount"></span>
+          <span class="att-count" id="attCount2"></span>
         </div>
         <div class="log-list" id="logList"></div>
       </div>
@@ -1087,7 +1087,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
       <div style="font-size:36px;margin-bottom:10px">😓</div>
       <div style="font-size:16px;font-weight:900;margin-bottom:8px" id="failTitle">아깝다!</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:20px" id="failDesc"></div>
-      <button class="btn-p" onclick="closeModal('failModal');backToHome();" style="width:100%">지도로 돌아가기</button>
+      <button class="btn-p" onclick="closeModal('failModal');" style="width:100%">지도로 돌아가기</button>
     </div>
   </div>
 </div>
@@ -1859,19 +1859,6 @@ function renderStreakBadge(){
 }
 
 
-function shrinkRegionBox(){
-  const box = document.getElementById('gameRegionBox');
-  if(!box) return;
-  const inner = box.querySelector('div');
-  if(!inner) return;
-  let fs = 13;
-  inner.style.fontSize = fs + 'px';
-  while(inner.scrollWidth > box.clientWidth - 16 && fs > 8){
-    fs -= 0.5;
-    inner.style.fontSize = fs + 'px';
-  }
-}
-
 /* ── BATTLE ACHIEVEMENTS ── */
 const ACHIEVEMENTS = [
   // ── 점령 ──
@@ -2615,7 +2602,6 @@ function startGame(territory, level){
   document.getElementById('hintStrip') && (document.getElementById('hintStrip').style.display='none');
   updateScoreDisplay();
   showScreen('game');
-  setTimeout(shrinkRegionBox, 50);
   // 입력 초기화
   const inp = document.getElementById('battleInput');
   if(inp){ inp.value=''; inp.maxLength=digits; inp.placeholder='•'.repeat(digits); }
@@ -3608,8 +3594,8 @@ function init(){
         renderLogs();
         updateScoreDisplay();
         updateBackBtn();
-        setTimeout(shrinkRegionBox, 50);
-
+        updateVRBtn();
+      
       }
     }catch(e){ localStorage.removeItem('nbb_game_state'); }
   }
@@ -3617,7 +3603,7 @@ function init(){
   if(S.dailyAttempts > 0) updateDailyStreak();
   renderStreakBadge();
   checkFirstVisit();
-  showNotifPrompt();
+  if(!ls('nbb_game_state')) showNotifPrompt(); // 게임 복원 중엔 알림 모달 안 뜸
   initMap();
   loadTerritories();
   initNotifState();
