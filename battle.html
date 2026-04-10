@@ -1767,7 +1767,7 @@ async function renderRankModal(){
     document.getElementById('rankList').innerHTML = ranked.length===0
       ? '<p style="color:var(--subtle);font-size:13px">아직 순위 데이터가 없어요</p>'
       : ranked.map((r,i)=>{
-          const badge = makeBadgeBlock(r.uid, r.ownerStreak, r.ownerAchCount);
+          const badge = makeBadgeBlock(r.uid, r.streak, r.achCount);
           return `<div class="rank-row${r.uid===S.userId?' my-row':''}">
           <div class="rank-pos${i<3?' medal':''}">${i<3?medals[i]:i+1}</div>
           <div class="rank-info">
@@ -1783,7 +1783,7 @@ async function renderRankModal(){
     document.getElementById('rankList').innerHTML = ranked.length===0
       ? '<p style="color:var(--subtle);font-size:13px">아직 순위 데이터가 없어요</p>'
       : ranked.map((r,i)=>{
-          const badge = makeBadgeBlock(r.uid, r.ownerStreak, r.ownerAchCount);
+          const badge = makeBadgeBlock(r.uid, r.streak, r.achCount);
           return `<div class="rank-row${r.uid===S.userId?' my-row':''}">
           <div class="rank-pos${i<3?' medal':''}">${i<3?medals[i]:i+1}</div>
           <div class="rank-info">
