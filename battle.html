@@ -2504,7 +2504,7 @@ function toggleTutorial(hdr){
 
 // ── 점수 계산 ──
 function calcScore(level, attempts){
-  const cfg = {1:{max:1000,min:300,th:9}, 2:{max:1000,min:300,th:20}, 3:{max:1000,min:300,th:30}};
+  const cfg = {1:{max:1000,min:300,th:11}, 2:{max:1000,min:300,th:20}, 3:{max:1000,min:300,th:33}};
   const {max, min, th} = cfg[level];
   if(attempts >= th) return min;
   return Math.max(min, Math.round(max - (attempts-1)*(max-min)/(th-1)));

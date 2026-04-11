@@ -1066,7 +1066,7 @@ ko:{
   rule5:'3게임 합산 점수로 일간 랭킹 도전!',
   ruleVR:'비디오판독: 3판 중 1회 사용 가능한 힌트',
   scoreGuide:'점수 기준',level:'레벨',maxPt:'최고점',minPt:'최저점',minAt:'최저 기준',
-  th1:'9회~',th2:'20회~',th3:'30회~',
+  th1:'11회~',th2:'20회~',th3:'33회~',
   noHistory:'첫 번째 추측을 입력하세요',dupAlert:'중복 숫자는 입력할 수 없습니다.',
   zeroAlert:'0은 사용할 수 없습니다.',dupInputAlert:'이미 입력한 숫자입니다.',
   noChance:'오늘의 기회를 모두 사용했습니다!',nickAlert:'닉네임을 입력해주세요.',
@@ -1104,7 +1104,7 @@ en:{
   rule5:'Total score from 3 games enters the daily ranking!',
   ruleVR:'Video Review: 1 hint per 3 games',
   scoreGuide:'Score Guide',level:'Level',maxPt:'Max',minPt:'Min',minAt:'Threshold',
-  th1:'9+',th2:'20+',th3:'30+',
+  th1:'11+',th2:'20+',th3:'33+',
   noHistory:'Enter your first guess',dupAlert:'Cannot enter duplicate digits.',
   zeroAlert:'0 cannot be used.',dupInputAlert:'Already entered that digit.',
   noChance:'No more chances today!',nickAlert:'Please enter a nickname.',
@@ -1892,7 +1892,7 @@ function genTarget(uid,dateStr,level,idx){
   return pool.slice(0,level);
 }
 function calcScore(level,attempts){
-  const cfg={3:{max:1000,min:300,th:9},4:{max:1000,min:300,th:20},5:{max:1000,min:300,th:30}};
+  const cfg={3:{max:1000,min:300,th:11},4:{max:1000,min:300,th:20},5:{max:1000,min:300,th:33}};
   const{max,min,th}=cfg[level];
   if(attempts>=th)return min;
   return Math.max(min,Math.round(max-(attempts-1)*(max-min)/(th-1)));
@@ -4103,9 +4103,9 @@ function buildHelpModal(ko){
     <table class="score-guide" style="margin-top:8px">
       <thead><tr><th>${ko?'레벨':'Level'}</th><th>${ko?'최고점':'Max'}</th><th>${ko?'최저점':'Min'}</th><th>${ko?'최저 기준':'Threshold'}</th></tr></thead>
       <tbody>
-        <tr><td>LV.1 · ${ko?'3자리':'3-Digit'}</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td>${ko?'9구~':'9p+'}</td></tr>
+        <tr><td>LV.1 · ${ko?'3자리':'3-Digit'}</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td>${ko?'11구~':'11p+'}</td></tr>
         <tr><td>LV.2 · ${ko?'4자리':'4-Digit'}</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td>${ko?'20구~':'20p+'}</td></tr>
-        <tr><td>LV.3 · ${ko?'5자리':'5-Digit'}</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td>${ko?'30구~':'30p+'}</td></tr>
+        <tr><td>LV.3 · ${ko?'5자리':'5-Digit'}</td><td style="color:var(--win);font-weight:800">1,000</td><td>300</td><td>${ko?'33구~':'33p+'}</td></tr>
       </tbody>
     </table>`;
 }
