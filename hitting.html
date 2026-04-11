@@ -384,14 +384,13 @@ footer{text-align:center;padding:16px;font-size:11px;color:var(--subtle);letter-
 .tut-win-anim{animation:winPop .45s ease forwards}
 
 @keyframes fireShimmer{0%{background-position:200% center}100%{background-position:-200% center}}
-@keyframes firePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 .streak-badge-btn{
   display:inline-flex;align-items:center;gap:5px;
-  background:linear-gradient(90deg,#f97316,#dc2626,#eab308,#f97316);
-  background-size:300% auto;
+  background:linear-gradient(90deg,#dc2626,#f97316,#dc2626);
+  background-size:200% auto;
   color:#fff;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800;
-  animation:fireShimmer 2.5s linear infinite, firePulse 2s ease-in-out infinite;
-  box-shadow:0 2px 10px rgba(249,115,22,.45);
+  animation:fireShimmer 2.5s linear infinite;
+  box-shadow:0 2px 10px rgba(249,115,22,.35);
 }
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
