@@ -3208,6 +3208,13 @@ function onWin(){
     const canTake = isRenewMine ? myScore > prevScore : myScore >= prevScore;
     if(!canTake){
       S._renewMode = false;
+      // Lv.3 정답 맞혔지만 점수 부족 → 기회 +1
+      if(myLevel === 3){
+        S.dailyAttempts = Math.max(0, S.dailyAttempts - 1);
+        saveLocal();
+        renderAttemptBar();
+        showToast('⚔️ Lv.3 도전! 기회 +1 반환');
+      }
       showFailModal(myScore, prevScore, isRenewMine);
       return;
     }
@@ -4000,6 +4007,10 @@ init();
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border)">
           <span style="font-size:13px;font-weight:700;color:var(--text)">🏏 누볼 히팅 — 안타 or 홈런</span>
           <a href="https://nuball.app/hitting" style="font-size:12px;font-weight:800;color:var(--primary);text-decoration:none;padding:4px 10px;border:1.5px solid var(--primary);border-radius:6px;white-space:nowrap">이동</a>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border)">
+          <span style="font-size:13px;font-weight:700;color:var(--text)">⚔️ Lv.3 — 정답 &amp; 점령 실패</span>
+          <span style="font-size:10px;font-weight:800;color:var(--primary);text-decoration:none;padding:4px 10px;border:1.5px solid var(--primary);border-radius:6px;white-space:nowrap">기회반환</span>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);opacity:0.5">
           <span style="font-size:13px;font-weight:700;color:var(--text)">📺 광고 보기</span>
