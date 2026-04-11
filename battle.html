@@ -2881,15 +2881,15 @@ function showFailModal(myScore, prevScore, isRenew){
   S.dailyAttempts++;
   S.stats.totalAttempts = (S.stats.totalAttempts||0) + 1;
   S.stats.captureStreak = 0;
-  saveLocal();
-  renderAttemptBar();
-  updateDailyStreak();
-  setTimeout(()=>checkAchievements(false, S.game?.level, 0, null), 300);
-  // 게임 상태 정리 후 홈으로 이동, 모달은 홈에서 표시
+  // 게임 상태 먼저 정리 후 saveLocal (saveLocal이 nbb_game_state 재저장 방지)
   S.currentRegion=null;
   S.currentTerritory=null;
   S.game={};
   S._renewMode=false;
+  saveLocal();
+  renderAttemptBar();
+  updateDailyStreak();
+  setTimeout(()=>checkAchievements(false, null, 0, null), 300);
   showScreen('home');
   openModal('failModal');
 }
