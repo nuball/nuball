@@ -1227,6 +1227,13 @@ function loadTerritories(){
       renderMap();
       setTimeout(()=>setMapView(_mapView), 50);
       renderRankModal();
+      // 내 영토 색상/닉네임이 현재 프로필과 다르면 자동 동기화
+      if(S.userId && S.color){
+        const mismatch = Object.entries(S.territories).some(([,t])=>
+          t && t.ownerId===S.userId && (t.ownerColor!==S.color || t.ownerNick!==S.nick)
+        );
+        if(mismatch) updateMyTerritories();
+      }
     });
   });
 }
