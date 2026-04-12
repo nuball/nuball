@@ -1536,7 +1536,7 @@ function renderMap(){
   const donghaeSi = mainlandFeatures.find(f => f.properties && (f.properties.name === '동해시' || f.properties.code === '32020'));
   const [dhX, dhY] = donghaeSi ? pathGen.centroid(donghaeSi) : [W*0.78, H*0.22];
   // 울릉도 목표 위치: 동해시 우측
-  const ulTargetX = dhX + 70, ulTargetY = dhY - 8;
+  const ulTargetX = dhX + 52, ulTargetY = dhY - 8;
 
   if(ulleungFeatureForInset){
     const ulId = rId(ulleungFeatureForInset);
@@ -1623,7 +1623,7 @@ function renderMap(){
     // 울릉도 투영 bounding box → 최소 변 기준으로 독도 크기 결정
     // 독도 크기: 동해시 기준 (독도 1km² ≈ 동해시 180km²의 0.6%)
     // 너무 작으면 클릭 불가하므로 UL_SIZE의 1/4로 고정
-    const INSET_W = 4; // 독도 1.4배
+    const INSET_W = 2; // 독도 1/2
     const INSET_H = INSET_W * (latSpan / lonSpan);   // 종횡비 유지
 
     // geo → local px (lat 반전: SVG는 y↓, 위도는 y↑)
@@ -1666,10 +1666,11 @@ function renderMap(){
 
     // 레이블
     dokdoG.append('text')
-      .attr('x', INSET_W + 2)
-      .attr('y', lcy)
-      .attr('dominant-baseline', 'middle')
-      .attr('font-size', '6px')
+      .attr('x', lcx)
+      .attr('y', INSET_H + 5)
+      .attr('dominant-baseline', 'hanging')
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '5px')
       .attr('font-weight', '700')
       .attr('fill', dokdoTerr ? '#fff' : (document.body.classList.contains('dark') ? '#8b949e' : '#333'))
       .attr('pointer-events', 'none')
