@@ -3159,7 +3159,7 @@ function renderLogs(){
 }
 
 // ── WIN ──
-function showFailModal(myScore, prevScore, isRenew){
+function showFailModal(myScore, prevScore, isRenew, refund=false){
   localStorage.removeItem('nbb_game_state');
   const ko = S.lang !== 'en';
   const t = document.getElementById('failTitle');
@@ -3176,7 +3176,8 @@ function showFailModal(myScore, prevScore, isRenew){
         : `${myScore.toLocaleString()}pts\nYou need at least ${prevScore.toLocaleString()}pts to capture.`;
     }
   }
-  S.dailyAttempts++;
+  if(!refund) S.dailyAttempts++;
+  if(refund) showToast('⚔️ Lv.3 도전! 기회 +1 반환');
   S.stats.totalAttempts = (S.stats.totalAttempts||0) + 1;
   S.stats.captureStreak = 0;
   // 게임 상태 먼저 정리 후 saveLocal (saveLocal이 nbb_game_state 재저장 방지)
@@ -3208,14 +3209,8 @@ function onWin(){
     const canTake = isRenewMine ? myScore > prevScore : myScore >= prevScore;
     if(!canTake){
       S._renewMode = false;
-      // Lv.3 정답 맞혔지만 점수 부족 → 기회 +1
-      if(myLevel === 3){
-        S.dailyAttempts = Math.max(0, S.dailyAttempts - 1);
-        saveLocal();
-        renderAttemptBar();
-        showToast('⚔️ Lv.3 도전! 기회 +1 반환');
-      }
-      showFailModal(myScore, prevScore, isRenewMine);
+      const lv3Refund = (myLevel === 3);
+      showFailModal(myScore, prevScore, isRenewMine, lv3Refund);
       return;
     }
   }
