@@ -413,6 +413,8 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
 .share-btn{padding:14px;background:var(--bg);border:1.5px solid var(--border);color:var(--text);border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s}
 .share-btn:hover{background:var(--bg2)}
 .copy-result{font-size:12px;font-weight:700;color:var(--primary);text-align:center;margin-top:8px;min-height:18px;font-family:inherit}
+.filter-back-btn{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:150;background:var(--primary);color:#fff;border:none;border-radius:24px;padding:12px 28px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(124,58,237,.4);display:flex;align-items:center;gap:8px;white-space:nowrap;transition:opacity .2s}
+.filter-back-btn:active{opacity:.8}
 </style>
 </head>
 <body>
@@ -2501,7 +2503,7 @@ let _mapView = 'all'; // 'all' | 'mine'
 
 function filterMapByPlayer(uid, nick){
   closeModal('rankModal');
-  showToast('🗺️ ' + nick + '의 영토 보기');
+  showToast('🗺️ ' + nick + '의 영토');
   const paths = document.querySelectorAll('#mapContainer path.map-region, #mapContainer .dokdo-group path, #mapContainer .ulleung-inset path');
   paths.forEach(path => {
     const rid = path.getAttribute('data-rid');
@@ -2511,11 +2513,22 @@ function filterMapByPlayer(uid, nick){
       ? (t.ownerColor || '#7c3aed')
       : (document.body.classList.contains('dark') ? '#2d333b' : '#e8e8e8');
   });
+  // 돌아가기 버튼 표시
   clearTimeout(window._filterTimer);
-  window._filterTimer = setTimeout(()=>{
+  let btn = document.getElementById('filterBackBtn');
+  if(!btn){
+    btn = document.createElement('button');
+    btn.id = 'filterBackBtn';
+    btn.className = 'filter-back-btn';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> 돌아가기';
+    document.body.appendChild(btn);
+  }
+  btn.style.display = 'flex';
+  btn.onclick = ()=>{
     paths.forEach(path => { path.style.fill = ''; });
-    showToast('전체 보기로 복원됐어요');
-  }, 5000);
+    btn.style.display = 'none';
+    openModal('rankModal');
+  };
 }
 
 function setMapView(mode){
