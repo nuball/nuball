@@ -859,6 +859,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
         <div id="riOtherNick" style="font-size:18px;font-weight:900;color:var(--text);margin-bottom:6px"></div>
         <div id="riOtherScore" style="font-size:13px;color:var(--primary);font-weight:800;font-family:'DM Mono',monospace;margin-bottom:4px"></div>
         <div style="font-size:11px;color:var(--muted);margin-top:4px">이 점수보다 높게 맞춰야 점령할 수 있어요</div>
+        <div id="riOtherExpiry" style="font-size:11px;color:var(--subtle);font-weight:600;margin-top:4px"></div>
       </div>
       <!-- 액션 버튼 -->
       <div id="riExhaustedMsg" style="display:none;font-size:11px;color:var(--lose);font-weight:700;text-align:center;margin-top:8px;padding:6px 10px;background:rgba(220,38,38,.06);border-radius:8px"></div>
@@ -2475,6 +2476,14 @@ function clickRegion(regionId, regionName){
     document.getElementById('riOtherIcon').innerHTML = makeIconEl(t.ownerIcon||null, t.ownerColor, 40);
     document.getElementById('riOtherNick').textContent = t.ownerNick || '?';
     document.getElementById('riOtherScore').textContent = (t.score||0).toLocaleString() + 'pts';
+    if(t.capturedAt){
+      const remain2 = EXPIRE_MS - (Date.now() - t.capturedAt);
+      const days2 = Math.floor(remain2 / 86400000);
+      const hrs2  = Math.floor((remain2 % 86400000) / 3600000);
+      document.getElementById('riOtherExpiry').textContent = `만료까지 ${days2}일 ${hrs2}시간`;
+    } else {
+      document.getElementById('riOtherExpiry').textContent = '';
+    }
     btn.textContent = '⚔️ 점령하기';
     btn.disabled = isExhausted;
     btn.style.opacity = isExhausted ? '0.4' : '';
