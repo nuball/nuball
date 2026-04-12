@@ -1836,7 +1836,7 @@ function finishGame(won,score){
     }
   }else{S.stats.streak=0;}
   // 850점 이상 승리 시 배틀 칼 복구
-  if(won && score >= 850){
+  if(won && score >= 800){
     if(grantBattleBonus()) showToast('⚔️ 배틀 기회 +1!');
   }
   saveStats();saveExtra();
