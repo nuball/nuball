@@ -860,6 +860,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
         <div id="riOtherScore" style="font-size:13px;color:var(--primary);font-weight:800;font-family:'DM Mono',monospace;margin-bottom:4px"></div>
         <div style="font-size:11px;color:var(--muted);margin-top:4px">이 점수보다 높게 맞춰야 점령할 수 있어요</div>
         <div id="riOtherExpiry" style="font-size:11px;color:var(--subtle);font-weight:600;margin-top:4px"></div>
+        <div id="riOtherExpiry" style="font-size:11px;color:var(--subtle);font-weight:600;margin-top:4px"></div>
       </div>
       <!-- 액션 버튼 -->
       <div id="riExhaustedMsg" style="display:none;font-size:11px;color:var(--lose);font-weight:700;text-align:center;margin-top:8px;padding:6px 10px;background:rgba(220,38,38,.06);border-radius:8px"></div>
@@ -1073,6 +1074,7 @@ main{max-width:580px;margin:0 auto;width:100%;padding:20px 16px 16px}
       <div style="display:flex;gap:6px;margin-bottom:14px">
         <button class="league-tab active" id="rankTab1" onclick="setRankTab(1)">점령 도시</button>
         <button class="league-tab" id="rankTab2" onclick="setRankTab(2)">점령 면적</button>
+        <button class="league-tab" id="rankTab3" onclick="setRankTab(3)">점령 점수</button>
       </div>
       <div id="rankList"></div>
       <div class="rank-reset" id="rankResetEl">실시간 랭킹 · 접속 시 자동 갱신</div>
@@ -1314,7 +1316,7 @@ function renderMap(){
   if(!S.geoData) return;
   const container = document.getElementById('mapContainer');
   const W = container.clientWidth || 548;
-  const H = Math.round(W * 1.15);
+  const H = Math.round(W * 1.35);
 
   // ── 자잘한 섬 제거: 전체 면적의 3% 미만 폴리곤 제거 ──
   const cleanedFeatures = S.geoData.features.map(f => {
@@ -1349,7 +1351,7 @@ function renderMap(){
 
   const proj = d3.geoMercator().fitSize([W, H], mainlandGeo);
   // 한국 전체 중심좌표 고정 + 1.5배 확대
-  const factor = 1.1;
+  const factor = 1.0;
   proj.scale(proj.scale() * factor)
       .center([127.77, 35.90])
       .translate([W/2, H/2]);
@@ -1406,7 +1408,7 @@ function renderMap(){
   }, {passive: true, capture: true});
 
   // 독도는 projection 좌표 오류로 SVG 전체를 덮으므로 별도 처리
-  const mainlandFeatures = cleanedFeatures.filter(f => f.properties.name !== '독도');
+  const mainlandFeatures = cleanedFeatures.filter(f => f.properties.name !== '독도' && f.properties.name !== '울릉군');
   const dokdoFeature = cleanedFeatures.find(f => f.properties.name === '독도');
 
   g.selectAll('path')
@@ -1529,13 +1531,84 @@ function renderMap(){
     })
     .on('touchend',(ev,d)=>{ ev.preventDefault(); if(_gestureBlocked||_isDragging) return; document.getElementById('mapTooltip').style.display='none'; clickRegion(rId(d), rNameEn(d)); });
 
-  // ── 독도: 울릉도 기준 우하단에 실제 polygon 형태로 렌더링 ──
+  // ── 울릉도+독도: 동해시 우측에 별도 렌더링 ──
+  const ulleungFeatureForInset = cleanedFeatures.find(f => f.properties && f.properties.name === '울릉군');
+  const donghaeSi = mainlandFeatures.find(f => f.properties && (f.properties.name === '동해시' || f.properties.code === '32020'));
+  const [dhX, dhY] = donghaeSi ? pathGen.centroid(donghaeSi) : [W*0.78, H*0.22];
+  // 울릉도 목표 위치: 동해시 우측
+  const ulTargetX = dhX + 70, ulTargetY = dhY - 8;
+
+  if(ulleungFeatureForInset){
+    const ulId = rId(ulleungFeatureForInset);
+    const ulTerr = S.territories[ulId];
+    const ulFill = ulTerr
+      ? (ulTerr.ownerId===S.userId ? (S.color||ulTerr.ownerColor||'#7c3aed') : (ulTerr.ownerColor||'#888'))
+      : (document.body.classList.contains('dark') ? '#2d333b' : '#ececec');
+
+    // geo좌표 → 로컬 픽셀 (독도와 동일 방식)
+    const ulGeom = ulleungFeatureForInset.geometry;
+    const allCoords = ulGeom.type === 'Polygon'
+      ? ulGeom.coordinates[0]
+      : ulGeom.coordinates[0][0]; // MultiPolygon → 첫 링
+    const ulLons = allCoords.map(p=>p[0]);
+    const ulLats = allCoords.map(p=>p[1]);
+    const ulLonMin=Math.min(...ulLons), ulLonMax=Math.max(...ulLons);
+    const ulLatMin=Math.min(...ulLats), ulLatMax=Math.max(...ulLats);
+    const ulLonSpan=ulLonMax-ulLonMin||0.001, ulLatSpan=ulLatMax-ulLatMin||0.001;
+    // 동해시 화면 크기 기준으로 울릉도 크기 비례 계산 (73/180 ≈ 40%)
+    const dhBounds = donghaeSi ? pathGen.bounds(donghaeSi) : null;
+    const dhPxSize = dhBounds ? Math.min(dhBounds[1][0]-dhBounds[0][0], dhBounds[1][1]-dhBounds[0][1]) : 20;
+    const UL_SIZE = Math.round(dhPxSize * 0.28); // 울릉도 1.4배
+    const ulLocalPts = allCoords.map(([lon,lat])=>[
+      (lon-ulLonMin)/ulLonSpan*UL_SIZE,
+      (1-(lat-ulLatMin)/ulLatSpan)*UL_SIZE
+    ]);
+    const ulPathStr = 'M'+ulLocalPts.map(p=>p.map(v=>v.toFixed(2)).join(',')).join(' L')+' Z';
+    const ulLcx = ulLocalPts.reduce((s,p)=>s+p[0],0)/ulLocalPts.length;
+    const ulLcy = ulLocalPts.reduce((s,p)=>s+p[1],0)/ulLocalPts.length;
+
+    const ulG = g.append('g')
+      .attr('class','ulleung-inset')
+      .attr('transform',`translate(${(ulTargetX-ulLcx).toFixed(2)},${(ulTargetY-ulLcy).toFixed(2)})`)
+      .style('cursor','pointer');
+    ulG.append('rect').attr('x',-6).attr('y',-6).attr('width',UL_SIZE+12).attr('height',UL_SIZE+12).attr('fill','transparent').attr('stroke','none');
+    ulG.append('path')
+      .attr('d',ulPathStr)
+      .attr('class','map-region'+(ulTerr?'':' empty'))
+      .attr('data-rid',ulId)
+      .attr('fill',ulFill)
+      .attr('stroke',ulTerr&&ulTerr.ownerId===S.userId?'rgba(0,0,0,.5)':'rgba(0,0,0,.3)')
+      .attr('stroke-width',0.7);
+    g.append('text')
+      .attr('x',ulTargetX).attr('y',ulTargetY+ulLcy+8)
+      .attr('text-anchor','middle').attr('font-size','5px').attr('font-weight','700')
+      .attr('fill',ulTerr?'#fff':(document.body.classList.contains('dark')?'#8b949e':'#333'))
+      .attr('pointer-events','none')
+      .style('paint-order','stroke')
+      .style('stroke',document.body.classList.contains('dark')?'rgba(0,0,0,.5)':'rgba(255,255,255,.9)')
+      .style('stroke-width','1.5px')
+      .text('울릉도');
+    ulG
+      .on('click',()=>clickRegion(ulId,'울릉군'))
+      .on('touchend',(ev)=>{ev.preventDefault();if(_gestureBlocked||_isDragging)return;document.getElementById('mapTooltip').style.display='none';clickRegion(ulId,'울릉군');})
+      .on('mouseenter',()=>{
+        const t=S.territories[ulId];
+        document.getElementById('mapHoverName').textContent='울릉군';
+        document.getElementById('mapHoverName').style.color=t?(t.ownerId===S.userId?'var(--primary)':'var(--text)'):'var(--text)';
+        document.getElementById('mapHoverInfo').textContent=t?(t.ownerId===S.userId?`내 영토 · ${(t.score||0).toLocaleString()}pts`:`${t.ownerNick} · ${(t.score||0).toLocaleString()}pts`):'빈 지역';
+        document.getElementById('ttName').textContent='울릉군';
+        if(t){document.getElementById('ttIcon').innerHTML=makeIconEl(t.ownerIcon||null,t.ownerColor,36);document.getElementById('ttNick').textContent=t.ownerNick||'?';document.getElementById('ttStatus').textContent=`${(t.score||0).toLocaleString()}pts`;document.getElementById('ttStatus').style.color=t.ownerId===S.userId?'rgba(167,139,250,.9)':'rgba(255,255,255,.55)';}
+        else{document.getElementById('ttIcon').innerHTML='';document.getElementById('ttNick').textContent='';document.getElementById('ttStatus').textContent='클릭해서 선점!';document.getElementById('ttStatus').style.color='rgba(255,255,255,.55)';}
+        document.getElementById('mapTooltip').style.display='block';
+      });
+  }
+
   if(dokdoFeature){
     const dokdoId = rId(dokdoFeature);
-    const ulleungdo = mainlandFeatures.find(f => f.properties && f.properties.name === '울릉군');
-    const [ux, uy] = ulleungdo ? pathGen.centroid(ulleungdo) : [W*0.9, H*0.18];
-    // 화면상 목표 중심 위치 (울릉도 우하단)
-    const ox = ux + 24, oy = uy + 14;
+    const ulleungdo = null; // 별도 렌더링
+    // 독도: 울릉도 아래에 배치
+    const [ux, uy] = [ulTargetX, ulTargetY];
+    const ox = ux + 20, oy = uy + 20;
 
     // 독도 geo 좌표 → 로컬 픽셀 선형 매핑
     // 울릉도 투영 크기를 기준으로 1/5 스케일 계산
@@ -1548,11 +1621,9 @@ function renderMap(){
     const latSpan = latMax - latMin || 0.001;
 
     // 울릉도 투영 bounding box → 최소 변 기준으로 독도 크기 결정
-    const ulBounds = ulleungdo ? pathGen.bounds(ulleungdo) : null;
-    const ulMinDim = ulBounds
-      ? Math.min(ulBounds[1][0]-ulBounds[0][0], ulBounds[1][1]-ulBounds[0][1])
-      : 20;
-    const INSET_W = ulMinDim / 5;                    // 울릉도 1/5
+    // 독도 크기: 동해시 기준 (독도 1km² ≈ 동해시 180km²의 0.6%)
+    // 너무 작으면 클릭 불가하므로 UL_SIZE의 1/4로 고정
+    const INSET_W = 4; // 독도 1.4배
     const INSET_H = INSET_W * (latSpan / lonSpan);   // 종횡비 유지
 
     // geo → local px (lat 반전: SVG는 y↓, 위도는 y↑)
@@ -1654,10 +1725,27 @@ function rNameEn(d){ return (S.lang!=='ko' && d.properties.name_eng) ? d.propert
 // ── LEADERBOARD ──
 
 let _rankTabMode = 1; // 1=도시수, 2=면적
+
+function calcScoreRank(){
+  return Object.entries(S.territories)
+    .filter(([,t])=>t&&t.ownerId)
+    .map(([rid,t])=>({
+      rid,
+      name: S.geoData ? (()=>{ const f=S.geoData.features.find(f=>rId(f)===rid); return f?rName(f):rid; })() : rid,
+      score: t.score||0,
+      area: REGION_AREA_KM2[rid]||0,
+      ownerId: t.ownerId,
+      ownerNick: t.ownerNick||'?',
+      ownerColor: t.ownerColor||'#888',
+      ownerCountry: t.ownerCountry||'',
+    }))
+    .sort((a,b)=>b.score-a.score || b.area-a.area);
+}
 function setRankTab(n){
   _rankTabMode = n;
   document.getElementById('rankTab1').classList.toggle('active', n===1);
   document.getElementById('rankTab2').classList.toggle('active', n===2);
+  document.getElementById('rankTab3').classList.toggle('active', n===3);
   renderRankModal();
 }
 
@@ -1690,13 +1778,11 @@ function renderStatsModal(){
   se('statArea').textContent = myArea.toLocaleString();
   se('statAreaRank').textContent = myRankArea ? '('+myRankArea+'위)' : '';
 
-  // 점령 도시 목록
   const listEl = se('statCityList');
   if(!listEl) return;
   if(myCount === 0){
     listEl.innerHTML = '<span style="font-size:12px;color:var(--subtle);font-weight:600">점령한 도시가 없어요</span>';
   } else {
-    // GEO_DATA에서 이름 찾기
     const names = myTerritories.map(([rid])=>{
       const feat = S.geoData&&S.geoData.features.find(f=>rId(f)===rid);
       return feat ? rName(feat) : rid;
@@ -2045,7 +2131,25 @@ async function renderRankModal(){
     const ab = a>0 ? '<span style="font-size:9px;color:var(--primary);font-weight:800;line-height:1.3">🏆'+a+'</span>' : '';
     return '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:28px;flex-shrink:0;gap:1px">'+sb+ab+'</div>';
   }
-  if(_rankTabMode===2){
+  if(_rankTabMode===3){
+    const ranked = calcScoreRank();
+    document.getElementById('rankList').innerHTML = ranked.length===0
+      ? '<p style="color:var(--subtle);font-size:13px">아직 점령된 지역이 없어요</p>'
+      : ranked.map((r,i)=>{
+          const isMe = r.ownerId===S.userId;
+          return '<div class="rank-row'+(isMe?' my-row':'')+'" style="align-items:center">'+
+            '<div class="rank-pos'+(i<3?' medal':'')+'">'+(i<3?medals[i]:i+1)+'</div>'+
+            '<div class="rank-info" style="flex:1;min-width:0">'+
+              '<div class="rank-nick" style="font-size:14px">'+(r.name)+(isMe?' 👈':'')+'</div>'+
+              '<div class="rank-country" style="display:flex;align-items:center;gap:4px">'+
+                '<div style="width:8px;height:8px;border-radius:50%;background:'+(r.ownerColor)+';flex-shrink:0"></div>'+
+                '<span>'+(isMe?(S.nick||r.ownerNick):r.ownerNick)+'</span>'+
+              '</div>'+
+            '</div>'+
+            '<div class="rank-score" style="display:flex;align-items:baseline;gap:3px"><span style="font-family:monospace">'+r.score.toLocaleString()+'</span><span style="font-size:11px;font-weight:600;color:var(--muted)">pts</span></div>'+
+          '</div>';
+        }).join('');
+  } else if(_rankTabMode===2){
     const ranked = calcAreaRank();
     await loadUserBadges(ranked);
     document.getElementById('rankList').innerHTML = ranked.length===0
@@ -2476,6 +2580,14 @@ function clickRegion(regionId, regionName){
     document.getElementById('riOtherIcon').innerHTML = makeIconEl(t.ownerIcon||null, t.ownerColor, 40);
     document.getElementById('riOtherNick').textContent = t.ownerNick || '?';
     document.getElementById('riOtherScore').textContent = (t.score||0).toLocaleString() + 'pts';
+    if(t.capturedAt){
+      const remain2 = EXPIRE_MS - (Date.now() - t.capturedAt);
+      const days2 = Math.floor(remain2 / 86400000);
+      const hrs2  = Math.floor((remain2 % 86400000) / 3600000);
+      document.getElementById('riOtherExpiry').textContent = `만료까지 ${days2}일 ${hrs2}시간`;
+    } else {
+      document.getElementById('riOtherExpiry').textContent = '';
+    }
     if(t.capturedAt){
       const remain2 = EXPIRE_MS - (Date.now() - t.capturedAt);
       const days2 = Math.floor(remain2 / 86400000);
@@ -3742,7 +3854,7 @@ function cancelProfileModal(){
 function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id==='statsModal') renderStatsModal();
-  if(id==='rankModal'){ _rankTabMode=1; document.getElementById('rankTab1').classList.add('active'); document.getElementById('rankTab2').classList.remove('active'); renderRankModal(); }
+  if(id==='rankModal'){ _rankTabMode=1; document.getElementById('rankTab1').classList.add('active'); document.getElementById('rankTab2').classList.remove('active'); document.getElementById('rankTab3').classList.remove('active'); renderRankModal(); }
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
