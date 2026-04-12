@@ -2141,7 +2141,7 @@ async function renderRankModal(){
           return '<div class="rank-row'+(isMe?' my-row':'')+'" style="align-items:center">'+
             '<div class="rank-pos'+(i<3?' medal':'')+'">'+(i<3?medals[i]:i+1)+'</div>'+
             '<div class="rank-info" style="flex:1;min-width:0">'+
-              '<div class="rank-nick" style="font-size:14px">'+(r.name)+(isMe?' 👈':'')+'</div>'+
+              '<div class="rank-nick rank-city-clickable" data-rid="'+r.rid+'" data-name="'+r.name+'" style="font-size:14px;cursor:pointer;text-decoration:underline;text-underline-offset:2px">'+(r.name)+(isMe?' 👈':'')+'</div>'+
               '<div class="rank-country" style="display:flex;align-items:center;gap:4px">'+
                 '<div style="width:8px;height:8px;border-radius:50%;background:'+(r.ownerColor)+';flex-shrink:0"></div>'+
                 '<span>'+(isMe?(S.nick||r.ownerNick):r.ownerNick)+'</span>'+
@@ -2165,7 +2165,7 @@ async function renderRankModal(){
           return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
             '<div class="rank-pos'+(i<3?' medal':'')+'">'+( i<3?medals[i]:i+1)+'</div>'+
             '<div class="rank-info">'+
-              '<div class="rank-nick">'+(r.nick||'?')+(isMe?' 👈':'')+'</div>'+
+              '<div class="rank-nick rank-nick-clickable" data-uid="'+r.uid+'" data-nick="'+(r.nick||'?')+'" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">'+(r.nick||'?')+(isMe?' 👈':'')+'</div>'+
               '<div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:'+(r.color||'#888')+';flex-shrink:0"></div><span>'+countryLabel(isMe?S.country:r.country)+'</span></div>'+
             '</div>'+
             badge+
@@ -2187,7 +2187,7 @@ async function renderRankModal(){
           return '<div class="rank-row'+(isMe?' my-row':'')+'">'+
             '<div class="rank-pos'+(i<3?' medal':'')+'">'+( i<3?medals[i]:i+1)+'</div>'+
             '<div class="rank-info">'+
-              '<div class="rank-nick">'+(r.nick||'?')+(isMe?' 👈':'')+'</div>'+
+              '<div class="rank-nick rank-nick-clickable" data-uid="'+r.uid+'" data-nick="'+(r.nick||'?')+'" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">'+(r.nick||'?')+(isMe?' 👈':'')+'</div>'+
               '<div class="rank-country" style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:'+(r.color||'#888')+';flex-shrink:0"></div><span>'+countryLabel(isMe?S.country:r.country)+'</span></div>'+
             '</div>'+
             badge+
@@ -2498,6 +2498,25 @@ function renderAttemptBar(){
 }
 
 let _mapView = 'all'; // 'all' | 'mine'
+
+function filterMapByPlayer(uid, nick){
+  closeModal('rankModal');
+  showToast('🗺️ ' + nick + '의 영토 보기');
+  const paths = document.querySelectorAll('#mapContainer path.map-region, #mapContainer .dokdo-group path, #mapContainer .ulleung-inset path');
+  paths.forEach(path => {
+    const rid = path.getAttribute('data-rid');
+    const t = S.territories[rid];
+    const isTarget = t && t.ownerId === uid;
+    path.style.fill = isTarget
+      ? (t.ownerColor || '#7c3aed')
+      : (document.body.classList.contains('dark') ? '#2d333b' : '#e8e8e8');
+  });
+  clearTimeout(window._filterTimer);
+  window._filterTimer = setTimeout(()=>{
+    paths.forEach(path => { path.style.fill = ''; });
+    showToast('전체 보기로 복원됐어요');
+  }, 5000);
+}
 
 function setMapView(mode){
   _mapView = mode;
@@ -3855,7 +3874,19 @@ function cancelProfileModal(){
 function openModal(id){
   document.getElementById(id).classList.add('open');
   if(id==='statsModal') renderStatsModal();
-  if(id==='rankModal'){ _rankTabMode=1; document.getElementById('rankTab1').classList.add('active'); document.getElementById('rankTab2').classList.remove('active'); document.getElementById('rankTab3').classList.remove('active'); renderRankModal(); }
+  if(id==='rankModal'){
+    // 이벤트 위임: 닉네임/도시 클릭
+    setTimeout(()=>{
+      const rl = document.getElementById('rankList');
+      if(!rl) return;
+      rl.addEventListener('click', function handler(e){
+        const nick = e.target.closest('.rank-nick-clickable');
+        if(nick){ filterMapByPlayer(nick.dataset.uid, nick.dataset.nick); rl.removeEventListener('click',handler); return; }
+        const city = e.target.closest('.rank-city-clickable');
+        if(city){ closeModal('rankModal'); rl.removeEventListener('click',handler); setTimeout(()=>clickRegion(city.dataset.rid, city.dataset.name),200); }
+      });
+    },100);
+    _rankTabMode=1; document.getElementById('rankTab1').classList.add('active'); document.getElementById('rankTab2').classList.remove('active'); document.getElementById('rankTab3').classList.remove('active'); renderRankModal(); }
 }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 
