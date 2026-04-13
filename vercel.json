@@ -2,11 +2,5 @@
   "rewrites": [
     { "source": "/hitting", "destination": "/hitting.html" },
     { "source": "/battle", "destination": "/battle.html" }
-  ],
-  "crons": [
-    {
-      "path": "/api/send-notifications",
-      "schedule": "0 23 * * *"
-    }
   ]
 }
