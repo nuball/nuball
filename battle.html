@@ -2258,6 +2258,8 @@ const ACHIEVEMENTS = [
   {id:'capture_gwangju',cat:'점령', icon:'✊', ko:'광주정신',     descKo:'광주광역시를 점령했어요'},
   {id:'capture_daejeon',cat:'점령', icon:'🔬', ko:'대전사이언스', descKo:'대전광역시를 점령했어요'},
   {id:'capture_ulsan',  cat:'점령', icon:'🐋', ko:'울산고래',     descKo:'울산광역시를 점령했어요'},
+  {id:'capture_ulleung',cat:'점령', icon:'🏝️', ko:'울릉도주민',   descKo:'울릉군을 점령했어요'},
+  {id:'capture_dokdo',  cat:'점령', icon:'🪨', ko:'독도수호대',   descKo:'독도를 점령했어요'},
   {id:'capture_jeju',   cat:'점령', icon:'🌊', ko:'제주도민',     descKo:'제주시와 서귀포시를 모두 점령했어요'},
   {id:'capture_metro',  cat:'점령', icon:'🏙️', ko:'광역시장',     descKo:'7대 광역시를 모두 점령했어요'},
   {id:'capture_10',     cat:'점령', icon:'🗺️', ko:'지역명사',     descKo:'10개 도시를 동시에 점령하고 있어요'},
@@ -2329,6 +2331,17 @@ function checkAchievements(captureSuccess, level, score, regionId){
   check('capture_ulsan',   '26000');
 
   // 제주도민: 제주시+서귀포시 둘 다
+  // 울릉도(울릉군) 코드 동적으로 찾기
+  if(!S.achievements['capture_ulleung'] || !S.achievements['capture_dokdo']){
+    if(S.geoData){
+      const ulFeature = S.geoData.features.find(f=>f.properties&&f.properties.name==='울릉군');
+      const dkFeature = S.geoData.features.find(f=>f.properties&&f.properties.name==='독도');
+      const ulCode = ulFeature ? (ulFeature.properties.code||ulFeature.properties.SIG_CD||ulFeature.id) : null;
+      const dkCode = dkFeature ? (dkFeature.properties.code||dkFeature.properties.SIG_CD||dkFeature.id) : null;
+      if(ulCode && !S.achievements['capture_ulleung'] && myCodes.includes(ulCode)) unlockAchievement('capture_ulleung');
+      if(dkCode && !S.achievements['capture_dokdo']  && myCodes.includes(dkCode))  unlockAchievement('capture_dokdo');
+    }
+  }
   if(!S.achievements['capture_jeju'] && myCodes.includes('39010') && myCodes.includes('39020')) unlockAchievement('capture_jeju');
 
   // 광역시장: 7대 광역시 모두
