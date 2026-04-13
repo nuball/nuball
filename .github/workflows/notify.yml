@@ -1,0 +1,16 @@
+name: Daily Nuball Notification
+
+on:
+  schedule:
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+
+jobs:
+  send-notifications:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send daily notifications
+        run: |
+          curl -s -X POST https://nuball.app/api/send-notifications \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -w "\nHTTP Status: %{http_code}\n"
