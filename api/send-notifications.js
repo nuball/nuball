@@ -1,6 +1,5 @@
 const admin = require('firebase-admin');
 
-// Firebase 앱 중복 초기화 방지
 if (!admin.apps.length) {
   const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
   admin.initializeApp({
@@ -31,36 +30,22 @@ async function sendNotifications() {
   console.log(`KO: ${koTokens.length}, EN: ${enTokens.length}`);
 
   const batches = [
-    {
-      tokens: koTokens,
-      title: '⚔️ 누볼 배틀',
-      body: '오늘의 배틀이 기다리고 있어요! 지금 바로 도전하세요 🗺️'
-    },
-    {
-      tokens: enTokens,
-      title: '⚔️ NUBALL BATTLE',
-      body: "Today's battle is waiting! Capture your territory now 🗺️"
-    }
+    { tokens: koTokens, title: 'NUBALL ⚾', body: '오늘의 누볼이 기다리고 있어요! 지금 바로 플레이하세요 🎯' },
+    { tokens: enTokens, title: 'NUBALL ⚾', body: "Today's NUBALL is waiting! Play now 🎯" }
   ];
 
   let totalSuccess = 0, totalFailed = 0;
-
   for (const { tokens, title, body } of batches) {
     if (tokens.length === 0) continue;
     const batchSize = 500;
     for (let i = 0; i < tokens.length; i += batchSize) {
       const batch = tokens.slice(i, i + batchSize);
       const message = {
-        data: {
-          title,
-          body,
-          icon: 'https://nuball.app/og-image.PNG',
-          url: 'https://nuball.app/battle'
-        },
+        data: { title, body, icon: 'https://nuball.app/og-image.PNG', url: 'https://nuball.app' },
         android: { priority: 'high' },
         webpush: {
           headers: { Urgency: 'high', TTL: '86400' },
-          fcmOptions: { link: 'https://nuball.app/battle' }
+          fcmOptions: { link: 'https://nuball.app' }
         },
         tokens: batch
       };
@@ -69,12 +54,9 @@ async function sendNotifications() {
         totalSuccess += response.successCount;
         totalFailed += response.failureCount;
         console.log(`Sent: ${response.successCount} success, ${response.failureCount} failed`);
-
-        // 만료 토큰 삭제
         response.responses.forEach((resp, idx) => {
           if (!resp.success) {
             const code = resp.error?.code;
-            console.log(`Failed: ${code}`);
             if (
               code === 'messaging/invalid-registration-token' ||
               code === 'messaging/registration-token-not-registered'
@@ -90,11 +72,9 @@ async function sendNotifications() {
         });
       } catch (e) {
         console.error('Batch send failed:', e);
-        totalFailed += batch.length;
       }
     }
   }
-
   return { success: totalSuccess, failed: totalFailed };
 }
 
@@ -103,13 +83,12 @@ module.exports = async (req, res) => {
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
   try {
     const result = await sendNotifications();
-    console.log('Daily notifications sent:', result);
+    console.log('Daily notifications sent successfully');
     res.status(200).json({ ok: true, ...result });
   } catch (e) {
-    console.error('sendNotifications failed:', e);
+    console.error(e);
     res.status(500).json({ error: e.message });
   }
 };
