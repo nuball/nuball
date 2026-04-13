@@ -108,7 +108,7 @@ async function sendNotifications() {
 module.exports = async (req, res) => {
   // Vercel Cron 인증 확인
   const authHeader = req.headers['authorization'];
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${process.env.nuball-cron-2025}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
