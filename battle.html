@@ -2222,13 +2222,16 @@ function updateDailyStreak(){
   }
 }
 
-function showNotifPrompt(){
-  // 이미 알림 켜져있으면 안 뜸
-  if(localStorage.getItem('nb_notif')==='1' && Notification.permission==='granted') return;
-  // 그만보기 누른 적 있으면 안 뜸
-  if(localStorage.getItem('nbb_notif_dismiss')==='1') return;
-  setTimeout(()=>openModal('notifPromptModal'), 500);
+
+function showScoreDeductModal(){
+  if(localStorage.getItem('nbb_score_deduct_seen')==='1') return;
+  setTimeout(()=>openModal('scoreDeductModal'), 400);
 }
+function dismissScoreDeductModal(){
+  localStorage.setItem('nbb_score_deduct_seen','1');
+  closeModal('scoreDeductModal');
+}
+function showNotifPrompt(){ return; }
 function dismissNotifPrompt(){
   localStorage.setItem('nbb_notif_dismiss','1');
   closeModal('notifPromptModal');
@@ -2413,6 +2416,16 @@ function revealEmail_b(){
   const el = document.getElementById('emailReveal_b');
   const u='nuball.official', d='proton.me';
   el.innerHTML='<a href="mailto:'+u+'@'+d+'" style="color:var(--primary);text-decoration:none;font-weight:700">'+u+'@'+d+'</a>';
+}
+
+// ── 업데이트 안내 모달 ──
+function showUpdateNotice(){
+  if(localStorage.getItem('nbb_update_v2') === '1') return;
+  setTimeout(()=>openModal('updateNoticeModal'), 400);
+}
+function dismissUpdateNotice(){
+  localStorage.setItem('nbb_update_v2','1');
+  closeModal('updateNoticeModal');
 }
 // ── 비디오판독 ──
 function updateVRBtn(){
@@ -3347,6 +3360,16 @@ function showFailModal(myScore, prevScore, isRenew, refund=false){
   if(refund) showToast('⚔️ Lv.3 도전! 기회 +1 반환');
   S.stats.totalAttempts = (S.stats.totalAttempts||0) + 1;
   S.stats.captureStreak = 0;
+  // ── 방어자 점수 차감 (갱신 모드 아님 & 타인 영토 공격 실패 시) ──
+  if(!isRenew && S.currentRegion && S.currentTerritory && S.currentTerritory.ownerId !== S.userId){
+    const deduct = myLevel===1 ? 3 : myLevel===2 ? 6 : 9;
+    const rid = S.currentRegion.id;
+    const newScore = Math.max(0, (S.currentTerritory.score||0) - deduct);
+    // Firebase 업데이트
+    fbReady(()=>{
+      window._fbSet(window._fbRef(window._fbDb, `territories/${rid}/score`), newScore);
+    });
+  }
   // 게임 상태 먼저 정리 후 saveLocal (saveLocal이 nbb_game_state 재저장 방지)
   S.currentRegion=null;
   S.currentTerritory=null;
@@ -3373,7 +3396,7 @@ function onWin(){
     const prevScore = prev.score || 0;
     const isRenewMine = S._renewMode && prev.ownerId === S.userId;
     // 내 땅 갱신: 기존보다 높아야 갱신 / 남의 땅 점령: 기존 이상이어야 점령
-    const canTake = isRenewMine ? myScore > prevScore : myScore >= prevScore;
+    const canTake = isRenewMine ? myScore > prevScore : myScore > prevScore;
     if(!canTake){
       S._renewMode = false;
       const lv3Refund = (myLevel === 3);
@@ -4025,6 +4048,7 @@ async function confirmOnboard(){
       const hint = document.getElementById('onboardNickHint');
       if(hint){ hint.textContent='이미 사용 중인 닉네임이에요 😅'; hint.style.color='var(--lose)'; }
       if(btn){ btn.disabled=false; btn.textContent='⚔️ 전장으로!'; }
+  showScoreDeductModal();
       return;
     }
   }catch(e){}
@@ -4038,7 +4062,7 @@ async function confirmOnboard(){
   renderUserBadge();
   await saveUser();
   if(btn){ btn.disabled=false; btn.textContent='⚔️ 전장으로!'; }
-  showNotifPrompt();
+  showScoreDeductModal();
 }
 function checkFirstVisit(){
   if(!S.userId){ S.userId=genId(); saveLocal(); }
@@ -4091,7 +4115,8 @@ function init(){
   // → init에서는 updateDailyStreak 호출 제거, 각 게임 결과에서만 호출
   renderStreakBadge();
   checkFirstVisit();
-  if(!ls('nbb_game_state')) showNotifPrompt(); // 게임 복원 중엔 알림 모달 안 뜸
+  // notifPrompt 제거됨
+  if(!ls('nbb_game_state')) showScoreDeductModal();
   initMap();
   loadTerritories();
   initNotifState();
@@ -4212,14 +4237,53 @@ init();
 </div>
 
 <!-- 알림 유도 모달 -->
-<div class="ov" id="notifPromptModal">
+
+<!-- 점수 차감 업데이트 안내 모달 -->
+<div class="ov" id="scoreDeductModal">
   <div class="mbox" style="max-width:320px">
     <div class="mbody" style="text-align:center;padding:28px 20px">
-      <div style="font-size:32px;margin-bottom:12px">🔔</div>
-      <div style="font-size:16px;font-weight:900;margin-bottom:12px">알림을 켜주세요!</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">누군가 내 땅을 뺏으면 바로 알려드려요.<br>좌측 상단 🔔 버튼을 켜주세요!</div>
-      <button class="btn-p" style="width:100%;margin-bottom:8px" onclick="closeModal('notifPromptModal');handleNotifBtn()">확인</button>
-      <button onclick="dismissNotifPrompt()" style="width:100%;padding:10px;background:transparent;border:none;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit">그만보기</button>
+      <div style="font-size:32px;margin-bottom:12px">⚔️</div>
+      <div style="font-size:16px;font-weight:900;margin-bottom:8px">업데이트 안내</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:20px">
+        이제 공격을 받으면 <strong style="color:var(--text)">방어 점수가 차감</strong>돼요!<br><br>
+        <div style="background:var(--bg2);border-radius:10px;padding:12px;text-align:left;font-size:12px">
+          <div style="margin-bottom:4px">🗡️ Lv.1 공격 → <strong>-3pts</strong></div>
+          <div style="margin-bottom:4px">⚔️ Lv.2 공격 → <strong>-6pts</strong></div>
+          <div>🏹 Lv.3 공격 → <strong>-9pts</strong></div>
+        </div>
+      </div>
+      <button class="btn-p" style="width:100%;margin-bottom:8px" onclick="closeModal('scoreDeductModal')">확인</button>
+      <button onclick="dismissScoreDeductModal()" style="width:100%;padding:10px;background:transparent;border:none;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit">그만보기</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- 업데이트 안내 모달 -->
+<div class="ov" id="updateNoticeModal">
+  <div class="mbox" style="max-width:340px">
+    <div class="mbody" style="padding:28px 20px">
+      <div style="text-align:center;font-size:28px;margin-bottom:12px">⚔️</div>
+      <div style="text-align:center;font-size:16px;font-weight:900;margin-bottom:6px">배틀 업데이트 안내</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px">방어 점수 차감 시스템</div>
+      <div style="background:var(--bg2);border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;line-height:1.8;color:var(--text)">
+        공격을 받고 <strong>점령에 성공하지 못한 경우</strong>, 방어자의 점령 점수가 차감돼요.<br><br>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+          <div style="width:100%;padding:8px 10px;background:var(--card);border-radius:8px;border:1px solid var(--border);text-align:center;box-sizing:border-box">
+            🗡️ Lv.1 공격 → <strong style="color:var(--primary)">-3pts</strong>
+          </div>
+          <div style="width:100%;padding:8px 10px;background:var(--card);border-radius:8px;border:1px solid var(--border);text-align:center;box-sizing:border-box">
+            ⚔️ Lv.2 공격 → <strong style="color:var(--primary)">-6pts</strong>
+          </div>
+          <div style="width:100%;padding:8px 10px;background:var(--card);border-radius:8px;border:1px solid var(--border);text-align:center;box-sizing:border-box">
+            🏹 Lv.3 공격 → <strong style="color:var(--primary)">-9pts</strong>
+          </div>
+        </div>
+      </div>
+      <button class="btn-p" style="width:100%;margin-bottom:8px" onclick="closeModal('updateNoticeModal')">확인</button>
+      <button onclick="dismissUpdateNotice()" style="width:100%;padding:10px;background:transparent;border:none;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit">다시 보지 않기</button>
     </div>
   </div>
 </div>
