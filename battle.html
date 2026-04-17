@@ -3360,7 +3360,7 @@ function showFailModal(myScore, prevScore, isRenew, refund=false, myLevel=1){
   S.stats.captureStreak = 0;
   // ── 방어자 점수 차감 (갱신 모드 아님 & 타인 영토 공격 실패 시) ──
   if(!isRenew && S.currentRegion && S.currentTerritory && S.currentTerritory.ownerId !== S.userId){
-    const deduct = myLevel===1 ? 3 : myLevel===2 ? 6 : 9;
+    const deduct = myLevel===1 ? 5 : myLevel===2 ? 10 : 15;
     const rid = S.currentRegion.id;
     const newScore = Math.max(0, (S.currentTerritory.score||0) - deduct);
     // Firebase 업데이트
@@ -4245,9 +4245,9 @@ init();
       <div style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:20px">
         이제 공격을 받으면 <strong style="color:var(--text)">방어 점수가 차감</strong>돼요!<br><br>
         <div style="background:var(--bg2);border-radius:10px;padding:12px;text-align:left;font-size:12px">
-          <div style="margin-bottom:4px">🗡️ Lv.1 공격 → <strong>-3pts</strong></div>
-          <div style="margin-bottom:4px">⚔️ Lv.2 공격 → <strong>-6pts</strong></div>
-          <div>🏹 Lv.3 공격 → <strong>-9pts</strong></div>
+          <div style="margin-bottom:4px">🗡️ Lv.1 공격 → <strong>-5pts</strong></div>
+          <div style="margin-bottom:4px">⚔️ Lv.2 공격 → <strong>-10pts</strong></div>
+          <div>🏹 Lv.3 공격 → <strong>-15pts</strong></div>
         </div>
       </div>
       <button class="btn-p" style="width:100%;margin-bottom:8px" onclick="closeModal('scoreDeductModal')">확인</button>
@@ -4270,13 +4270,13 @@ init();
         공격을 받으면, 방어자의 점령 점수가 차감돼요.<br><br>
         <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
           <div style="width:100%;padding:8px 10px;background:var(--card);border-radius:8px;border:1px solid var(--border);text-align:center;box-sizing:border-box">
-            🗡️ Lv.1 공격 → <strong style="color:var(--primary)">-3pts</strong>
+            🗡️ Lv.1 공격 → <strong style="color:var(--primary)">-5pts</strong>
           </div>
           <div style="width:100%;padding:8px 10px;background:var(--card);border-radius:8px;border:1px solid var(--border);text-align:center;box-sizing:border-box">
-            ⚔️ Lv.2 공격 → <strong style="color:var(--primary)">-6pts</strong>
+            ⚔️ Lv.2 공격 → <strong style="color:var(--primary)">-10pts</strong>
           </div>
           <div style="width:100%;padding:8px 10px;background:var(--card);border-radius:8px;border:1px solid var(--border);text-align:center;box-sizing:border-box">
-            🏹 Lv.3 공격 → <strong style="color:var(--primary)">-9pts</strong>
+            🏹 Lv.3 공격 → <strong style="color:var(--primary)">-15pts</strong>
           </div>
         </div>
       </div>
