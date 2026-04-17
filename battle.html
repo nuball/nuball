@@ -1262,6 +1262,7 @@ function loadTerritories(){
       }
       renderMap();
       setTimeout(()=>setMapView(_mapView), 50);
+      showUpdateNotice();
       renderRankModal();
       // 내 영토 색상/닉네임이 현재 프로필과 다르면 자동 동기화
       if(S.userId && S.color){
@@ -3339,7 +3340,7 @@ function renderLogs(){
 }
 
 // ── WIN ──
-function showFailModal(myScore, prevScore, isRenew, refund=false){
+function showFailModal(myScore, prevScore, isRenew, refund=false, myLevel=1){
   localStorage.removeItem('nbb_game_state');
   const ko = S.lang !== 'en';
   const t = document.getElementById('failTitle');
@@ -3400,7 +3401,7 @@ function onWin(){
     if(!canTake){
       S._renewMode = false;
       const lv3Refund = (myLevel === 3);
-      showFailModal(myScore, prevScore, isRenewMine, lv3Refund);
+      showFailModal(myScore, prevScore, isRenewMine, lv3Refund, myLevel);
       return;
     }
   }
