@@ -2,7 +2,7 @@ name: Daily Nuball Notification
 
 on:
   schedule:
-    - cron: '0 23 * * *'
+    - cron: '0 21 * * *'  # UTC 21:00 = KST 06:00 목표 (지연 고려)
   workflow_dispatch:
 
 jobs:
