@@ -2224,10 +2224,7 @@ function updateDailyStreak(){
 }
 
 
-function showScoreDeductModal(){
-  if(localStorage.getItem('nbb_score_deduct_seen')==='1') return;
-  setTimeout(()=>openModal('scoreDeductModal'), 400);
-}
+function showScoreDeductModal(){ return; }
 function dismissScoreDeductModal(){
   localStorage.setItem('nbb_score_deduct_seen','1');
   closeModal('scoreDeductModal');
